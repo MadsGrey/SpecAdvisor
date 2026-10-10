@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <title>System Reports</title>
+
+  <link
+    rel="icon"
+    type="image/png"
+    href="../images/SpecAdvisor-logofavicon.png?v=2"
+  >
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <link
+    rel="stylesheet"
+    href="../css/styles.css"
+  >
+
+  <!-- JSPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <!-- JSPDF AUTOTABLE -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+</head>
+
+
+<body>
+
+<div class="dashboard">
+
+
+  <!-- =====================================================
+       SIDEBAR
+  ====================================================== -->
+
+  <div
+    class="sidebar"
+    id="sidebar"
+  >
+
+    <div class="sidebar-logo">
+
+      <img
+        src="../images/SpecAdvisor-Logo.png"
+        alt="SpecAdvisor Logo"
+      >
+
+    </div>
+
+
+    <button
+      class="sidebar-item"
+      onclick="goPage('../admin/admin-dashboard.html')"
+    >
+
+      <span class="sidebar-icon">
+
+        <svg viewBox="0 0 24 24">
+
+          <path d="M3 11.5L12 4l9 7.5"></path>
+
+          <path d="M5 10v10h14V10"></path>
+
+          <path d="M9 20v-6h6v6"></path>
+
+        </svg>
+
+      </span>
+
+      <span>
+        Dashboard
+      </span>
+
+    </button>
+
+
+    <button
+      class="sidebar-item"
+      onclick="goPage('../admin/admin-manage-users.html')"
+    >
+
+      <span class="sidebar-icon">
+
+        <svg viewBox="0 0 24 24">
+
+          <circle
+            cx="9"
+            cy="8"
+            r="3"
+          ></circle>
+
+          <path
+            d="M3 20c0-3.3 2.7-6 6-6s6 3 6 6"
+          ></path>
+
+          <path
+            d="M16 11c2.2 0 4 1.8 4 4"
+          ></path>
+
+          <path
+            d="M17 5.5a3 3 0 0 1 0 5"
+          ></path>
+
+        </svg>
+
+      </span>
+
+      <span>
+        Manage Users
+      </span>
+
+    </button>
+    
+    
+
+        <!-- ADMINISTER EXAMS -->
+
+        <button
+            class="sidebar-item"
+            onclick="goPage('../admin/administer-exam.html')"
+        >
+
+            <span class="sidebar-icon">
+
+                <svg viewBox="0 0 24 24">
+
+                    <rect
+                        x="4"
+                        y="3"
+                        width="16"
+                        height="18"
+                        rx="2"
+                    ></rect>
+
+                    <path d="M8 7h8"></path>
+
+                    <path d="M8 11h8"></path>
+
+                    <path d="M8 15h5"></path>
+
+                    <path d="M16 17l2 2 4-4"></path>
+
+                </svg>
+
+            </span>
+
+            <span>
+                Administer Exams
+            </span>
+
+        </button>
+
+
+
+    <button
+      class="sidebar-item"
+      onclick="goPage('../admin/monitoring.html')"
+    >
+
+      <span class="sidebar-icon">
+
+        <svg viewBox="0 0 24 24">
+
+          <path
+            d="M3 12h4l2-7 4 14 2-7h6"
+          ></path>
+
+        </svg>
+
+      </span>
+
+      <span>
+        Monitoring Activities
+      </span>
+
+    </button>
+
+
+    <button
+      class="sidebar-item"
+      onclick="goPage('../admin/academic-management.html')"
+    >
+
+      <span class="sidebar-icon">
+
+        <svg viewBox="0 0 24 24">
+
+          <rect
+            x="4"
+            y="4"
+            width="16"
+            height="16"
+            rx="2"
+          ></rect>
+
+          <path d="M8 8h8"></path>
+
+          <path d="M8 12h8"></path>
+
+          <path d="M8 16h5"></path>
+
+        </svg>
+
+      </span>
+
+      <span>
+        Academic Management
+      </span>
+
+    </button>
+
+
+    <button
+      class="sidebar-item active"
+    >
+
+      <span class="sidebar-icon">
+
+        <svg viewBox="0 0 24 24">
+
+          <path d="M5 3h14v18H5z"></path>
+
+          <path d="M8 7h8"></path>
+
+          <path d="M8 11h8"></path>
+
+          <path d="M8 15h5"></path>
+
+        </svg>
+
+      </span>
+
+      <span>
+        System Reports
+      </span>
+
+    </button>
+
+
+    <div class="sidebar-credit">
+      ©SpecAdvisor 2026
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       MAIN
+  ====================================================== -->
+
+  <div class="main">
+
+
+    <!-- ===================================================
+         TOPBAR
+    ==================================================== -->
+
+    <div class="topbar">
+
+      <button
+        class="menu-btn"
+        onclick="toggleSidebar()"
+      >
+        ☰
+      </button>
+
+
+      <span class="title">
+        System Reports
+      </span>
+
+
+      <!-- PROFILE -->
+
+      <div class="profile-wrapper">
+
+        <button
+          class="profile-btn"
+          onclick="toggleProfileMenu()"
+          title="Account"
+        >
+
+          <svg viewBox="0 0 24 24">
+
+            <circle
+              cx="12"
+              cy="8"
+              r="4"
+            ></circle>
+
+            <path
+              d="M4 21c0-4 3.5-7 8-7s8 3 8 7"
+            ></path>
+
+          </svg>
+
+        </button>
+
+
+        <div
+          class="profile-menu"
+          id="profile-menu"
+        >
+
+          <button onclick="openProfile()">
+
+            <svg viewBox="0 0 24 24">
+
+              <circle
+                cx="12"
+                cy="8"
+                r="4"
+              ></circle>
+
+              <path
+                d="M4 21c0-4 3.5-7 8-7s8 3 8 7"
+              ></path>
+
+            </svg>
+
+            <span>
+              Profile
+            </span>
+
+          </button>
+
+
+          <button onclick="logout()">
+
+            <svg viewBox="0 0 24 24">
+
+              <path d="M10 17l5-5-5-5"></path>
+
+              <path d="M15 12H3"></path>
+
+              <path
+                d="M21 19V5a2 2 0 0 0-2-2h-5"
+              ></path>
+
+            </svg>
+
+            <span>
+              Log out
+            </span>
+
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         CONTENT
+    ====================================================== -->
+
+    <div class="content">
+
+
+      <h2 class="dashboard-title">
+        Generate System Reports
+      </h2>
+
+
+      <div class="report-panel">
+
+
+        <p class="report-desc">
+          Generate and view system-wide reports.
+        </p>
+
+
+        <!-- =================================================
+             REPORT TYPE
+        ================================================== -->
+
+        <div class="report-group">
+
+          <label>
+            Report Type
+          </label>
+
+          <select
+            id="reportType"
+            onchange="updateFilters()"
+          >
+
+            <option value="users">
+              User Accounts Report
+            </option>
+
+            <option value="activity">
+              System Activity Report
+            </option>
+
+            <option value="specialization">
+              Specialization Report
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <!-- =================================================
+             ACADEMIC YEAR
+        ================================================== -->
+
+        <div
+          class="report-group"
+          id="academicYearFilterGroup"
+        >
+
+          <label>
+            Academic Year
+          </label>
+
+          <select
+            id="academicYearFilter"
+          >
+
+            <option value="">
+              All Academic Years
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <!-- =================================================
+             ROLE
+        ================================================== -->
+
+        <div
+          class="report-group"
+          id="roleFilterGroup"
+          style="display:none;"
+        >
+
+          <label>
+            Filter Role
+          </label>
+
+          <select
+            id="roleFilter"
+            onchange="updateRoleDependentFilters()"
+          >
+
+            <option value="All">
+              All
+            </option>
+
+            <option value="Student">
+              Student
+            </option>
+
+            <option value="Faculty">
+              Faculty
+            </option>
+
+            <option value="ADMIN">
+              ADMIN
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <!-- =================================================
+             STUDENT SECTION
+        ================================================== -->
+
+        <div
+          class="report-group"
+          id="studentSectionFilterGroup"
+          style="display:none;"
+        >
+
+          <label>
+            Filter Section
+          </label>
+
+          <select
+            id="studentSectionFilter"
+          >
+
+            <option value="">
+              All Sections
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <!-- =================================================
+             FACULTY SPECIALIZATION
+        ================================================== -->
+
+        <div
+          class="report-group"
+          id="facultySpecializationFilterGroup"
+          style="display:none;"
+        >
+
+          <label>
+            Filter Specialization
+          </label>
+
+          <select
+            id="facultySpecializationFilter"
+          >
+
+            <option value="">
+              All Specializations
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <!-- =================================================
+             SPECIALIZATION REPORT - SECTION
+        ================================================== -->
+
+        <div
+          class="report-group"
+          id="sectionFilterGroup"
+          style="display:none;"
+        >
+
+          <label>
+            Filter Section
+          </label>
+
+          <select
+            id="sectionFilter"
+          >
+
+            <option value="">
+              All Sections
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <!-- =================================================
+             SPECIALIZATION REPORT - STUDENT CHOICE
+        ================================================== -->
+
+        <div
+          class="report-group"
+          id="studentChoiceSpecializationFilterGroup"
+          style="display:none;"
+        >
+
+          <label>
+            Filter Student Choice
+          </label>
+
+          <select
+            id="studentChoiceSpecializationFilter"
+          >
+
+            <option value="">
+              All Specializations
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <!-- =================================================
+             ACTIVITY DATE
+        ================================================== -->
+
+        <div
+          class="report-group"
+          id="dateFilterGroup"
+          style="display:none;"
+        >
+
+          <label>
+            Select Date
+          </label>
+
+          <input
+            type="date"
+            id="dateFilter"
+          >
+
+        </div>
+
+
+        <!-- =================================================
+             ACTIVITY TIME
+        ================================================== -->
+
+        <div
+          class="report-group"
+          id="activityTimeFilterGroup"
+          style="display:none;"
+        >
+
+          <label>
+            Select Time
+          </label>
+
+          <input
+            type="time"
+            id="activityTimeFilter"
+          >
+
+        </div>
+
+
+        <!-- =================================================
+             BUTTONS
+        ================================================== -->
+
+        <div class="report-buttons">
+
+          <button
+            class="generate-btn"
+            onclick="generateReport()"
+          >
+            Generate Report
+          </button>
+
+
+          <button
+            class="download-btn"
+            onclick="downloadReport()"
+          >
+            Download Report
+          </button>
+
+        </div>
+
+
+        <!-- =================================================
+             REPORT PREVIEW
+        ================================================== -->
+
+        <div
+          class="report-preview"
+          id="reportPreview"
+        >
+
+          <p>
+            No report generated yet.
+          </p>
+
+        </div>
+
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- =========================================================
+     ADMIN PROFILE MODAL
+========================================================= -->
+
+<div
+  class="profile-overlay"
+  id="profile-overlay"
+  onclick="closeProfileOutside(event)"
+>
+
+  <div
+    class="profile-modal"
+    onclick="event.stopPropagation()"
+  >
+
+    <div class="profile-header">
+
+      <h2>
+        My Profile
+      </h2>
+
+      <button
+        class="close-profile"
+        onclick="closeProfile()"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <div
+      class="profile-avatar"
+      id="profile-avatar"
+    >
+      A
+    </div>
+
+
+    <div class="profile-info">
+
+      <div class="profile-field">
+
+        <label>
+          Name
+        </label>
+
+        <input
+          type="text"
+          id="profile-fullname"
+          value="ADMIN"
+          disabled
+        >
+
+      </div>
+
+
+      <div class="profile-field">
+
+        <label>
+          Email
+        </label>
+
+        <input
+          type="email"
+          id="profile-email"
+          disabled
+        >
+
+      </div>
+
+
+      <div class="profile-field">
+
+        <label>
+          Role
+        </label>
+
+        <input
+          type="text"
+          id="profile-role"
+          value="ADMIN"
+          disabled
+        >
+
+      </div>
+
+    </div>
+
+
+    <div
+      class="profile-message"
+      id="profile-message"
+    ></div>
+
+
+    <div class="profile-actions">
+
+      <button
+        class="edit-profile-btn"
+        id="edit-profile-btn"
+        onclick="enableProfileEdit()"
+      >
+        Edit Profile
+      </button>
+
+
+      <button
+        class="cancel-profile-btn"
+        id="cancel-profile-btn"
+        onclick="cancelProfileEdit()"
+      >
+        Cancel
+      </button>
+
+
+      <button
+        class="save-profile-btn"
+        id="save-profile-btn"
+        onclick="saveProfile()"
+      >
+        Save Changes
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- =========================================================
+     LOGOUT MODAL
+========================================================= -->
+<div
+    id="logout-overlay"
+    class="logout-overlay"
+    onclick="closeLogoutOutside(event)"
+>
+
+    <div class="logout-modal-box">
+
+        <button
+            type="button"
+            class="logout-close-btn"
+            onclick="closeLogoutModal()"
+        >
+            ×
+        </button>
+
+        <h2>Log Out?</h2>
+
+        <p>Are you sure you want to log out?</p>
+
+        <div class="logout-actions">
+
+            <button
+                type="button"
+                class="logout-cancel-btn"
+                onclick="closeLogoutModal()"
+            >
+                Cancel
+            </button>
+
+            <button
+                type="button"
+                class="logout-confirm-btn"
+                onclick="performLogout()"
+            >
+                Log Out
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     SYSTEM REPORT SCRIPT
+========================================================= -->
+
+<script
+  type="module"
+  src="../js/system-reports.js"
+></script>
+
+
+<!-- =========================================================
+     ADMIN PROFILE SCRIPT
+========================================================= -->
+
+<script
+  type="module"
+  src="../js/admin-profile.js"
+></script>
+
+
+<!-- =========================================================
+     GENERAL SCRIPT
+========================================================= -->
+
+<script src="../js/script.js"></script>
+
+
+</body>
+
+</html>

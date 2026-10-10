@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Faculty - View Reports</title>
+
+<link
+    rel="icon"
+    type="image/png"
+    href="../images/SpecAdvisor-logofavicon.png?v=2"
+>
+
+<link
+    rel="stylesheet"
+    href="../css/styles.css"
+>
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+</head>
+
+
+<body>
+
+<div class="dashboard">
+
+
+<!-- ========================================================= -->
+<!-- SIDEBAR -->
+<!-- ========================================================= -->
+
+<div
+    class="sidebar"
+    id="sidebar"
+>
+
+    <div class="sidebar-logo">
+
+        <img
+            src="../images/SpecAdvisor-Logo.png"
+        >
+
+    </div>
+
+
+    <!-- DASHBOARD -->
+
+    <button
+        class="sidebar-item"
+        onclick="goPage('../faculty/faculty-dashboard.html')"
+    >
+
+        <span class="sidebar-icon">
+
+            <svg viewBox="0 0 24 24">
+
+                <path d="M3 11.5L12 4l9 7.5"></path>
+
+                <path d="M5 10v10h14V10"></path>
+
+                <path d="M9 20v-6h6v6"></path>
+
+            </svg>
+
+        </span>
+
+        <span>
+            Dashboard
+        </span>
+
+    </button>
+
+
+    <!-- CREATE EXAM -->
+
+    <button
+        class="sidebar-item"
+        onclick="goPage('../faculty/create-exams.html')"
+    >
+
+        <span class="sidebar-icon">
+
+            <svg viewBox="0 0 24 24">
+
+                <rect
+                    x="5"
+                    y="3"
+                    width="14"
+                    height="18"
+                    rx="2"
+                ></rect>
+
+                <path d="M8 7h8"></path>
+
+                <path d="M8 11h8"></path>
+
+                <path d="M8 15h5"></path>
+
+            </svg>
+
+        </span>
+
+        <span>
+            Create Exam
+        </span>
+
+    </button>
+
+
+    <!-- EXAM RESULTS -->
+
+    <button
+        class="sidebar-item"
+        onclick="goPage('../faculty/exam-results.html')"
+    >
+
+        <span class="sidebar-icon">
+
+            <svg viewBox="0 0 24 24">
+
+                <path d="M4 19V5"></path>
+
+                <path d="M4 19h16"></path>
+
+                <path d="M7 16l4-5 3 2 5-7"></path>
+
+            </svg>
+
+        </span>
+
+        <span>
+            Exam Results
+        </span>
+
+    </button>
+
+
+    <!-- SPECIALIZATION REPORTS -->
+
+    <button
+        class="sidebar-item active"
+    >
+
+        <span class="sidebar-icon">
+
+            <svg viewBox="0 0 24 24">
+
+                <path d="M5 4h14v16H5z"></path>
+
+                <path d="M8 8h8"></path>
+
+                <path d="M8 12h8"></path>
+
+                <path d="M8 16h5"></path>
+
+            </svg>
+
+        </span>
+
+        <span>
+            Specialization Reports
+        </span>
+
+    </button>
+
+
+    <div class="sidebar-credit">
+
+        ©SpecAdvisor 2026
+
+    </div>
+
+</div>
+
+
+
+<!-- ========================================================= -->
+<!-- MAIN -->
+<!-- ========================================================= -->
+
+<div class="main">
+
+
+<!-- ========================================================= -->
+<!-- TOPBAR -->
+<!-- ========================================================= -->
+
+<div class="topbar">
+
+
+    <button
+        class="menu-btn"
+        onclick="toggleSidebar()"
+    >
+        ☰
+    </button>
+
+
+    <span class="title">
+        Specialization Reports
+    </span>
+
+
+    <!-- FACULTY PROFILE -->
+
+    <div class="profile-wrapper">
+
+
+        <button
+            class="profile-btn"
+            onclick="toggleProfileMenu()"
+            title="Account"
+        >
+
+            <svg viewBox="0 0 24 24">
+
+                <circle
+                    cx="12"
+                    cy="8"
+                    r="4"
+                ></circle>
+
+                <path
+                    d="M4 21c0-4 3.5-7 8-7s8 3 8 7"
+                ></path>
+
+            </svg>
+
+        </button>
+
+
+        <div
+            class="profile-menu"
+            id="profile-menu"
+        >
+
+
+            <!-- PROFILE -->
+
+            <button
+                type="button"
+                onclick="openProfile()"
+            >
+
+                <svg viewBox="0 0 24 24">
+
+                    <circle
+                        cx="12"
+                        cy="8"
+                        r="4"
+                    ></circle>
+
+                    <path
+                        d="M4 21c0-4 3.5-7 8-7s8 3 8 7"
+                    ></path>
+
+                </svg>
+
+                <span>
+                    Profile
+                </span>
+
+            </button>
+
+
+            <!-- LOGOUT -->
+
+            <button
+                type="button"
+                onclick="logout()"
+            >
+
+                <svg viewBox="0 0 24 24">
+
+                    <path d="M10 17l5-5-5-5"></path>
+
+                    <path d="M15 12H3"></path>
+
+                    <path d="M21 19V5a2 2 0 0 0-2-2h-5"></path>
+
+                </svg>
+
+                <span>
+                    Log out
+                </span>
+
+            </button>
+
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- ========================================================= -->
+<!-- FACULTY PROFILE MODAL -->
+<!-- ========================================================= -->
+
+<div
+    class="profile-overlay"
+    id="profile-overlay"
+    onclick="closeProfileOutside(event)"
+>
+
+    <div
+        class="profile-modal"
+        onclick="event.stopPropagation()"
+    >
+
+
+        <div class="profile-header">
+
+            <h2>
+                My Profile
+            </h2>
+
+
+            <button
+                type="button"
+                class="close-profile"
+                onclick="closeProfile()"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <div
+            class="profile-avatar"
+            id="profile-avatar"
+        >
+            ?
+        </div>
+
+
+        <div class="profile-info">
+
+
+            <div class="profile-field">
+
+                <label>
+                    Full Name
+                </label>
+
+                <input
+                    type="text"
+                    id="profile-fullname"
+                    disabled
+                >
+
+            </div>
+
+
+            <div class="profile-field">
+
+                <label>
+                    Email
+                </label>
+
+                <input
+                    type="email"
+                    id="profile-email"
+                    disabled
+                >
+
+            </div>
+
+
+            <div class="profile-field">
+
+                <label>
+                    Academic Year
+                </label>
+
+                <input
+                    type="text"
+                    id="profile-academic-year"
+                    disabled
+                >
+
+            </div>
+
+
+            <div class="profile-field">
+
+                <label>
+                    Role
+                </label>
+
+                <input
+                    type="text"
+                    id="profile-role"
+                    disabled
+                >
+
+            </div>
+
+
+        </div>
+
+
+        <div
+            class="profile-message"
+            id="profile-message"
+        ></div>
+
+
+        <div class="profile-actions">
+
+
+            <button
+                type="button"
+                class="edit-profile-btn"
+                id="edit-profile-btn"
+                onclick="enableProfileEdit()"
+            >
+                Edit Profile
+            </button>
+
+
+            <button
+                type="button"
+                class="cancel-profile-btn"
+                id="cancel-profile-btn"
+                onclick="cancelProfileEdit()"
+            >
+                Cancel
+            </button>
+
+
+            <button
+                type="button"
+                class="save-profile-btn"
+                id="save-profile-btn"
+                onclick="saveProfile()"
+            >
+                Save Changes
+            </button>
+
+
+        </div>
+
+
+    </div>
+
+</div>
+
+
+
+<!-- ========================================================= -->
+<!-- LOGOUT MODAL -->
+<!-- IMPORTANT: OUTSIDE PROFILE MODAL -->
+<!-- ========================================================= -->
+
+<div
+    id="logout-overlay"
+    class="logout-overlay"
+    onclick="closeLogoutOutside(event)"
+>
+
+    <div
+        class="logout-modal-box"
+        onclick="event.stopPropagation()"
+    >
+
+
+        <button
+            type="button"
+            class="logout-close-btn"
+            onclick="closeLogoutModal()"
+        >
+            ×
+        </button>
+
+
+        <h2>
+            Log Out?
+        </h2>
+
+
+        <p>
+            Are you sure you want to log out?
+        </p>
+
+
+        <div class="logout-actions">
+
+
+            <button
+                type="button"
+                class="logout-cancel-btn"
+                onclick="closeLogoutModal()"
+            >
+                Cancel
+            </button>
+
+
+            <button
+                type="button"
+                class="logout-confirm-btn"
+                onclick="performLogout()"
+            >
+                Log Out
+            </button>
+
+
+        </div>
+
+
+    </div>
+
+</div>
+
+
+
+<!-- ========================================================= -->
+<!-- CONTENT -->
+<!-- ========================================================= -->
+
+<div class="content">
+
+
+    <h1 class="rec-title">
+        Student Specialization Results
+    </h1>
+
+
+    <div class="rec-description">
+        View each student's selected specialization.
+    </div>
+
+
+    <br>
+    <br>
+
+
+    <!-- FILTERS -->
+
+    <div class="report-filters">
+
+
+        <select id="academicYearFilter">
+
+            <option value="All">
+                All Academic Years
+            </option>
+
+        </select>
+
+
+        <select id="sectionFilter">
+
+            <option value="All">
+                All Sections
+            </option>
+
+        </select>
+
+
+        <input
+            type="text"
+            id="searchInput"
+            placeholder="Search student..."
+        >
+
+
+        <!-- TABLE -->
+
+        <div class="report-table-container">
+
+            <div class="table-responsive">
+
+                <table
+                    id="reportTable"
+                    class="report-table"
+                >
+
+                    <thead id="reportHead">
+
+                    </thead>
+
+
+                    <tbody id="resultsTable">
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+</div>
+
+
+</div>
+<!-- END MAIN -->
+
+
+</div>
+<!-- END DASHBOARD -->
+
+
+
+<!-- ========================================================= -->
+<!-- JAVASCRIPT -->
+<!-- ========================================================= -->
+
+<script
+    type="module"
+    src="../js/view-reports.js"
+></script>
+
+
+<script
+    type="module"
+    src="../js/faculty-profile.js"
+></script>
+
+
+<script
+    src="../js/script.js"
+></script>
+
+
+</body>
+
+</html>

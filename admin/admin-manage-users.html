@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>
+Admin - Manage Users
+</title>
+
+<link
+  rel="icon"
+  type="image/png"
+  href="../images/SpecAdvisor-logofavicon.png?v=2"
+>
+
+<link
+  rel="stylesheet"
+  href="../css/styles.css"
+>
+
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0"
+>
+
+<style>
+
+/* =========================
+   ACTIVATE / DEACTIVATE
+========================= */
+
+.switch {
+
+  position: relative;
+
+  display: inline-block;
+
+  width: 50px;
+
+  height: 24px;
+
+}
+
+.switch input {
+
+  opacity: 0;
+
+  width: 0;
+
+  height: 0;
+
+}
+
+.slider {
+
+  position: absolute;
+
+  cursor: pointer;
+
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  background: #ccc;
+
+  transition: .4s;
+
+  border-radius: 24px;
+
+}
+
+.slider:before {
+
+  position: absolute;
+
+  content: "";
+
+  height: 18px;
+  width: 18px;
+
+  left: 3px;
+  bottom: 3px;
+
+  background: white;
+
+  transition: .4s;
+
+  border-radius: 50%;
+
+}
+
+.switch input:checked + .slider {
+
+  background: #4da6b3;
+
+}
+
+.switch input:checked + .slider:before {
+
+  transform: translateX(26px);
+
+}
+
+
+/* =========================
+   LOGOUT CONFIRMATION
+========================= */
+
+.logout-overlay {
+
+  position: fixed;
+
+  inset: 0;
+
+  background: rgba(0, 0, 0, 0.35);
+
+  display: none;
+
+  align-items: center;
+
+  justify-content: center;
+
+  z-index: 9999;
+
+  padding: 20px;
+
+}
+
+.logout-overlay.show {
+
+  display: flex;
+
+}
+
+.logout-modal {
+
+  width: 100%;
+
+  max-width: 380px;
+
+  background: white;
+
+  border-radius: 18px;
+
+  padding: 28px;
+
+  text-align: center;
+
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.20);
+
+  animation: logoutModalIn 0.20s ease;
+
+}
+
+.logout-modal h2 {
+
+  margin: 0 0 10px;
+
+  color: #3036a8;
+
+  font-size: 24px;
+
+}
+
+.logout-modal p {
+
+  margin: 0 0 25px;
+
+  color: #666;
+
+  font-size: 15px;
+
+}
+
+.logout-actions {
+
+  display: flex;
+
+  justify-content: center;
+
+  gap: 12px;
+
+}
+
+.logout-actions button {
+
+  border: none;
+
+  padding: 11px 22px;
+
+  border-radius: 10px;
+
+  cursor: pointer;
+
+  font-weight: 600;
+
+  font-size: 14px;
+
+}
+
+.logout-cancel-btn {
+
+  background: #e9e9e9;
+
+  color: #444;
+
+}
+
+.logout-cancel-btn:hover {
+
+  background: #dcdcdc;
+
+}
+
+.logout-confirm-btn {
+
+  background: #ff4fa3;
+
+  color: white;
+
+}
+
+.logout-confirm-btn:hover {
+
+  background: #ed3f93;
+
+}
+
+@keyframes logoutModalIn {
+
+  from {
+
+    opacity: 0;
+
+    transform: scale(0.95);
+
+  }
+
+  to {
+
+    opacity: 1;
+
+    transform: scale(1);
+
+  }
+
+}
+
+
+/* =========================
+   USER TABLE
+========================= */
+
+.grades-table {
+
+  width: 100%;
+
+  overflow-x: auto;
+
+}
+
+.grades-table table {
+
+  width: 100%;
+
+  min-width: 900px;
+
+  border-collapse: collapse;
+
+}
+
+.grades-table th,
+.grades-table td {
+
+  text-align: center;
+
+  padding: 14px 10px;
+
+}
+
+.grades-table th {
+
+  white-space: nowrap;
+
+}
+
+.grades-table td {
+
+  vertical-align: middle;
+
+}
+
+
+/* =========================
+   ASSIGNMENT DROPDOWNS
+========================= */
+
+.user-assignment-select {
+
+  min-width: 150px;
+
+  padding: 8px 10px;
+
+  border: 1px solid #d4d4d4;
+
+  border-radius: 8px;
+
+  background: white;
+
+  font-size: 14px;
+
+  cursor: pointer;
+
+}
+
+.user-assignment-select:focus {
+
+  outline: none;
+
+  border-color: #4da6b3;
+
+}
+
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 768px) {
+
+  .logout-modal {
+
+    max-width: 340px;
+
+    padding: 24px;
+
+  }
+
+  .logout-actions {
+
+    flex-direction: column;
+
+  }
+
+  .logout-actions button {
+
+    width: 100%;
+
+  }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+<div class="dashboard">
+
+
+<!-- =========================
+     SIDEBAR
+========================= -->
+
+<div
+  class="sidebar"
+  id="sidebar"
+>
+
+  <div class="sidebar-logo">
+
+    <img
+      src="../images/SpecAdvisor-Logo.png"
+    >
+
+  </div>
+
+
+  <!-- DASHBOARD -->
+
+  <button
+    class="sidebar-item"
+    onclick="goPage('../admin/admin-dashboard.html')"
+  >
+
+    <span class="sidebar-icon">
+
+      <svg viewBox="0 0 24 24">
+
+        <path d="M3 11.5L12 4l9 7.5"></path>
+
+        <path d="M5 10v10h14V10"></path>
+
+        <path d="M9 20v-6h6v6"></path>
+
+      </svg>
+
+    </span>
+
+    <span>
+      Dashboard
+    </span>
+
+  </button>
+
+
+  <!-- MANAGE USERS -->
+
+  <button
+    class="sidebar-item active"
+  >
+
+    <span class="sidebar-icon">
+
+      <svg viewBox="0 0 24 24">
+
+        <circle
+          cx="9"
+          cy="8"
+          r="3"
+        ></circle>
+
+        <path
+          d="M3 20c0-3.3 2.7-6 6-6s6 3 6 6"
+        ></path>
+
+        <path
+          d="M16 11c2.2 0 4 1.8 4 4"
+        ></path>
+
+        <path
+          d="M17 5.5a3 3 0 0 1 0 5"
+        ></path>
+
+      </svg>
+
+    </span>
+
+    <span>
+      Manage Users
+    </span>
+
+  </button>
+
+  
+
+        <!-- ADMINISTER EXAMS -->
+
+        <button
+            class="sidebar-item"
+            onclick="goPage('../admin/administer-exam.html')"
+        >
+
+            <span class="sidebar-icon">
+
+                <svg viewBox="0 0 24 24">
+
+                    <rect
+                        x="4"
+                        y="3"
+                        width="16"
+                        height="18"
+                        rx="2"
+                    ></rect>
+
+                    <path d="M8 7h8"></path>
+
+                    <path d="M8 11h8"></path>
+
+                    <path d="M8 15h5"></path>
+
+                    <path d="M16 17l2 2 4-4"></path>
+
+                </svg>
+
+            </span>
+
+            <span>
+                Administer Exams
+            </span>
+
+        </button>
+
+
+
+  <!-- MONITORING -->
+
+  <button
+    class="sidebar-item"
+    onclick="goPage('../admin/monitoring.html')"
+  >
+
+    <span class="sidebar-icon">
+
+      <svg viewBox="0 0 24 24">
+
+        <path
+          d="M3 12h4l2-7 4 14 2-7h6"
+        ></path>
+
+      </svg>
+
+    </span>
+
+    <span>
+      Monitoring Activities
+    </span>
+
+  </button>
+
+
+  <!-- ACADEMIC MANAGEMENT -->
+
+  <button
+    class="sidebar-item"
+    onclick="goPage('../admin/academic-management.html')"
+  >
+
+    <span class="sidebar-icon">
+
+      <svg viewBox="0 0 24 24">
+
+        <rect
+          x="4"
+          y="4"
+          width="16"
+          height="16"
+          rx="2"
+        ></rect>
+
+        <path d="M8 8h8"></path>
+
+        <path d="M8 12h8"></path>
+
+        <path d="M8 16h5"></path>
+
+      </svg>
+
+    </span>
+
+    <span>
+      Academic Management
+    </span>
+
+  </button>
+
+
+  <!-- SYSTEM REPORTS -->
+
+  <button
+    class="sidebar-item"
+    onclick="goPage('../admin/system-reports.html')"
+  >
+
+    <span class="sidebar-icon">
+
+      <svg viewBox="0 0 24 24">
+
+        <path d="M5 3h14v18H5z"></path>
+
+        <path d="M8 7h8"></path>
+
+        <path d="M8 11h8"></path>
+
+        <path d="M8 15h5"></path>
+
+      </svg>
+
+    </span>
+
+    <span>
+      System Reports
+    </span>
+
+  </button>
+
+
+  <div class="sidebar-credit">
+
+    ©SpecAdvisor 2026
+
+  </div>
+
+</div>
+
+
+<!-- =========================
+     MAIN
+========================= -->
+
+<div class="main">
+
+
+<!-- =========================
+     TOPBAR
+========================= -->
+
+<div class="topbar">
+
+  <button
+    class="menu-btn"
+    onclick="toggleSidebar()"
+  >
+    ☰
+  </button>
+
+
+  <span class="title">
+    Manage Users
+  </span>
+
+
+  <!-- PROFILE -->
+
+  <div class="profile-wrapper">
+
+    <button
+      class="profile-btn"
+      onclick="toggleProfileMenu()"
+      title="Account"
+    >
+
+      <svg viewBox="0 0 24 24">
+
+        <circle
+          cx="12"
+          cy="8"
+          r="4"
+        ></circle>
+
+        <path
+          d="M4 21c0-4 3.5-7 8-7s8 3 8 7"
+        ></path>
+
+      </svg>
+
+    </button>
+
+
+    <div
+      class="profile-menu"
+      id="profile-menu"
+    >
+
+      <!-- PROFILE -->
+
+      <button
+        onclick="openProfile()"
+      >
+
+        <svg viewBox="0 0 24 24">
+
+          <circle
+            cx="12"
+            cy="8"
+            r="4"
+          ></circle>
+
+          <path
+            d="M4 21c0-4 3.5-7 8-7s8 3 8 7"
+          ></path>
+
+        </svg>
+
+        <span>
+          Profile
+        </span>
+
+      </button>
+
+
+      <!-- LOG OUT -->
+
+      <button
+        onclick="logout()"
+      >
+
+        <svg viewBox="0 0 24 24">
+
+          <path d="M10 17l5-5-5-5"></path>
+
+          <path d="M15 12H3"></path>
+
+          <path
+            d="M21 19V5a2 2 0 0 0-2-2h-5"
+          ></path>
+
+        </svg>
+
+        <span>
+          Log out
+        </span>
+
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- =========================
+     CONTENT
+========================= -->
+
+<div class="content">
+
+
+<!-- =========================
+     FILTER CARDS
+========================= -->
+
+<div class="cards">
+
+  <div
+    class="card"
+    onclick="filterByRole('all')"
+  >
+    All
+  </div>
+
+
+  <div
+    class="card"
+    onclick="filterByRole('Student')"
+  >
+    Students
+  </div>
+
+
+  <div
+    class="card"
+    onclick="filterByRole('Faculty/Admin')"
+  >
+    Faculty
+  </div>
+
+</div>
+
+
+<!-- =========================
+     SEARCH
+========================= -->
+
+<input
+  type="text"
+  id="searchInput"
+  placeholder="Search..."
+  class="search-input"
+  onkeyup="searchUsers()"
+>
+
+
+<br>
+<br>
+
+
+<!-- =========================
+     USERS TABLE
+========================= -->
+
+<div class="grades-table">
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>
+User
+</th>
+
+<th>
+Role
+</th>
+
+<th>
+Section
+</th>
+
+<th>
+Specialization
+</th>
+
+<th>
+Status
+</th>
+
+<th>
+Activate / Deactivate
+</th>
+
+</tr>
+
+</thead>
+
+
+<tbody id="userTable">
+
+<tr class="no-data">
+
+<td colspan="6">
+
+No registered users yet
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- =========================
+     ADMIN PROFILE MODAL
+========================= -->
+
+<div
+  class="profile-overlay"
+  id="profile-overlay"
+  onclick="closeProfileOutside(event)"
+>
+
+  <div
+    class="profile-modal"
+    onclick="event.stopPropagation()"
+  >
+
+    <div class="profile-header">
+
+      <h2>
+        My Profile
+      </h2>
+
+      <button
+        class="close-profile"
+        onclick="closeProfile()"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <div
+      class="profile-avatar"
+      id="profile-avatar"
+    >
+      A
+    </div>
+
+
+    <div class="profile-info">
+
+
+      <!-- NAME -->
+
+      <div class="profile-field">
+
+        <label>
+          Name
+        </label>
+
+        <input
+          type="text"
+          id="profile-fullname"
+          value="ADMIN"
+          disabled
+        >
+
+      </div>
+
+
+      <!-- EMAIL -->
+
+      <div class="profile-field">
+
+        <label>
+          Email
+        </label>
+
+        <input
+          type="email"
+          id="profile-email"
+          disabled
+        >
+
+      </div>
+
+
+      <!-- ROLE -->
+
+      <div class="profile-field">
+
+        <label>
+          Role
+        </label>
+
+        <input
+          type="text"
+          id="profile-role"
+          value="ADMIN"
+          disabled
+        >
+
+      </div>
+
+
+    </div>
+
+
+    <div
+      class="profile-message"
+      id="profile-message"
+    ></div>
+
+
+    <div class="profile-actions">
+
+      <button
+        class="edit-profile-btn"
+        id="edit-profile-btn"
+        onclick="enableProfileEdit()"
+      >
+        Edit Profile
+      </button>
+
+
+      <button
+        class="cancel-profile-btn"
+        id="cancel-profile-btn"
+        onclick="cancelProfileEdit()"
+      >
+        Cancel
+      </button>
+
+
+      <button
+        class="save-profile-btn"
+        id="save-profile-btn"
+        onclick="saveProfile()"
+      >
+        Save Changes
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- =========================
+     LOGOUT CONFIRMATION
+========================= -->
+<div
+    id="logout-overlay"
+    class="logout-overlay"
+    onclick="closeLogoutOutside(event)"
+>
+
+    <div class="logout-modal-box">
+
+        <button
+            type="button"
+            class="logout-close-btn"
+            onclick="closeLogoutModal()"
+        >
+            ×
+        </button>
+
+        <h2>Log Out?</h2>
+
+        <p>Are you sure you want to log out?</p>
+
+        <div class="logout-actions">
+
+            <button
+                type="button"
+                class="logout-cancel-btn"
+                onclick="closeLogoutModal()"
+            >
+                Cancel
+            </button>
+
+            <button
+                type="button"
+                class="logout-confirm-btn"
+                onclick="performLogout()"
+            >
+                Log Out
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================
+     SCRIPTS
+========================= -->
+
+<script
+  type="module"
+  src="../js/admin-manage-users.js"
+></script>
+
+<script
+  type="module"
+  src="../js/admin-profile.js"
+></script>
+
+<script
+  src="../js/script.js"
+></script>
+
+
+</body>
+
+</html>

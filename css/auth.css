@@ -1,0 +1,1025 @@
+/* SPECADVISOR AUTH PAGES    */
+
+/* RESET */
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* BODY */
+
+body{
+display:flex;
+min-height:100vh;
+overflow:hidden;
+}
+
+/* LEFT PANEL */
+
+.left{
+flex:1;
+display:flex;
+justify-content:center;
+align-items:center;
+flex-direction:column;
+position:relative;
+padding:20px;
+}
+
+/* LOGIN COLOR */
+
+.login-page .left{
+background:#8ec6d1;
+}
+
+/* SIGNUP COLOR */
+
+.signup-page .left{
+background:#f39ac2;
+}
+
+/* WATERMARK */
+
+.left::after{
+content:"";
+position:absolute;
+top:50%;
+left:50%;
+width:650px;
+height:1500px;
+background-image:url('/images/meneseslogo.png');
+background-repeat:no-repeat;
+background-position:center;
+background-size:contain;
+opacity:.08;
+transform:translate(-50%,-50%);
+pointer-events:none;
+}
+
+/* RIGHT */
+
+.right{
+flex:1;
+display:flex;
+justify-content:center;
+align-items:center;
+background:#f5f5f5;
+padding:20px;
+}
+
+.right img{
+max-width:100%;
+max-height:120%;
+object-fit:contain;
+}
+
+/* FORM */
+
+input,
+select{
+width:250px;
+padding:15px;
+margin:10px 0;
+border:1px solid #ccc;
+border-radius:5px;
+font-size:16px;
+position:relative;
+z-index:2;
+}
+
+button{
+width:250px;
+padding:15px;
+margin-top:15px;
+border:none;
+border-radius:5px;
+cursor:pointer;
+font-size:16px;
+font-weight:bold;
+color:white;
+position:relative;
+z-index:2;
+transition:.25s;
+}
+
+/* LOGIN BUTTON */
+
+.login-page button{
+background:#8ec6d1;
+}
+
+.login-page button:hover{
+background:#73a4b3;
+}
+
+/* SIGNUP BUTTON */
+
+.signup-page button{
+background:#ff4fa3;
+}
+
+.signup-page button:hover{
+background:#d075a8;
+}
+/* PASSWORD FIELD */
+
+.password-field {
+    position: relative;
+    width: 250px;
+    max-width: 100%;
+    margin: 10px 0;
+}
+
+.password-field input {
+    width: 100%;
+    padding: 15px 48px 15px 15px;
+    margin: 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    height: 50px;
+}
+
+/* OUR CUSTOM EYE */
+
+.password-eye {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+
+    color: #777;
+    cursor: pointer;
+    user-select: none;
+    z-index: 10;
+}
+
+.password-eye:hover {
+    color: #ff4fa3;
+}
+
+.password-eye svg {
+    display: block;
+    width: 20px;
+    height: 20px;
+}
+
+.login-page .left > input[type="text"],
+.login-page .password-field {
+    width: 100%;
+    max-width: 250px;
+    box-sizing: border-box;
+}
+
+/* LINKS */
+
+.signup-link{
+margin-top:20px;
+font-size:14px;
+z-index:2;
+}
+
+.signup-link a{
+text-decoration:none;
+font-weight:bold;
+color:white;
+}
+
+.signup-link a:hover{
+text-decoration:underline;
+}
+
+/* HIDDEN */
+
+.hidden{
+display:none !important;
+}
+
+/* STUDENT & FACULTY FORMS */
+
+#studentForm,
+#facultyForm{
+width:250px;
+}
+
+/* MOBILE */
+@media only screen and (max-width: 768px) {
+
+    body {
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .right {
+        order: -1;
+        width: 100%;
+        height: 180px;
+        padding: 20px;
+    }
+
+    .right img {
+        width: 180px;
+        max-width: 80%;
+        height: auto;
+    }
+
+    .left {
+        width: 100%;
+        padding: 30px 20px 50px;
+        justify-content: flex-start;
+        align-items: center;
+    }
+
+    .left > input,
+    .left > select,
+    .password-field,
+    #studentForm,
+    #facultyForm {
+        width: 100%;
+        max-width: 350px;
+    }
+
+    #studentForm,
+    #facultyForm {
+        margin: 0 auto;
+    }
+
+    #studentForm:not(.hidden),
+    #facultyForm:not(.hidden) {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+    }
+
+    input,
+    select,
+    button {
+        width: 100%;
+        max-width: 350px;
+    }
+
+    .password-field input {
+        width: 100%;
+    }
+
+    .signup-link {
+        text-align: center;
+    }
+
+    .left::after {
+        width: 120px;
+        height: 120px;
+        opacity: .03;
+    }
+    .login-page .left > input[type="text"],
+.login-page .password-field {
+    width: 100%;
+    max-width: 350px;
+    box-sizing: border-box;
+}
+}
+
+/* Student & Faculty */
+
+#studentForm,
+#facultyForm{
+width:100%;
+max-width:350px;
+margin:0 auto;
+}
+
+#studentForm:not(.hidden),
+#facultyForm:not(.hidden){
+display:flex;
+flex-direction:column;
+align-items:center;
+}
+
+/* Signup Link */
+
+.signup-link{
+text-align:center;
+}
+
+/* DESKTOP FIELD SIZING (must stay below the mobile media query) */
+
+@media only screen and (min-width: 769px) {
+  input,
+  select,
+  button{
+  width:250px;
+  max-width:250px;
+  }
+}
+/* AUTH PROCESSING */
+
+.auth-processing-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.45);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:9999;
+    padding:20px;
+}
+
+.auth-processing-overlay.active{
+    display:flex;
+}
+
+.auth-processing-box{
+    width:100%;
+    max-width:340px;
+    background:white;
+    border-radius:16px;
+    padding:30px 25px;
+    text-align:center;
+    box-shadow:0 15px 40px rgba(0,0,0,.25);
+    animation:authPopup .2s ease;
+}
+
+.auth-processing-box h3{
+    margin:15px 0 8px;
+    color:#2f2fa2;
+    font-size:20px;
+}
+
+.auth-processing-box p{
+    color:#666;
+    font-size:14px;
+    line-height:1.5;
+}
+
+.auth-spinner{
+    width:42px;
+    height:42px;
+    border:4px solid #e5e5e5;
+    border-top:4px solid #ff4fa3;
+    border-radius:50%;
+    margin:0 auto;
+    animation:authSpin .8s linear infinite;
+}
+
+@keyframes authSpin{
+    from{
+        transform:rotate(0deg);
+    }
+
+    to{
+        transform:rotate(360deg);
+    }
+}
+
+@keyframes authPopup{
+    from{
+        opacity:0;
+        transform:scale(.95);
+    }
+
+    to{
+        opacity:1;
+        transform:scale(1);
+    }
+}
+
+button:disabled{
+    opacity:.65;
+    cursor:not-allowed;
+}
+
+/* OTHER LOGIN LINKS */
+
+.other-login-links {
+    margin-top: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 14px;
+    position: relative;
+    z-index: 2;
+}
+
+.other-login-links a {
+    color: #3d7a84;
+    text-decoration: none;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.other-login-links a:hover {
+    text-decoration: underline;
+}
+
+.other-login-links span {
+    color: #777;
+}
+
+/* MOBILE */
+
+@media only screen and (max-width: 768px) {
+
+    .other-login-links {
+        flex-wrap: wrap;
+        text-align: center;
+    }
+
+}
+/* ============================================================
+   FORGOT PASSWORD
+============================================================ */
+
+.forgot-page .left{
+    background:#8ec6d1;
+    text-align:center;
+}
+
+
+/* FORGOT PASSWORD LOGO */
+
+.forgot-logo{
+    width:80px;
+    height:auto;
+    margin-bottom:18px;
+    position:relative;
+    z-index:2;
+}
+
+
+/* TITLE */
+
+.forgot-page h2{
+    color:white;
+    font-size:28px;
+    margin-bottom:8px;
+    position:relative;
+    z-index:2;
+}
+
+
+/* SUBTITLE */
+
+.forgot-subtitle{
+    width:100%;
+    max-width:420px;
+    color:white;
+    font-size:14px;
+    line-height:1.5;
+    margin-bottom:22px;
+    position:relative;
+    z-index:2;
+}
+
+
+/* FORM */
+
+.forgot-form{
+    width:250px;
+    position:relative;
+    z-index:2;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+}
+
+
+/* LABEL */
+
+.forgot-form label{
+    width:100%;
+    text-align:left;
+    color:white;
+    font-size:14px;
+    font-weight:600;
+    margin-bottom:5px;
+}
+
+
+/* INPUT */
+
+.forgot-form input{
+    width:250px;
+    height:50px;
+    padding:15px;
+    margin:0 0 12px 0;
+    border:1px solid #ccc;
+    border-radius:5px;
+    font-size:16px;
+    outline:none;
+    background:white;
+    color:#333;
+}
+
+
+.forgot-form input:focus{
+    border-color:#2f2fa2;
+    box-shadow:0 0 6px rgba(47,47,162,.25);
+}
+
+
+/* BUTTON */
+
+.forgot-form button{
+    width:250px;
+    height:50px;
+    margin:0;
+    background:#2f2fa2;
+    border:none;
+    border-radius:5px;
+    color:white;
+    font-size:15px;
+    font-weight:bold;
+    cursor:pointer;
+    transition:.25s;
+}
+
+
+.forgot-form button:hover{
+    background:#4444c9;
+    transform:translateY(-2px);
+}
+
+
+/* NOTE */
+
+.forgot-note{
+    width:250px;
+    margin-top:14px;
+    color:white;
+    font-size:12px;
+    line-height:1.5;
+}
+
+
+/* BACK TO LOGIN */
+
+.back-login{
+    margin-top:18px;
+    color:white;
+    font-size:14px;
+    font-weight:bold;
+    text-decoration:none;
+}
+
+
+.back-login:hover{
+    text-decoration:underline;
+}
+
+
+/* ============================================================
+   FORGOT PASSWORD MOBILE
+============================================================ */
+
+@media only screen and (max-width:768px){
+
+    .forgot-page .left{
+        order:2;
+        min-height:calc(100vh - 180px);
+        padding:35px 20px 45px;
+    }
+
+
+    .forgot-page .right{
+        order:1;
+        width:100%;
+        height:180px;
+        padding:20px;
+    }
+
+
+    .forgot-page .right img{
+        width:180px;
+        max-width:80%;
+        height:auto;
+    }
+
+
+    .forgot-logo{
+        width:70px;
+    }
+
+
+    .forgot-page h2{
+        font-size:24px;
+    }
+
+
+    .forgot-subtitle{
+        max-width:350px;
+        font-size:13px;
+    }
+
+
+    .forgot-form{
+        width:100%;
+        max-width:350px;
+    }
+
+
+    .forgot-form label,
+    .forgot-form input,
+    .forgot-form button,
+    .forgot-note{
+        width:100%;
+        max-width:350px;
+    }
+
+}
+/* =====================================================
+   FORGOT PASSWORD
+===================================================== */
+
+.forgot-page .left {
+    background: #f39ac2;
+
+    display: flex;
+    flex-direction: column;
+
+    justify-content: center;
+    align-items: center;
+
+    text-align: center;
+}
+
+
+/* TITLE */
+
+.forgot-page h2 {
+    color: white;
+
+    font-size: 28px;
+
+    margin-bottom: 8px;
+}
+
+
+/* DESCRIPTION */
+
+.forgot-subtitle {
+    color: white;
+
+    font-size: 14px;
+
+    line-height: 1.5;
+
+    width: 250px;
+
+    margin-bottom: 20px;
+}
+
+
+/* FORM */
+
+.forgot-form {
+    width: 250px;
+
+    display: flex;
+    flex-direction: column;
+
+    align-items: center;
+}
+
+
+/* EMAIL */
+
+.forgot-form input {
+    width: 250px;
+    height: 50px;
+
+    padding: 15px;
+
+    margin-bottom: 12px;
+
+    border: 1px solid #ccc;
+    border-radius: 5px;
+
+    background: white;
+
+    font-size: 16px;
+
+    box-sizing: border-box;
+
+    outline: none;
+}
+
+.forgot-form input:focus {
+    border-color: #2f2fa2;
+
+    box-shadow:
+        0 0 5px rgba(47, 47, 162, 0.2);
+}
+
+
+/* BUTTON */
+
+.forgot-form button {
+    width: 250px;
+    height: 50px;
+
+    background: #d95b91;
+
+    border: none;
+    border-radius: 5px;
+
+    color: white;
+
+    font-size: 15px;
+    font-weight: bold;
+
+    cursor: pointer;
+
+    transition: 0.25s;
+}
+
+.forgot-form button:hover {
+    background: #c4477d;
+
+    transform: translateY(-2px);
+}
+
+.forgot-form button:disabled {
+    background: #d98aaa;
+
+    opacity: 0.8;
+
+    cursor: not-allowed;
+
+    transform: none;
+}
+
+
+/* BACK TO LOGIN */
+
+.back-login {
+    color: #b83f70;
+
+    cursor: pointer;
+
+    margin-top: 10px;
+
+    font-size: 14px;
+
+    font-weight: bold;
+
+    text-align: center;
+}
+
+.back-login:hover {
+    color: #96325c;
+
+    text-decoration: underline;
+}
+
+/* MESSAGE */
+
+.forgot-message {
+    width: 250px;
+
+    min-height: 20px;
+
+    margin-top: 12px;
+
+    color: white;
+
+    font-size: 13px;
+
+    line-height: 1.4;
+}
+
+
+/* BACK TO LOGIN */
+
+.back-login {
+    color: #3d7a84;
+
+    cursor: pointer;
+
+    margin-top: 10px;
+
+    font-size: 14px;
+
+    font-weight: bold;
+
+    text-align: center;
+}
+
+.back-login:hover {
+    text-decoration: underline;
+}
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media only screen and (max-width: 768px) {
+
+    .forgot-page .left {
+        order: 2;
+
+        min-height: calc(100vh - 180px);
+
+        padding: 40px 20px;
+    }
+
+
+    .forgot-page .right {
+        order: 1;
+
+        width: 100%;
+
+        height: 180px;
+
+        padding: 20px;
+    }
+
+
+    .forgot-page .right img {
+        width: 180px;
+
+        max-width: 80%;
+
+        height: auto;
+    }
+
+
+    .forgot-page h2 {
+        font-size: 24px;
+    }
+
+
+    .forgot-subtitle {
+        width: 250px;
+
+        font-size: 13px;
+    }
+
+
+    .forgot-form {
+        width: 250px;
+    }
+
+}
+
+/* =========================================================
+   AUTH LOADING / PROCESSING OVERLAY
+========================================================= */
+
+.auth-loading,
+.auth-processing-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+
+    width: 100vw !important;
+    height: 100vh !important;
+
+    background: rgba(0, 0, 0, 0.45) !important;
+
+    display: none !important;
+
+    align-items: center !important;
+    justify-content: center !important;
+
+    padding: 20px !important;
+
+    box-sizing: border-box !important;
+
+    z-index: 999999 !important;
+}
+
+.auth-loading.active,
+.auth-processing-overlay.active {
+    display: flex !important;
+}
+
+.auth-loading.hidden,
+.auth-processing-overlay.hidden {
+    display: none !important;
+}
+
+
+/* LOADING BOX */
+
+.auth-processing-box {
+    position: relative !important;
+
+    width: 100% !important;
+    max-width: 380px !important;
+
+    background: #ffffff !important;
+
+    border-radius: 16px !important;
+
+    padding: 28px 25px !important;
+
+    box-sizing: border-box !important;
+
+    text-align: center !important;
+
+    box-shadow:
+        0 15px 40px rgba(0, 0, 0, 0.25) !important;
+}
+
+
+/* SPINNER */
+
+.auth-spinner {
+    width: 42px;
+    height: 42px;
+
+    margin: 0 auto 15px;
+
+    border: 4px solid #eeeeee;
+    border-top: 4px solid #3d7a84;
+
+    border-radius: 50%;
+
+    animation: authSpin 0.8s linear infinite;
+}
+
+@keyframes authSpin {
+
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+
+}
+
+
+/* LOADING TEXT */
+
+.auth-processing-box h3 {
+    margin: 0 0 8px;
+
+    color: #333;
+
+    font-size: 20px;
+}
+
+.auth-processing-box p {
+    margin: 0;
+
+    color: #666;
+
+    font-size: 14px;
+
+    line-height: 1.5;
+}
+
+
+/* MOBILE */
+
+@media screen and (max-width: 600px) {
+
+    .auth-loading,
+    .auth-processing-overlay {
+        padding: 15px !important;
+    }
+
+    .auth-processing-box {
+        max-width: 320px !important;
+
+        padding: 22px 18px !important;
+
+        border-radius: 14px !important;
+    }
+
+    .auth-spinner {
+        width: 36px;
+        height: 36px;
+
+        border-width: 3px;
+
+        margin-bottom: 12px;
+    }
+
+    .auth-processing-box h3 {
+        font-size: 17px;
+    }
+
+    .auth-processing-box p {
+        font-size: 12px;
+    }
+
+}

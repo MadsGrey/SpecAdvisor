@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>SpecAdvisor Login</title>
+
+    <link
+        rel="icon"
+        type="image/png"
+        href="/images/SpecAdvisor-logofavicon.png?v=2"
+    >
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <link
+        rel="stylesheet"
+        href="./css/auth.css"
+    >
+
+</head>
+
+
+<body class="login-page">
+
+
+<!-- =========================
+     LEFT LOGIN PANEL
+========================== -->
+
+<div class="left">
+
+
+    <!-- EMAIL -->
+
+    <input
+        type="text"
+        id="username"
+        placeholder="Email"
+        autocomplete="username"
+    >
+
+
+
+    <!-- PASSWORD -->
+
+    <div class="password-field">
+
+        <input
+            type="password"
+            id="password"
+            placeholder="Password"
+            autocomplete="current-password"
+        >
+
+
+        <span
+            class="password-eye"
+            onclick="togglePassword('password', this)"
+        >
+
+            <!-- OPEN EYE -->
+
+            <svg
+                class="eye-open"
+                viewBox="0 0 24 24"
+                width="20"
+                height="20"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+            >
+
+                <path
+                    d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+                ></path>
+
+                <circle
+                    cx="12"
+                    cy="12"
+                    r="3"
+                ></circle>
+
+            </svg>
+
+
+            <!-- CLOSED EYE -->
+
+            <svg
+                class="eye-closed hidden"
+                viewBox="0 0 24 24"
+                width="20"
+                height="20"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+            >
+
+                <path
+                    d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.5 18.5 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                ></path>
+
+                <line
+                    x1="1"
+                    y1="1"
+                    x2="23"
+                    y2="23"
+                ></line>
+
+            </svg>
+
+        </span>
+
+    </div>
+
+
+
+    <!-- LOGIN BUTTON -->
+
+    <button
+        id="loginBtn"
+        onclick="login()"
+    >
+        Log In
+    </button>
+
+
+
+    <!-- FORGOT PASSWORD -->
+
+    <p
+    onclick="window.location.href='forgot-password.html?role=student'"
+    style="
+        color:#3d7a84;
+        cursor:pointer;
+        margin-top:10px;
+        text-align:center;
+    "
+>
+    Forgot Password?
+</p>
+
+
+    <!-- =========================
+         OTHER LOGIN PAGES
+    ========================== -->
+
+    <div class="other-login-links">
+
+        <a href="./faculty/faculty-login.html">
+            Faculty Login
+        </a>
+
+
+        <span>|</span>
+
+
+        <a href="./admin/admin-login.html">
+            Admin Login
+        </a>
+
+    </div>
+
+
+
+</div>
+
+
+
+<!-- =========================
+     RIGHT SIDE
+========================== -->
+
+<div class="right">
+
+    <img
+        src="./images/SpecAdvisor-Logo.png"
+        alt="SpecAdvisor Logo"
+    >
+
+</div>
+
+
+
+<!-- =========================
+     PROCESSING POPUP
+========================== -->
+
+<div
+    class="auth-processing-overlay"
+    id="auth-processing-overlay"
+>
+
+    <div class="auth-processing-box">
+
+        <div class="auth-spinner"></div>
+
+
+        <h3 id="auth-processing-title">
+            Logging you in...
+        </h3>
+
+
+        <p id="auth-processing-message">
+            Please wait while we take you to your dashboard.
+        </p>
+
+    </div>
+
+</div>
+
+
+
+<!-- =========================
+     LOGIN SCRIPT
+========================== -->
+
+<script
+    type="module"
+    src="./js/login.js"
+></script>
+
+
+
+<!-- =========================
+     PASSWORD VISIBILITY
+========================== -->
+
+<script>
+
+function togglePassword(inputId, iconSpan){
+
+    const input =
+        document.getElementById(inputId);
+
+
+    const openEye =
+        iconSpan.querySelector(".eye-open");
+
+
+    const closedEye =
+        iconSpan.querySelector(".eye-closed");
+
+
+    if(input.type === "password"){
+
+        input.type = "text";
+
+        openEye.classList.add("hidden");
+
+        closedEye.classList.remove("hidden");
+
+    }
+
+    else{
+
+        input.type = "password";
+
+        openEye.classList.remove("hidden");
+
+        closedEye.classList.add("hidden");
+
+    }
+
+}
+
+</script>
+
+
+</body>
+
+</html>

@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>SpecAdvisor - Faculty Sign Up</title>
+
+    <link
+        rel="icon"
+        type="image/png"
+        href="../images/SpecAdvisor-logofavicon.png?v=2"
+    >
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <link
+        rel="stylesheet"
+        href="../css/auth.css"
+    >
+
+    <style>
+
+        /* =========================================
+           FACULTY SIGNUP PROCESSING OVERLAY
+           ========================================= */
+
+        #auth-processing-overlay {
+            position: fixed !important;
+            inset: 0 !important;
+
+            width: 100vw !important;
+            height: 100vh !important;
+
+            margin: 0 !important;
+            padding: 20px !important;
+
+            box-sizing: border-box !important;
+
+            background: rgba(0, 0, 0, 0.45) !important;
+
+            display: none !important;
+
+            align-items: center !important;
+            justify-content: center !important;
+
+            z-index: 999999 !important;
+        }
+
+        #auth-processing-overlay.active {
+            display: flex !important;
+        }
+
+        #auth-processing-overlay.hidden {
+            display: none !important;
+        }
+
+        /* =========================================
+           PROCESSING BOX
+           ========================================= */
+
+        #auth-processing-overlay .auth-processing-box {
+            position: relative !important;
+
+            width: 100% !important;
+            max-width: 380px !important;
+
+            margin: 0 auto !important;
+            padding: 30px 25px !important;
+
+            box-sizing: border-box !important;
+
+            background: white !important;
+
+            border-radius: 16px !important;
+
+            text-align: center !important;
+
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25) !important;
+        }
+
+        /* =========================================
+           SPINNER
+           ========================================= */
+
+        #auth-processing-overlay .auth-spinner {
+            width: 45px !important;
+            height: 45px !important;
+
+            margin: 0 auto 18px !important;
+
+            border: 5px solid #eeeeee !important;
+            border-top: 5px solid #ff4fa3 !important;
+
+            border-radius: 50% !important;
+
+            animation: facultySignupSpin 0.8s linear infinite !important;
+        }
+
+        @keyframes facultySignupSpin {
+
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+
+        }
+
+        /* =========================================
+           PROCESSING TEXT
+           ========================================= */
+
+        #auth-processing-overlay .auth-processing-box h3 {
+            margin: 0 0 10px !important;
+
+            color: #333333 !important;
+
+            font-size: 20px !important;
+        }
+
+        #auth-processing-overlay .auth-processing-box p {
+            margin: 0 !important;
+
+            color: #666666 !important;
+
+            font-size: 14px !important;
+
+            line-height: 1.5 !important;
+        }
+
+        /* =========================================
+           MOBILE
+           ========================================= */
+
+        @media (max-width: 600px) {
+
+            #auth-processing-overlay {
+                padding: 15px !important;
+            }
+
+            #auth-processing-overlay .auth-processing-box {
+                max-width: 340px !important;
+
+                padding: 25px 20px !important;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body class="signup-page">
+
+
+    <!-- =========================================
+         LEFT SIDE - SIGNUP FORM
+         ========================================= -->
+
+    <div class="left">
+
+        <h2 style="color: white;">
+            FACULTY
+        </h2>
+
+
+        <div
+            id="facultyForm"
+            class="form-box"
+        >
+
+            <input
+                type="text"
+                id="facultyFullname"
+                placeholder="Full Name"
+                autocomplete="name"
+            >
+
+
+            <input
+                type="email"
+                id="facultyEmail"
+                placeholder="Email"
+                autocomplete="email"
+            >
+
+
+            <div class="password-field">
+
+                <input
+                    type="password"
+                    id="facultyPassword"
+                    placeholder="Password"
+                    autocomplete="new-password"
+                >
+
+
+                <span
+                    class="password-eye"
+                    onclick="togglePassword('facultyPassword', this)"
+                >
+
+                    <!-- OPEN EYE -->
+
+                    <svg
+                        class="eye-open"
+                        viewBox="0 0 24 24"
+                        width="20"
+                        height="20"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    >
+
+                        <path
+                            d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+                        ></path>
+
+                        <circle
+                            cx="12"
+                            cy="12"
+                            r="3"
+                        ></circle>
+
+                    </svg>
+
+
+                    <!-- CLOSED EYE -->
+
+                    <svg
+                        class="eye-closed hidden"
+                        viewBox="0 0 24 24"
+                        width="20"
+                        height="20"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    >
+
+                        <path
+                            d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.5 18.5 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                        ></path>
+
+                        <line
+                            x1="1"
+                            y1="1"
+                            x2="23"
+                            y2="23"
+                        ></line>
+
+                    </svg>
+
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- SIGNUP BUTTON -->
+
+        <button
+            type="button"
+            id="signupBtn"
+        >
+            Create Account
+        </button>
+
+
+        <!-- LOGIN LINK -->
+
+        <p
+            style="
+                text-align:center;
+                margin-top:12px;
+                color:white;
+            "
+        >
+
+            Already have an account?
+
+            <a
+                href="./faculty/faculty-login.html"
+                style="
+                    color:white;
+                    text-decoration:none;
+                    font-weight:600;
+                "
+            >
+                Log In
+            </a>
+
+        </p>
+
+    </div>
+
+
+    <!-- =========================================
+         RIGHT SIDE - LOGO
+         ========================================= -->
+
+    <div class="right">
+
+        <img
+            src="../images/SpecAdvisor-Logo.png"
+            alt="SpecAdvisor Logo"
+        >
+
+    </div>
+
+
+    <!-- =========================================
+         FULL SCREEN AUTH PROCESSING OVERLAY
+         ========================================= -->
+
+    <div
+        id="auth-processing-overlay"
+        class="auth-loading hidden"
+        aria-hidden="true"
+    >
+
+        <div
+            class="auth-processing-box"
+            role="dialog"
+            aria-modal="true"
+        >
+
+            <div class="auth-spinner"></div>
+
+            <h3>
+                Creating Account...
+            </h3>
+
+            <p>
+                Your account is being processed.
+                Please wait...
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================
+         SIGNUP JAVASCRIPT
+         ========================================= -->
+
+    <script
+        type="module"
+        src="../js/signup.js"
+    ></script>
+
+
+</body>
+
+</html>

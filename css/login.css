@@ -748,6 +748,89 @@ body:has(#studentLoginModal.show) .modal-backdrop.show {
   }
 }
 
+/* Sign Up navbar button */
+.signup-nav-button {
+  background-color: #ff6fae;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 9px 22px;
+  font-weight: 700;
+  transition: 0.2s ease;
+}
+
+.signup-nav-button:hover,
+.signup-nav-button:focus {
+  background-color: #ff529c;
+  color: #ffffff;
+}
+
+/* Sign Up modal */
+.signup-modal-content {
+  border: none;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 15px 45px rgba(16, 55, 119, 0.18);
+}
+
+.signup-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 15px;
+  padding: 25px 25px 10px;
+}
+
+.signup-modal-header h2 {
+  color: #103777;
+  font-size: 25px;
+  font-weight: 800;
+  margin: 0 0 7px;
+}
+
+.signup-modal-header p {
+  color: #777777;
+  font-size: 14px;
+  margin: 0;
+}
+
+.signup-modal-body {
+  padding: 15px 25px 25px;
+}
+
+.signup-modal-body label {
+  display: block;
+  margin: 12px 0 7px;
+  color: #103777;
+  font-weight: 600;
+}
+
+.signup-modal-body .student-input {
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 8px;
+}
+
+.signup-modal-body #facultySignupMessage {
+  margin: 8px 0;
+  overflow-wrap: anywhere;
+}
+
+.signup-modal-body .student-login-btn,
+.signup-modal-body .student-back-btn {
+  width: 100%;
+}
+
+@media (max-width: 575.98px) {
+  .signup-modal-header {
+    padding: 22px 20px 10px;
+  }
+
+  .signup-modal-body {
+    padding: 12px 20px 22px;
+  }
+}
+
 /* =========================
    HERO BANNER
 ========================= */

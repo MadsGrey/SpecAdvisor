@@ -2,16 +2,9 @@ import { auth, db } from "./firebase-config.js";
 
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
 import {
-  collection,
-  query,
-  where,
-  getDocs,
   doc,
   getDoc,
->>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* ================================================= */
@@ -31,36 +24,7 @@ onAuthStateChanged(auth, async (user) => {
 
   console.log("Student Dashboard Auth:", user.email);
 
-<<<<<<< HEAD
-            return;
-
-        }
-
-
-        currentUser = user;
-
-
-        console.log(
-            "Student Dashboard Auth:",
-            user.email
-        );
-
-
-        console.log(
-            "Student Dashboard UID:",
-            user.uid
-        );
-
-
-        await loadStudentName();
-
-        await loadProgress();
-
-    }
-);
-=======
   console.log("Student Dashboard UID:", user.uid);
->>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
   await loadStudentName();
 });
@@ -540,7 +504,10 @@ function renderProgress(
         </div>
 
     `;
+
 }
+
+
 /* ================================================= */
 /* CALENDAR */
 /* ================================================= */
@@ -674,4 +641,3 @@ document.addEventListener("DOMContentLoaded", () => {
 window.goPage = goPage;
 
 window.renderCalendar = renderCalendar;
->>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)

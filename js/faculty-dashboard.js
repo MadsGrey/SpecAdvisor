@@ -480,9 +480,4 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 window.toggleSidebar = toggleSidebar;
 
-<<<<<<< HEAD
-window.goPage =
-    goPage;
-=======
 window.goPage = goPage;
->>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)

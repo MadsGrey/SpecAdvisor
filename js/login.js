@@ -605,10 +605,8 @@ function resetAdminPassword() {
   });
 }
 
-<<<<<<< HEAD
-window.resetPassword =
-    resetPassword;
-=======
+window.resetPassword = resetPassword;
+
 /* =========================
    SHOW / HIDE PASSWORDS
 ========================= */
@@ -811,4 +809,3 @@ if (document.readyState === "loading") {
 } else {
   initializeLoginPage();
 }
->>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)

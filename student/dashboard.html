@@ -8,12 +8,13 @@
     <link
       rel="icon"
       type="image/png"
-      href="../images/SpecAdvisor-logofavicon.png?v=2"
+      href="../images/SpecAdvisor-MainLogo.png"
     />
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <link rel="stylesheet" href="../css/styles.css" />
+    <link rel="stylesheet" href="../css/student.css" />
   </head>
 
   <body>
@@ -24,7 +25,7 @@
 
       <div class="sidebar" id="sidebar">
         <div class="sidebar-logo">
-          <img src="../images/SpecAdvisor-Logo.png" />
+          <img src="../images/SpecAdvisor-MainLogo.png" />
         </div>
 
         <!-- DASHBOARD -->
@@ -204,39 +205,42 @@
 
           <!-- QUICK ACTIONS -->
 
-          <h3>Quick Actions</h3>
+          <div class="cards">
+            <h3>Quick Actions</h3>
 
-          <div class="quick-grid">
-            <div
-              class="stat-card"
-              onclick="goPage('../student/take-exam.html')"
-            >
-              Take Exam
-            </div>
+            <div class="quick-grid">
+              <div
+                class="stat-card"
+                onclick="goPage('../student/take-exam.html')"
+              >
+                Take Exam
+              </div>
 
-            <div class="stat-card" onclick="goPage('../student/result.html')">
-              Final Result
-            </div>
+              <div class="stat-card" onclick="goPage('../student/result.html')">
+                Final Result
+              </div>
 
-            <div
-              class="stat-card"
-              onclick="goPage('../student/recommendation.html')"
-            >
-              Specialization Recommendation
-            </div>
+              <div
+                class="stat-card"
+                onclick="goPage('../student/recommendation.html')"
+              >
+                Specialization Recommendation
+              </div>
 
-            <div
-              class="stat-card"
-              onclick="goPage('../student/specialization-selection.html')"
-            >
-              Specialization Selection
+              <div
+                class="stat-card"
+                onclick="goPage('../student/specialization-selection.html')"
+              >
+                Specialization Selection
+              </div>
             </div>
           </div>
 
           <!-- CALENDAR -->
 
           <div class="calendar">
-            <h3 id="calendar-title">CALENDAR</h3>
+            <h3>CALENDAR</h3>
+            <!--<h3 id="calendar-title">CALENDAR</h3>-->
 
             <div class="table-responsive">
               <table id="calendar-table">

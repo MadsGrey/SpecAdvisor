@@ -1,1015 +1,1004 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>Admin - Administer Exams</title>
 
-    <link rel="icon" href="../images/SpecAdvisor-logofavicon.png?v=2">
-    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="icon" href="../images/SpecAdvisor-logofavicon.png?v=2" />
+    <link rel="stylesheet" href="../css/styles.css" />
 
     <!-- PDF.js for reading exam PDFs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 
     <style>
-        /* =====================================================
+      /* =====================================================
            PAGE
         ===================================================== */
 
-        .admin-page-content {
-            padding: 25px;
-        }
+      .admin-page-content {
+        padding: 25px;
+      }
 
-        .page-heading {
-            margin-bottom: 22px;
-        }
+      .page-heading {
+        margin-bottom: 22px;
+      }
 
-        .page-heading h1 {
-            margin: 0;
-            font-size: 28px;
-        }
+      .page-heading h1 {
+        margin: 0;
+        font-size: 28px;
+      }
 
-        .page-heading p {
-            margin-top: 6px;
-            opacity: .7;
-        }
+      .page-heading p {
+        margin-top: 6px;
+        opacity: 0.7;
+      }
 
-        .academic-year-box {
-            background: white;
-            border-radius: 14px;
-            padding: 17px 20px;
-            margin-bottom: 22px;
-            box-shadow: 0 5px 18px rgba(0, 0, 0, .06);
-        }
+      .academic-year-box {
+        background: white;
+        border-radius: 14px;
+        padding: 17px 20px;
+        margin-bottom: 22px;
+        box-shadow: 0 5px 18px rgba(0, 0, 0, 0.06);
+      }
 
-        /* =====================================================
+      /* =====================================================
            ADMIN PDF UPLOAD
         ===================================================== */
 
-        .admin-pdf-upload-card {
-            background: white;
-            border-radius: 18px;
-            padding: 24px;
-            margin-bottom: 25px;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, .07);
-        }
+      .admin-pdf-upload-card {
+        background: white;
+        border-radius: 18px;
+        padding: 24px;
+        margin-bottom: 25px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.07);
+      }
 
-        .admin-pdf-upload-card h2 {
-            margin: 0 0 8px;
-            font-size: 22px;
-        }
+      .admin-pdf-upload-card h2 {
+        margin: 0 0 8px;
+        font-size: 22px;
+      }
 
-        .admin-pdf-upload-description {
-            margin: 0 0 22px;
-            opacity: .7;
-            line-height: 1.5;
-        }
+      .admin-pdf-upload-description {
+        margin: 0 0 22px;
+        opacity: 0.7;
+        line-height: 1.5;
+      }
 
-        .admin-upload-field {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-bottom: 18px;
-        }
+      .admin-upload-field {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 18px;
+      }
 
-        .admin-upload-field label {
-            font-weight: 700;
-            font-size: 14px;
-        }
+      .admin-upload-field label {
+        font-weight: 700;
+        font-size: 14px;
+      }
 
-        .admin-upload-field input,
-        .admin-upload-field select {
-            width: 100%;
-            box-sizing: border-box;
-            padding: 12px 14px;
-            border: 1px solid #d9dce5;
-            border-radius: 10px;
-            background: white;
-            font-family: inherit;
-            font-size: 14px;
-        }
+      .admin-upload-field input,
+      .admin-upload-field select {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 12px 14px;
+        border: 1px solid #d9dce5;
+        border-radius: 10px;
+        background: white;
+        font-family: inherit;
+        font-size: 14px;
+      }
 
-        .admin-upload-field input:focus,
-        .admin-upload-field select:focus {
-            outline: none;
-            border-color: #3155d9;
-            box-shadow: 0 0 0 3px rgba(49, 85, 217, .10);
-        }
+      .admin-upload-field input:focus,
+      .admin-upload-field select:focus {
+        outline: none;
+        border-color: #3155d9;
+        box-shadow: 0 0 0 3px rgba(49, 85, 217, 0.1);
+      }
 
-        .admin-upload-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 18px;
-        }
+      .admin-upload-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+      }
 
-        .admin-drop-area {
-            min-height: 145px;
-            padding: 20px;
-            border: 2px dashed #cbd2e8;
-            border-radius: 13px;
-            background: #f8f9ff;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            cursor: pointer;
-            transition: background .2s ease, border-color .2s ease;
-        }
+      .admin-drop-area {
+        min-height: 145px;
+        padding: 20px;
+        border: 2px dashed #cbd2e8;
+        border-radius: 13px;
+        background: #f8f9ff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        cursor: pointer;
+        transition:
+          background 0.2s ease,
+          border-color 0.2s ease;
+      }
 
-        .admin-drop-area:hover,
-        .admin-drop-area.dragover {
-            background: #edf1ff;
-            border-color: #3155d9;
-        }
+      .admin-drop-area:hover,
+      .admin-drop-area.dragover {
+        background: #edf1ff;
+        border-color: #3155d9;
+      }
 
-        .admin-drop-icon {
-            font-size: 30px;
-            margin-bottom: 8px;
-        }
+      .admin-drop-icon {
+        font-size: 30px;
+        margin-bottom: 8px;
+      }
 
-        .admin-drop-area strong {
-            font-size: 14px;
-            margin-bottom: 6px;
-        }
+      .admin-drop-area strong {
+        font-size: 14px;
+        margin-bottom: 6px;
+      }
 
-        .admin-drop-area span {
-            font-size: 12px;
-            opacity: .65;
-            line-height: 1.5;
-        }
+      .admin-drop-area span {
+        font-size: 12px;
+        opacity: 0.65;
+        line-height: 1.5;
+      }
 
-        .admin-file-status {
-            margin-top: 9px;
-            font-size: 13px;
-            line-height: 1.5;
-            overflow-wrap: anywhere;
-        }
+      .admin-file-status {
+        margin-top: 9px;
+        font-size: 13px;
+        line-height: 1.5;
+        overflow-wrap: anywhere;
+      }
 
-        .admin-file-status.success {
-            color: #218447;
-        }
+      .admin-file-status.success {
+        color: #218447;
+      }
 
-        .admin-file-status.error {
-            color: #c53d3d;
-        }
+      .admin-file-status.error {
+        color: #c53d3d;
+      }
 
-        .admin-file-status.info {
-            color: #3155d9;
-        }
+      .admin-file-status.info {
+        color: #3155d9;
+      }
 
-        .admin-upload-notification {
-            display: none;
-            padding: 13px 15px;
-            border-radius: 10px;
-            margin-bottom: 18px;
-            font-size: 14px;
-            line-height: 1.5;
-        }
+      .admin-upload-notification {
+        display: none;
+        padding: 13px 15px;
+        border-radius: 10px;
+        margin-bottom: 18px;
+        font-size: 14px;
+        line-height: 1.5;
+      }
 
-        .admin-upload-notification.show {
-            display: block;
-        }
+      .admin-upload-notification.show {
+        display: block;
+      }
 
-        .admin-upload-notification.success {
-            background: #ddf7e6;
-            color: #218447;
-        }
+      .admin-upload-notification.success {
+        background: #ddf7e6;
+        color: #218447;
+      }
 
-        .admin-upload-notification.error {
-            background: #ffe4e4;
-            color: #c53d3d;
-        }
+      .admin-upload-notification.error {
+        background: #ffe4e4;
+        color: #c53d3d;
+      }
 
-        .admin-upload-notification.info {
-            background: #e7ecff;
-            color: #3155d9;
-        }
+      .admin-upload-notification.info {
+        background: #e7ecff;
+        color: #3155d9;
+      }
 
-        .admin-submit-exam-btn {
-            width: 100%;
-            border: none;
-            border-radius: 10px;
-            padding: 14px 20px;
-            background: #3155d9;
-            color: white;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: background .2s ease;
-        }
+      .admin-submit-exam-btn {
+        width: 100%;
+        border: none;
+        border-radius: 10px;
+        padding: 14px 20px;
+        background: #3155d9;
+        color: white;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.2s ease;
+      }
 
-        .admin-submit-exam-btn:hover {
-            background: #2647c5;
-        }
+      .admin-submit-exam-btn:hover {
+        background: #2647c5;
+      }
 
-        .admin-submit-exam-btn:disabled {
-            opacity: .6;
-            cursor: not-allowed;
-        }
+      .admin-submit-exam-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
 
-        .admin-upload-note {
-            font-size: 12px;
-            opacity: .65;
-            line-height: 1.6;
-            margin: 14px 0 0;
-        }
+      .admin-upload-note {
+        font-size: 12px;
+        opacity: 0.65;
+        line-height: 1.6;
+        margin: 14px 0 0;
+      }
 
-        /* Uploader + submit button stay hidden until a specialization is chosen */
-        .admin-upload-fields[hidden] {
-            display: none;
-        }
+      /* Uploader + submit button stay hidden until a specialization is chosen */
+      .admin-upload-fields[hidden] {
+        display: none;
+      }
 
-        /* =====================================================
+      /* =====================================================
            EXAM CARD
         ===================================================== */
 
-        .admin-exam-card {
-            background: white;
-            border-radius: 18px;
-            padding: 22px;
-            margin-bottom: 22px;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, .07);
-        }
+      .admin-exam-card {
+        background: white;
+        border-radius: 18px;
+        padding: 22px;
+        margin-bottom: 22px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.07);
+      }
 
-        .exam-card-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 15px;
-        }
+      .exam-card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 15px;
+      }
 
-        .exam-title {
-            margin: 0;
-            font-size: 22px;
-        }
+      .exam-title {
+        margin: 0;
+        font-size: 22px;
+      }
 
-        .exam-specialization {
-            margin-top: 7px;
-            font-weight: 600;
-            opacity: .65;
-        }
+      .exam-specialization {
+        margin-top: 7px;
+        font-weight: 600;
+        opacity: 0.65;
+      }
 
-        .exam-faculty {
-            margin-top: 5px;
-            font-size: 13px;
-            opacity: .7;
-        }
+      .exam-faculty {
+        margin-top: 5px;
+        font-size: 13px;
+        opacity: 0.7;
+      }
 
-        .exam-faculty strong {
-            font-weight: 700;
-            opacity: 1;
-        }
+      .exam-faculty strong {
+        font-weight: 700;
+        opacity: 1;
+      }
 
-        .exam-status {
-            padding: 7px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 700;
-            white-space: nowrap;
-        }
+      .exam-status {
+        padding: 7px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
 
-        .exam-status.ready {
-            background: #fff0d2;
-            color: #966300;
-        }
+      .exam-status.ready {
+        background: #fff0d2;
+        color: #966300;
+      }
 
-        .exam-status.administered {
-            background: #ddf7e6;
-            color: #218447;
-        }
+      .exam-status.administered {
+        background: #ddf7e6;
+        color: #218447;
+      }
 
-        /* =====================================================
+      /* =====================================================
            EXAM META
         ===================================================== */
 
-        .exam-meta {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-top: 20px;
-        }
+      .exam-meta {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-top: 20px;
+      }
 
-        .exam-meta div {
-            background: #f7f8fc;
-            border-radius: 11px;
-            padding: 12px;
-        }
+      .exam-meta div {
+        background: #f7f8fc;
+        border-radius: 11px;
+        padding: 12px;
+      }
 
-        .exam-meta strong {
-            display: block;
-            font-size: 12px;
-            opacity: .6;
-            margin-bottom: 4px;
-        }
+      .exam-meta strong {
+        display: block;
+        font-size: 12px;
+        opacity: 0.6;
+        margin-bottom: 4px;
+      }
 
-        .exam-meta span {
-            font-weight: 600;
-        }
+      .exam-meta span {
+        font-weight: 600;
+      }
 
-        /* =====================================================
+      /* =====================================================
            CHECK QUESTIONS
         ===================================================== */
 
-        .check-questions-btn {
-            width: 100%;
-            margin-top: 20px;
-            padding: 13px;
-            border: none;
-            border-radius: 11px;
-            background: #f1f3f9;
-            cursor: pointer;
-            font-weight: 700;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 9px;
-        }
+      .check-questions-btn {
+        width: 100%;
+        margin-top: 20px;
+        padding: 13px;
+        border: none;
+        border-radius: 11px;
+        background: #f1f3f9;
+        cursor: pointer;
+        font-weight: 700;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+      }
 
-        .check-questions-btn:hover {
-            background: #e8eaf2;
-        }
+      .check-questions-btn:hover {
+        background: #e8eaf2;
+      }
 
-        /* =====================================================
+      /* =====================================================
            QUESTIONS PANEL
         ===================================================== */
 
-        .questions-panel {
-            margin-top: 15px;
-            padding-top: 5px;
+      .questions-panel {
+        margin-top: 15px;
+        padding-top: 5px;
+      }
+
+      .question-panel {
+        border: 1px solid #e2e4eb;
+        border-radius: 15px;
+        padding: 18px;
+        margin-bottom: 15px;
+        background: #fff;
+      }
+
+      .question-panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+
+      .question-number {
+        font-weight: 800;
+        font-size: 14px;
+        opacity: 0.65;
+      }
+
+      .question-actions {
+        display: flex;
+        gap: 7px;
+      }
+
+      .edit-question-btn,
+      .delete-question-btn {
+        border: none;
+        padding: 7px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 700;
+        font-size: 12px;
+      }
+
+      .edit-question-btn {
+        background: #e7ecff;
+        color: #3155d9;
+      }
+
+      .delete-question-btn {
+        background: #ffe4e4;
+        color: #c53d3d;
+      }
+
+      /* =====================================================
+           STUDENT-STYLE QUESTION
+        ===================================================== */
+
+      .student-question-box {
+        padding: 5px 0;
+      }
+
+      .question-text {
+        font-size: 17px;
+        line-height: 1.55;
+        font-weight: 600;
+        margin-bottom: 17px;
+      }
+
+      .choices-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .student-choice {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 13px 14px;
+        border: 1px solid #e2e4eb;
+        border-radius: 11px;
+        background: #fff;
+      }
+
+      .choice-circle {
+        width: 30px;
+        height: 30px;
+        min-width: 30px;
+        border: 2px solid #cfd2dc;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .choice-text {
+        line-height: 1.4;
+      }
+
+      .no-questions {
+        padding: 20px;
+        text-align: center;
+        opacity: 0.6;
+      }
+
+      /* =====================================================
+           INLINE EDIT QUESTION
+        ===================================================== */
+
+      .inline-edit-form {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        padding-top: 5px;
+      }
+
+      .inline-edit-field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .inline-edit-field label {
+        font-size: 13px;
+        font-weight: 700;
+        color: #3036a5;
+      }
+
+      .inline-edit-field textarea,
+      .inline-edit-field input,
+      .inline-edit-field select {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 11px 12px;
+        border: 1px solid #d9dce5;
+        border-radius: 9px;
+        background: #fff;
+        font-family: inherit;
+        font-size: 14px;
+        outline: none;
+      }
+
+      .inline-edit-field textarea {
+        min-height: 100px;
+        resize: vertical;
+        line-height: 1.5;
+      }
+
+      .inline-edit-field textarea:focus,
+      .inline-edit-field input:focus,
+      .inline-edit-field select:focus {
+        border-color: #3155d9;
+        box-shadow: 0 0 0 3px rgba(49, 85, 217, 0.1);
+      }
+
+      .inline-edit-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 5px;
+      }
+
+      .cancel-inline-edit-btn,
+      .save-inline-edit-btn {
+        border: none;
+        border-radius: 9px;
+        padding: 11px 18px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .cancel-inline-edit-btn {
+        background: #eeeeee;
+        color: #444;
+      }
+
+      .cancel-inline-edit-btn:hover {
+        background: #dedede;
+      }
+
+      .save-inline-edit-btn {
+        background: #3155d9;
+        color: white;
+      }
+
+      .save-inline-edit-btn:hover {
+        background: #2647c5;
+      }
+
+      /* =====================================================
+           ADMIN ACTION
+        ===================================================== */
+
+      .admin-exam-actions {
+        margin-top: 20px;
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      .administer-exam-btn,
+      .stop-administer-btn {
+        border: none;
+        border-radius: 10px;
+        padding: 12px 20px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .administer-exam-btn {
+        background: #3155d9;
+        color: white;
+      }
+
+      .stop-administer-btn {
+        background: #d94b4b;
+        color: white;
+      }
+
+      /* =====================================================
+           EMPTY
+        ===================================================== */
+
+      .admin-empty {
+        background: white;
+        border-radius: 16px;
+        padding: 50px 25px;
+        text-align: center;
+        box-shadow: 0 5px 18px rgba(0, 0, 0, 0.06);
+      }
+
+      .admin-empty h2 {
+        margin-bottom: 8px;
+      }
+
+      .admin-empty p {
+        opacity: 0.65;
+      }
+
+      /* =====================================================
+           PROFILE MODAL
+        ===================================================== */
+
+      #profile-overlay {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        display: none;
+        align-items: center !important;
+        justify-content: center !important;
+        z-index: 99999 !important;
+      }
+
+      #profile-overlay.active {
+        display: flex !important;
+      }
+
+      #profile-overlay .profile-modal {
+        position: relative !important;
+        top: auto !important;
+        left: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        margin: 0 !important;
+        transform: none !important;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+
+      /* =====================================================
+           MOBILE
+        ===================================================== */
+
+      @media (max-width: 700px) {
+        .admin-page-content {
+          padding: 15px;
         }
 
-        .question-panel {
-            border: 1px solid #e2e4eb;
-            border-radius: 15px;
-            padding: 18px;
-            margin-bottom: 15px;
-            background: #fff;
+        .page-heading h1 {
+          font-size: 24px;
+        }
+
+        .admin-pdf-upload-card {
+          padding: 18px;
+        }
+
+        .admin-upload-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .exam-card-top {
+          flex-direction: column;
+        }
+
+        .exam-meta {
+          grid-template-columns: 1fr;
         }
 
         .question-panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 16px;
-        }
-
-        .question-number {
-            font-weight: 800;
-            font-size: 14px;
-            opacity: .65;
+          align-items: flex-start;
+          flex-direction: column;
         }
 
         .question-actions {
-            display: flex;
-            gap: 7px;
+          width: 100%;
         }
 
         .edit-question-btn,
         .delete-question-btn {
-            border: none;
-            padding: 7px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 700;
-            font-size: 12px;
+          flex: 1;
         }
-
-        .edit-question-btn {
-            background: #e7ecff;
-            color: #3155d9;
-        }
-
-        .delete-question-btn {
-            background: #ffe4e4;
-            color: #c53d3d;
-        }
-
-        /* =====================================================
-           STUDENT-STYLE QUESTION
-        ===================================================== */
-
-        .student-question-box {
-            padding: 5px 0;
-        }
-
-        .question-text {
-            font-size: 17px;
-            line-height: 1.55;
-            font-weight: 600;
-            margin-bottom: 17px;
-        }
-
-        .choices-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .student-choice {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 13px 14px;
-            border: 1px solid #e2e4eb;
-            border-radius: 11px;
-            background: #fff;
-        }
-
-        .choice-circle {
-            width: 30px;
-            height: 30px;
-            min-width: 30px;
-            border: 2px solid #cfd2dc;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: 800;
-        }
-
-        .choice-text {
-            line-height: 1.4;
-        }
-
-        .no-questions {
-            padding: 20px;
-            text-align: center;
-            opacity: .6;
-        }
-
-        /* =====================================================
-           INLINE EDIT QUESTION
-        ===================================================== */
-
-        .inline-edit-form {
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-            padding-top: 5px;
-        }
-
-        .inline-edit-field {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .inline-edit-field label {
-            font-size: 13px;
-            font-weight: 700;
-            color: #3036a5;
-        }
-
-        .inline-edit-field textarea,
-        .inline-edit-field input,
-        .inline-edit-field select {
-            width: 100%;
-            box-sizing: border-box;
-            padding: 11px 12px;
-            border: 1px solid #d9dce5;
-            border-radius: 9px;
-            background: #fff;
-            font-family: inherit;
-            font-size: 14px;
-            outline: none;
-        }
-
-        .inline-edit-field textarea {
-            min-height: 100px;
-            resize: vertical;
-            line-height: 1.5;
-        }
-
-        .inline-edit-field textarea:focus,
-        .inline-edit-field input:focus,
-        .inline-edit-field select:focus {
-            border-color: #3155d9;
-            box-shadow: 0 0 0 3px rgba(49, 85, 217, .10);
-        }
-
-        .inline-edit-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 5px;
-        }
-
-        .cancel-inline-edit-btn,
-        .save-inline-edit-btn {
-            border: none;
-            border-radius: 9px;
-            padding: 11px 18px;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        .cancel-inline-edit-btn {
-            background: #eeeeee;
-            color: #444;
-        }
-
-        .cancel-inline-edit-btn:hover {
-            background: #dedede;
-        }
-
-        .save-inline-edit-btn {
-            background: #3155d9;
-            color: white;
-        }
-
-        .save-inline-edit-btn:hover {
-            background: #2647c5;
-        }
-
-        /* =====================================================
-           ADMIN ACTION
-        ===================================================== */
 
         .admin-exam-actions {
-            margin-top: 20px;
-            display: flex;
-            justify-content: flex-end;
+          justify-content: stretch;
         }
 
         .administer-exam-btn,
         .stop-administer-btn {
-            border: none;
-            border-radius: 10px;
-            padding: 12px 20px;
-            font-weight: 700;
-            cursor: pointer;
+          width: 100%;
         }
 
-        .administer-exam-btn {
-            background: #3155d9;
-            color: white;
+        .inline-edit-actions {
+          flex-direction: column;
         }
 
-        .stop-administer-btn {
-            background: #d94b4b;
-            color: white;
+        .cancel-inline-edit-btn,
+        .save-inline-edit-btn {
+          width: 100%;
         }
 
-        /* =====================================================
-           EMPTY
-        ===================================================== */
-
-        .admin-empty {
-            background: white;
-            border-radius: 16px;
-            padding: 50px 25px;
-            text-align: center;
-            box-shadow: 0 5px 18px rgba(0, 0, 0, .06);
+        .profile-overlay {
+          padding: 15px;
         }
 
-        .admin-empty h2 {
-            margin-bottom: 8px;
+        .profile-modal {
+          max-width: 100%;
+          padding: 30px 22px 25px;
+          border-radius: 18px;
         }
 
-        .admin-empty p {
-            opacity: .65;
+        .profile-modal h2 {
+          font-size: 25px;
+          margin-bottom: 24px;
         }
 
-        /* =====================================================
-           PROFILE MODAL
-        ===================================================== */
-
-        #profile-overlay {
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
-            bottom: 0 !important;
-            width: 100vw !important;
-            height: 100vh !important;
-            display: none;
-            align-items: center !important;
-            justify-content: center !important;
-            z-index: 99999 !important;
+        .profile-close-btn {
+          top: 18px;
+          right: 20px;
+          font-size: 29px;
         }
 
-        #profile-overlay.active {
-            display: flex !important;
+        .profile-avatar {
+          width: 82px;
+          height: 82px;
+          font-size: 32px;
+          margin-bottom: 24px;
         }
 
-        #profile-overlay .profile-modal {
-            position: relative !important;
-            top: auto !important;
-            left: auto !important;
-            right: auto !important;
-            bottom: auto !important;
-            margin: 0 !important;
-            transform: none !important;
-            max-height: 90vh;
-            overflow-y: auto;
+        .profile-field input {
+          height: 48px;
+          font-size: 16px;
         }
-
-        /* =====================================================
-           MOBILE
-        ===================================================== */
-
-        @media (max-width: 700px) {
-            .admin-page-content {
-                padding: 15px;
-            }
-
-            .page-heading h1 {
-                font-size: 24px;
-            }
-
-            .admin-pdf-upload-card {
-                padding: 18px;
-            }
-
-            .admin-upload-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .exam-card-top {
-                flex-direction: column;
-            }
-
-            .exam-meta {
-                grid-template-columns: 1fr;
-            }
-
-            .question-panel-header {
-                align-items: flex-start;
-                flex-direction: column;
-            }
-
-            .question-actions {
-                width: 100%;
-            }
-
-            .edit-question-btn,
-            .delete-question-btn {
-                flex: 1;
-            }
-
-            .admin-exam-actions {
-                justify-content: stretch;
-            }
-
-            .administer-exam-btn,
-            .stop-administer-btn {
-                width: 100%;
-            }
-
-            .inline-edit-actions {
-                flex-direction: column;
-            }
-
-            .cancel-inline-edit-btn,
-            .save-inline-edit-btn {
-                width: 100%;
-            }
-
-            .profile-overlay {
-                padding: 15px;
-            }
-
-            .profile-modal {
-                max-width: 100%;
-                padding: 30px 22px 25px;
-                border-radius: 18px;
-            }
-
-            .profile-modal h2 {
-                font-size: 25px;
-                margin-bottom: 24px;
-            }
-
-            .profile-close-btn {
-                top: 18px;
-                right: 20px;
-                font-size: 29px;
-            }
-
-            .profile-avatar {
-                width: 82px;
-                height: 82px;
-                font-size: 32px;
-                margin-bottom: 24px;
-            }
-
-            .profile-field input {
-                height: 48px;
-                font-size: 16px;
-            }
-        }
+      }
     </style>
-</head>
+  </head>
 
-<body>
+  <body>
+    <div class="dashboard">
+      <!-- SIDEBAR -->
 
-<div class="dashboard">
-
-    <!-- SIDEBAR -->
-
-    <div class="sidebar" id="sidebar">
-
+      <div class="sidebar" id="sidebar">
         <div class="sidebar-logo">
-            <img src="../images/SpecAdvisor-Logo.png" alt="SpecAdvisor">
+          <img src="../images/SpecAdvisor-Logo.png" alt="SpecAdvisor" />
         </div>
 
-        <button class="sidebar-item"
-            onclick="goPage('../admin/admin-dashboard.html')">
-            <span class="sidebar-icon">
-                <svg viewBox="0 0 24 24">
-                    <path d="M3 11.5L12 4l9 7.5"></path>
-                    <path d="M5 10v10h14V10"></path>
-                    <path d="M9 20v-6h6v6"></path>
-                </svg>
-            </span>
-            <span>Dashboard</span>
+        <button
+          class="sidebar-item"
+          onclick="goPage('../admin/admin-dashboard.html')"
+        >
+          <span class="sidebar-icon">
+            <svg viewBox="0 0 24 24">
+              <path d="M3 11.5L12 4l9 7.5"></path>
+              <path d="M5 10v10h14V10"></path>
+              <path d="M9 20v-6h6v6"></path>
+            </svg>
+          </span>
+          <span>Dashboard</span>
         </button>
 
-        <button class="sidebar-item"
-            onclick="goPage('../admin/admin-manage-users.html')">
-            <span class="sidebar-icon">
-                <svg viewBox="0 0 24 24">
-                    <circle cx="9" cy="8" r="3"></circle>
-                    <path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"></path>
-                    <path d="M16 11c2.2 0 4 1.8 4 4"></path>
-                    <path d="M17 5.5a3 3 0 0 1 0 5"></path>
-                </svg>
-            </span>
-            <span>Manage Users</span>
+        <button
+          class="sidebar-item"
+          onclick="goPage('../admin/admin-manage-users.html')"
+        >
+          <span class="sidebar-icon">
+            <svg viewBox="0 0 24 24">
+              <circle cx="9" cy="8" r="3"></circle>
+              <path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"></path>
+              <path d="M16 11c2.2 0 4 1.8 4 4"></path>
+              <path d="M17 5.5a3 3 0 0 1 0 5"></path>
+            </svg>
+          </span>
+          <span>Manage Users</span>
         </button>
 
-        <button class="sidebar-item active"
-            onclick="goPage('../admin/admin-administer-exams.html')">
-            <span class="sidebar-icon">
-                <svg viewBox="0 0 24 24">
-                    <rect x="4" y="3" width="16" height="18" rx="2"></rect>
-                    <path d="M8 7h8"></path>
-                    <path d="M8 11h8"></path>
-                    <path d="M8 15h5"></path>
-                    <path d="M16 17l2 2 4-4"></path>
-                </svg>
-            </span>
-            <span>Administer Exams</span>
+        <button
+          class="sidebar-item active"
+          onclick="goPage('../admin/admin-administer-exams.html')"
+        >
+          <span class="sidebar-icon">
+            <svg viewBox="0 0 24 24">
+              <rect x="4" y="3" width="16" height="18" rx="2"></rect>
+              <path d="M8 7h8"></path>
+              <path d="M8 11h8"></path>
+              <path d="M8 15h5"></path>
+              <path d="M16 17l2 2 4-4"></path>
+            </svg>
+          </span>
+          <span>Administer Exams</span>
         </button>
 
-        <button class="sidebar-item"
-            onclick="goPage('../admin/monitoring.html')">
-            <span class="sidebar-icon">
-                <svg viewBox="0 0 24 24">
-                    <path d="M3 12h4l2-7 4 14 2-7h6"></path>
-                </svg>
-            </span>
-            <span>Monitoring Activities</span>
+        <button
+          class="sidebar-item"
+          onclick="goPage('../admin/monitoring.html')"
+        >
+          <span class="sidebar-icon">
+            <svg viewBox="0 0 24 24">
+              <path d="M3 12h4l2-7 4 14 2-7h6"></path>
+            </svg>
+          </span>
+          <span>Monitoring Activities</span>
         </button>
 
-        <button class="sidebar-item"
-            onclick="goPage('../admin/academic-management.html')">
-            <span class="sidebar-icon">
-                <svg viewBox="0 0 24 24">
-                    <rect x="4" y="4" width="16" height="16" rx="2"></rect>
-                    <path d="M8 8h8"></path>
-                    <path d="M8 12h8"></path>
-                    <path d="M8 16h5"></path>
-                </svg>
-            </span>
-            <span>Academic Management</span>
+        <button
+          class="sidebar-item"
+          onclick="goPage('../admin/academic-management.html')"
+        >
+          <span class="sidebar-icon">
+            <svg viewBox="0 0 24 24">
+              <rect x="4" y="4" width="16" height="16" rx="2"></rect>
+              <path d="M8 8h8"></path>
+              <path d="M8 12h8"></path>
+              <path d="M8 16h5"></path>
+            </svg>
+          </span>
+          <span>Academic Management</span>
         </button>
 
-        <button class="sidebar-item"
-            onclick="goPage('../admin/system-reports.html')">
-            <span class="sidebar-icon">
-                <svg viewBox="0 0 24 24">
-                    <path d="M5 3h14v18H5z"></path>
-                    <path d="M8 7h8"></path>
-                    <path d="M8 11h8"></path>
-                    <path d="M8 15h5"></path>
-                </svg>
-            </span>
-            <span>System Reports</span>
+        <button
+          class="sidebar-item"
+          onclick="goPage('../admin/system-reports.html')"
+        >
+          <span class="sidebar-icon">
+            <svg viewBox="0 0 24 24">
+              <path d="M5 3h14v18H5z"></path>
+              <path d="M8 7h8"></path>
+              <path d="M8 11h8"></path>
+              <path d="M8 15h5"></path>
+            </svg>
+          </span>
+          <span>System Reports</span>
         </button>
 
-        <div class="sidebar-credit">
-            ©SpecAdvisor 2026
-        </div>
+        <div class="sidebar-credit">©SpecAdvisor 2026</div>
+      </div>
 
-    </div>
+      <!-- MAIN -->
 
-    <!-- MAIN -->
-
-    <div class="main">
-
+      <div class="main">
         <!-- TOPBAR -->
 
         <div class="topbar">
+          <button class="menu-btn" onclick="toggleSidebar()">☰</button>
 
-            <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+          <span class="title">Administer Exams</span>
 
-            <span class="title">Administer Exams</span>
+          <div class="profile-wrapper">
+            <button
+              class="profile-btn"
+              onclick="toggleProfileMenu()"
+              title="Account"
+            >
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="8" r="4"></circle>
+                <path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"></path>
+              </svg>
+            </button>
 
-            <div class="profile-wrapper">
+            <div class="profile-menu" id="profile-menu">
+              <button onclick="openProfile()">
+                <svg viewBox="0 0 24 24">
+                  <circle cx="12" cy="8" r="4"></circle>
+                  <path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"></path>
+                </svg>
+                <span>Profile</span>
+              </button>
 
-                <button class="profile-btn"
-                    onclick="toggleProfileMenu()"
-                    title="Account">
-
-                    <svg viewBox="0 0 24 24">
-                        <circle cx="12" cy="8" r="4"></circle>
-                        <path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"></path>
-                    </svg>
-
-                </button>
-
-                <div class="profile-menu" id="profile-menu">
-
-                    <button onclick="openProfile()">
-                        <svg viewBox="0 0 24 24">
-                            <circle cx="12" cy="8" r="4"></circle>
-                            <path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"></path>
-                        </svg>
-                        <span>Profile</span>
-                    </button>
-
-                    <button onclick="openDashboardLogout()">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M10 17l5-5-5-5"></path>
-                            <path d="M15 12H3"></path>
-                            <path d="M21 19V5a2 2 0 0 0-2-2h-5"></path>
-                        </svg>
-                        <span>Log out</span>
-                    </button>
-
-                </div>
-
+              <button onclick="openDashboardLogout()">
+                <svg viewBox="0 0 24 24">
+                  <path d="M10 17l5-5-5-5"></path>
+                  <path d="M15 12H3"></path>
+                  <path d="M21 19V5a2 2 0 0 0-2-2h-5"></path>
+                </svg>
+                <span>Log out</span>
+              </button>
             </div>
-
+          </div>
         </div>
 
         <!-- CONTENT -->
 
         <div class="admin-page-content">
+          <div class="page-heading">
+            <h1>Administer Exams</h1>
+            <p>
+              Review and manage faculty-created examinations before making an
+              examination available to students.
+            </p>
+          </div>
 
-            <div class="page-heading">
-                <h1>Administer Exams</h1>
-                <p>
-                    Review and manage faculty-created examinations before making an examination available to students.
-                </p>
-            </div>
+          <div class="academic-year-box">
+            <strong>Active Academic Year:</strong>
+            <span id="activeAcademicYear">Loading...</span>
+          </div>
 
-            <div class="academic-year-box">
-                <strong>Active Academic Year:</strong>
-                <span id="activeAcademicYear">Loading...</span>
-            </div>
-
-            <!-- =================================================
+          <!-- =================================================
                  ADMIN CREATE EXAM USING PDF
             ================================================== -->
 
-            <section class="admin-pdf-upload-card">
+          <section class="admin-pdf-upload-card">
+            <h2>Create Exam as Admin</h2>
 
-                <h2>Create Exam as Admin</h2>
+            <p class="admin-pdf-upload-description">
+              Upload an examination PDF and its answer key, select a
+              specialization, and submit the exam to the examination list.
+            </p>
 
-                <p class="admin-pdf-upload-description">
-                    Upload an examination PDF and its answer key, select a specialization,
-                    and submit the exam to the examination list.
-                </p>
+            <div
+              id="uiNotification"
+              class="admin-upload-notification"
+              role="status"
+              aria-live="polite"
+            ></div>
 
-                <div id="uiNotification"
-                    class="admin-upload-notification"
-                    role="status"
-                    aria-live="polite">
-                </div>
-
-                <div class="admin-upload-field">
-                    <label for="adminExamTitle">Exam Title</label>
-                    <input
-                        type="text"
-                        id="adminExamTitle"
-                        placeholder="Enter examination title"
-                    >
-                </div>
-
-                <div class="admin-upload-field">
-                    <label for="adminSpecializationSelect">Specialization</label>
-                    <select id="adminSpecializationSelect">
-                        <option value="">Loading specializations...</option>
-                    </select>
-                </div>
-
-                <!-- Hidden until a specialization is chosen -->
-                <div id="adminUploadFields" class="admin-upload-fields" hidden>
-
-                    <div class="admin-upload-grid">
-
-                        <div class="admin-upload-field">
-                            <label>Examination PDF</label>
-
-                            <div class="admin-drop-area" id="adminDropArea">
-                                <div class="admin-drop-icon">📄</div>
-                                <strong>Choose or drop examination PDF</strong>
-                                <span>
-                                    Click here or drag your exam PDF into this area.
-                                </span>
-                            </div>
-
-                            <input
-                                type="file"
-                                id="adminFileInput"
-                                accept="application/pdf,.pdf"
-                                hidden
-                            >
-
-                            <div
-                                id="adminUploadStatus"
-                                class="admin-file-status"
-                                aria-live="polite">
-                            </div>
-                        </div>
-
-                        <div class="admin-upload-field">
-                            <label>Answer Key PDF</label>
-
-                            <div class="admin-drop-area" id="adminAnswerDropArea">
-                                <div class="admin-drop-icon">🗝️</div>
-                                <strong>Choose or drop answer key PDF</strong>
-                                <span>
-                                    Upload the answer key corresponding to the examination.
-                                </span>
-                            </div>
-
-                            <input
-                                type="file"
-                                id="adminAnswerFileInput"
-                                accept="application/pdf,.pdf"
-                                hidden
-                            >
-
-                            <div
-                                id="adminAnswerStatus"
-                                class="admin-file-status"
-                                aria-live="polite">
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <button
-                        type="button"
-                        class="admin-submit-exam-btn"
-                        id="adminSubmitExamBtn">
-                        Submit Exam
-                    </button>
-
-                    <p class="admin-upload-note">
-                        The uploaded PDF must contain selectable text. The question parser
-                        expects numbered multiple-choice questions with choices A–D and an
-                        answer key that identifies the correct letter for each question.
-                        Newly uploaded exams should remain unavailable to students until
-                        they are administered.
-                    </p>
-
-                </div>
-
-            </section>
-
-            <!-- EXISTING EXAM LIST -->
-
-            <div id="examList">
-
-                <div class="admin-empty">
-                    <h2>Loading Exams...</h2>
-                    <p>Please wait.</p>
-                </div>
-
+            <div class="admin-upload-field">
+              <label for="adminExamTitle">Exam Title</label>
+              <input
+                type="text"
+                id="adminExamTitle"
+                placeholder="Enter examination title"
+              />
             </div>
 
-        </div>
+            <div class="admin-upload-field">
+              <label for="adminSpecializationSelect">Specialization</label>
+              <select id="adminSpecializationSelect">
+                <option value="">Loading specializations...</option>
+              </select>
+            </div>
 
+            <!-- Hidden until a specialization is chosen -->
+            <div id="adminUploadFields" class="admin-upload-fields" hidden>
+              <div class="admin-upload-grid">
+                <div class="admin-upload-field">
+                  <label>Examination PDF</label>
+
+                  <div class="admin-drop-area" id="adminDropArea">
+                    <div class="admin-drop-icon">📄</div>
+                    <strong>Choose or drop examination PDF</strong>
+                    <span>
+                      Click here or drag your exam PDF into this area.
+                    </span>
+                  </div>
+
+                  <input
+                    type="file"
+                    id="adminFileInput"
+                    accept="application/pdf,.pdf"
+                    hidden
+                  />
+
+                  <div
+                    id="adminUploadStatus"
+                    class="admin-file-status"
+                    aria-live="polite"
+                  ></div>
+                </div>
+
+                <div class="admin-upload-field">
+                  <label>Answer Key PDF</label>
+
+                  <div class="admin-drop-area" id="adminAnswerDropArea">
+                    <div class="admin-drop-icon">🗝️</div>
+                    <strong>Choose or drop answer key PDF</strong>
+                    <span>
+                      Upload the answer key corresponding to the examination.
+                    </span>
+                  </div>
+
+                  <input
+                    type="file"
+                    id="adminAnswerFileInput"
+                    accept="application/pdf,.pdf"
+                    hidden
+                  />
+
+                  <div
+                    id="adminAnswerStatus"
+                    class="admin-file-status"
+                    aria-live="polite"
+                  ></div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                class="admin-submit-exam-btn"
+                id="adminSubmitExamBtn"
+              >
+                Submit Exam
+              </button>
+
+              <p class="admin-upload-note">
+                The uploaded PDF must contain selectable text. The question
+                parser expects numbered multiple-choice questions with choices
+                A–D and an answer key that identifies the correct letter for
+                each question. Newly uploaded exams should remain unavailable to
+                students until they are administered.
+              </p>
+            </div>
+          </section>
+
+          <!-- EXISTING EXAM LIST -->
+
+          <div id="examList">
+            <div class="admin-empty">
+              <h2>Loading Exams...</h2>
+              <p>Please wait.</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-</div>
-
-<!-- PROFILE MODAL -->
-
-<div
-    class="profile-overlay"
-    id="profile-overlay"
-    onclick="closeProfileOutside(event)">
+    <!-- PROFILE MODAL -->
 
     <div
-        class="profile-modal"
-        onclick="event.stopPropagation()">
-
+      class="profile-overlay"
+      id="profile-overlay"
+      onclick="closeProfileOutside(event)"
+    >
+      <div class="profile-modal" onclick="event.stopPropagation()">
         <button
-            type="button"
-            class="profile-close-btn"
-            onclick="closeProfile()">
-            ×
+          type="button"
+          class="profile-close-btn"
+          onclick="closeProfile()"
+        >
+          ×
         </button>
 
         <h2>My Profile</h2>
@@ -1017,66 +1006,62 @@
         <div class="profile-avatar" id="profile-avatar">S</div>
 
         <div class="profile-field">
-            <label for="profile-fullname">Name</label>
-            <input type="text" id="profile-fullname" disabled>
+          <label for="profile-fullname">Name</label>
+          <input type="text" id="profile-fullname" disabled />
         </div>
 
         <div class="profile-field">
-            <label for="profile-email">Email</label>
-            <input type="email" id="profile-email" disabled>
+          <label for="profile-email">Email</label>
+          <input type="email" id="profile-email" disabled />
         </div>
 
         <div class="profile-field">
-            <label for="profile-role">Role</label>
-            <input type="text" id="profile-role" disabled>
+          <label for="profile-role">Role</label>
+          <input type="text" id="profile-role" disabled />
         </div>
 
         <div class="profile-message" id="profile-message"></div>
 
         <div class="profile-modal-actions">
+          <button
+            type="button"
+            id="cancel-profile-btn"
+            onclick="cancelProfileEdit()"
+            style="display: none"
+          >
+            Cancel
+          </button>
 
-            <button
-                type="button"
-                id="cancel-profile-btn"
-                onclick="cancelProfileEdit()"
-                style="display:none;">
-                Cancel
-            </button>
+          <button
+            type="button"
+            id="edit-profile-btn"
+            onclick="enableProfileEdit()"
+          >
+            Edit Profile
+          </button>
 
-            <button
-                type="button"
-                id="edit-profile-btn"
-                onclick="enableProfileEdit()">
-                Edit Profile
-            </button>
-
-            <button
-                type="button"
-                id="save-profile-btn"
-                onclick="saveProfile()"
-                style="display:none;">
-                Save Changes
-            </button>
-
+          <button
+            type="button"
+            id="save-profile-btn"
+            onclick="saveProfile()"
+            style="display: none"
+          >
+            Save Changes
+          </button>
         </div>
-
+      </div>
     </div>
 
-</div>
+    <!-- LOGOUT MODAL -->
 
-<!-- LOGOUT MODAL -->
-
-<div
-    class="profile-overlay"
-    id="logout-overlay"
-    onclick="closeDashboardLogoutOutside(event)">
-
-    <div class="logout-modal-box">
-
-        <button
-            class="logout-close-btn"
-            onclick="closeDashboardLogout()">
-            ×
+    <div
+      class="profile-overlay"
+      id="logout-overlay"
+      onclick="closeDashboardLogoutOutside(event)"
+    >
+      <div class="logout-modal-box">
+        <button class="logout-close-btn" onclick="closeDashboardLogout()">
+          ×
         </button>
 
         <h2>Log Out?</h2>
@@ -1084,30 +1069,26 @@
         <p>Are you sure you want to log out?</p>
 
         <div class="logout-actions">
+          <button class="logout-cancel-btn" onclick="closeDashboardLogout()">
+            Cancel
+          </button>
 
-            <button
-                class="logout-cancel-btn"
-                onclick="closeDashboardLogout()">
-                Cancel
-            </button>
-
-            <button
-                class="logout-confirm-btn"
-                onclick="confirmDashboardLogout()">
-                Log Out
-            </button>
-
+          <button class="logout-confirm-btn" onclick="confirmDashboardLogout()">
+            Log Out
+          </button>
         </div>
-
+      </div>
     </div>
 
-</div>
+    <!-- FOOTER -->
+    <footer class="footer">
+      <p>SpecAdvisor 2026</p>
+    </footer>
 
-<!-- SCRIPTS -->
+    <!-- SCRIPTS -->
 
-<script type="module" src="../js/administer-exam.js"></script>
-<script type="module" src="../js/admin-profile.js"></script>
-<script src="../js/script.js"></script>
-
-</body>
+    <script type="module" src="../js/administer-exam.js"></script>
+    <script type="module" src="../js/admin-profile.js"></script>
+    <script src="../js/script.js"></script>
+  </body>
 </html>

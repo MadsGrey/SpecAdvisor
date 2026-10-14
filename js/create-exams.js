@@ -1,11 +1,6 @@
-// ============================================================
-// FACULTY - CREATE EXAMS
-// ============================================================
 
-import {
-    auth,
-    db
-} from "./firebase-config.js";
+import { auth, db } from "./firebase-config.js";
+import { appAlert, appConfirm } from "./ui-dialog.js";
 
 import {
     onAuthStateChanged
@@ -22,42 +17,32 @@ import {
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-
 // ============================================================
 // GLOBAL VARIABLES
 // ============================================================
 
-let currentFacultyUid = null;
-
+let currentFacultyUid = "";
 let assignedSpecialization = "";
-
 let activeAcademicYear = "";
 
 let manualQuestionsArray = [];
-
 let extractedQuestions = [];
-
 let extractedAnswers = [];
-
 let questionBankData = [];
 
-let specializationsLoaded = false;
-
+let isSaving = false;
+let pdfLibraryReady = false;
 
 // ============================================================
-// ESCAPE HTML
+// HELPERS
 // ============================================================
+
+function getElement(id) {
+    return document.getElementById(id);
+}
 
 function escapeHTML(value) {
-
-    if (
-        value === null ||
-        value === undefined
-    ) {
-        return "";
-    }
-
-    return String(value)
+    return String(value ?? "")
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
@@ -65,211 +50,169 @@ function escapeHTML(value) {
         .replace(/'/g, "&#039;");
 }
 
+function normalizeText(value) {
+    return String(value ?? "")
+        .trim()
+        .replace(/\s+/g, " ")
+        .toLowerCase();
+}
+
+function getExamGroupKey(data) {
+    return [
+        data.title || "",
+        data.specialization || "",
+        data.academicYear || "",
+        data.createdBy || ""
+    ].join("||");
+}
 
 // ============================================================
-// UI MESSAGE
+// PAGE NOTIFICATIONS
+// Keeps the existing inline notification UI.
+// Uses ui-dialog if the notification element is missing.
 // ============================================================
 
-function showUIMessage(
-    message,
-    type = "info"
-) {
-
-    const box =
-        document.getElementById(
-            "uiNotification"
-        );
+function showUIMessage(message, type = "info") {
+    const box = getElement("uiNotification");
 
     if (!box) {
+        const plainMessage = String(message)
+            .replace(/<[^>]*>/g, "");
 
-        alert(
-            message.replace(
-                /<[^>]*>/g,
-                ""
-            )
-        );
+        const dialogType = {
+            success: "success",
+            warning: "warning",
+            danger: "error",
+            error: "error",
+            info: "info"
+        }[type] || "info";
+
+        void appAlert(plainMessage, {
+            type: dialogType
+        });
 
         return;
     }
 
+    const allowedTypes = [
+        "success",
+        "warning",
+        "danger",
+        "info"
+    ];
 
-    box.className =
-        "alert-box";
+    const selectedType = allowedTypes.includes(type)
+        ? type
+        : "info";
 
+    box.className = "alert-box";
+    box.classList.add(`alert-${selectedType}`);
 
-    if (type === "success") {
-
-        box.classList.add(
-            "alert-success"
-        );
-
-    }
-
-    else if (type === "warning") {
-
-        box.classList.add(
-            "alert-warning"
-        );
-
-    }
-
-    else if (type === "danger") {
-
-        box.classList.add(
-            "alert-danger"
-        );
-
-    }
-
-    else {
-
-        box.classList.add(
-            "alert-info"
-        );
-
-    }
-
-
-    box.innerHTML =
-        message;
-
-    box.style.display =
-        "block";
-
+    // This function is used with trusted, developer-authored HTML.
+    // Dynamic values inserted into its messages are escaped.
+    box.innerHTML = message;
+    box.style.display = "block";
 
     box.scrollIntoView({
         behavior: "smooth",
         block: "center"
     });
-
 }
-
-
-// ============================================================
-// HIDE MESSAGE
-// ============================================================
 
 function hideUIMessage() {
-
-    const box =
-        document.getElementById(
-            "uiNotification"
-        );
+    const box = getElement("uiNotification");
 
     if (box) {
-
-        box.style.display =
-            "none";
-
+        box.style.display = "none";
+        box.innerHTML = "";
     }
-
 }
 
+function setButtonLoading(
+    buttonId,
+    loading,
+    loadingText = "Saving..."
+) {
+    const button = getElement(buttonId);
+
+    if (!button) return;
+
+    if (loading) {
+        if (!button.dataset.originalText) {
+            button.dataset.originalText = button.textContent;
+        }
+
+        button.textContent = loadingText;
+        button.disabled = true;
+    } else {
+        button.textContent =
+            button.dataset.originalText || button.textContent;
+
+        delete button.dataset.originalText;
+        button.disabled = false;
+    }
+}
 
 // ============================================================
 // AUTHENTICATION
 // ============================================================
 
-onAuthStateChanged(
-    auth,
-    async (user) => {
-
-        if (!user) {
-
-            window.location.replace(
-                "../login.html"
-            );
-
-            return;
-        }
-
-
-        currentFacultyUid =
-            user.uid;
-
-
-        await loadFacultySpecialization(
-            user.uid
-        );
-
-
-        await loadActiveAcademicYear();
-
-
-        await loadExistingExams();
-
-    }
-);
-
-
-// ============================================================
-// PAGE CACHE FIX
-// ============================================================
-
-window.addEventListener(
-    "pageshow",
-    (event) => {
-
-        if (event.persisted) {
-
-            window.location.reload();
-
-        }
-
-    }
-);
-
-
-// ============================================================
-// LOAD FACULTY SPECIALIZATION
-// ============================================================
-
-async function loadFacultySpecialization(
-    uid
-) {
-
-    if (specializationsLoaded) {
+onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+        window.location.replace("../login.html");
         return;
     }
 
+    currentFacultyUid = user.uid;
 
     try {
+        await loadFacultySpecialization(user.uid);
+        await loadActiveAcademicYear();
+        await loadExistingExams();
 
-        const userRef =
-            doc(
-                db,
-                "users",
-                uid
-            );
+        setupSpecializationToggle();
+        setupQuestionPDFUpload();
+        setupAnswerPDFUpload();
+        renderManualQuestionsList();
 
+        checkPDFLibrary();
+    } catch (error) {
+        console.error("Page initialization error:", error);
 
-        const userSnap =
-            await getDoc(userRef);
+        showUIMessage(
+            "<strong>Error:</strong> The page could not finish loading. Refresh and try again.",
+            "danger"
+        );
+    }
+});
 
+// Reload if the browser restores a cached page.
+window.addEventListener("pageshow", (event) => {
+    if (event.persisted) {
+        window.location.reload();
+    }
+});
 
-        const dropdown =
-            document.getElementById(
-                "specializationSelect"
-            );
+// ============================================================
+// FACULTY SPECIALIZATION
+// ============================================================
 
+async function loadFacultySpecialization(uid) {
+    const dropdown = getElement("specializationSelect");
 
-        if (!dropdown) {
-            return;
-        }
+    if (!dropdown) return;
 
+    dropdown.disabled = true;
+    dropdown.innerHTML =
+        '<option value="">Loading specialization...</option>';
 
-        dropdown.innerHTML = `
-            <option value="">
-                Select Specialization
-            </option>
-        `;
-
+    try {
+        const userRef = doc(db, "users", uid);
+        const userSnap = await getDoc(userRef);
 
         if (!userSnap.exists()) {
-
-            dropdown.disabled =
-                true;
-
+            dropdown.innerHTML =
+                '<option value="">No faculty profile found</option>';
 
             showUIMessage(
                 "<strong>Error:</strong> Faculty profile document not found.",
@@ -279,23 +222,34 @@ async function loadFacultySpecialization(
             return;
         }
 
+        const data = userSnap.data();
+        const role = normalizeText(data.role);
 
-        const data =
-            userSnap.data();
+        if (role !== "faculty") {
+            dropdown.innerHTML =
+                '<option value="">Faculty account required</option>';
 
+            await appAlert(
+                "This page is for faculty accounts only.",
+                {
+                    title: "Access denied",
+                    type: "error"
+                }
+            );
 
-        assignedSpecialization =
-            data.specialization ||
-            "";
+            window.location.replace("../login.html");
+            return;
+        }
 
+        assignedSpecialization = String(
+            data.specialization || ""
+        ).trim();
 
-        if (
-            assignedSpecialization === ""
-        ) {
+        dropdown.innerHTML =
+            '<option value="">Select Specialization</option>';
 
-            dropdown.disabled =
-                true;
-
+        if (!assignedSpecialization) {
+            dropdown.disabled = true;
 
             showUIMessage(
                 "<strong>Notice:</strong> No specialization is assigned to your faculty profile. Please contact your Program Chair.",
@@ -305,2143 +259,1110 @@ async function loadFacultySpecialization(
             return;
         }
 
+        const option = document.createElement("option");
+        option.value = assignedSpecialization;
+        option.textContent = assignedSpecialization;
 
-        dropdown.disabled =
-            false;
+        dropdown.appendChild(option);
+        dropdown.value = assignedSpecialization;
+        dropdown.disabled = false;
 
+        const section = getElement("examCreationSection");
 
-        dropdown.innerHTML += `
-            <option value="${escapeHTML(
-                assignedSpecialization
-            )}">
-                ${escapeHTML(
-                    assignedSpecialization
-                )}
-            </option>
-        `;
-
-
-        specializationsLoaded =
-            true;
-
+        if (section) {
+            section.style.display = "block";
+        }
 
         hideUIMessage();
-
-    }
-
-    catch (error) {
-
-        console.error(
-            "Error loading faculty specialization:",
-            error
-        );
-
+    } catch (error) {
+        console.error("Faculty specialization error:", error);
 
         showUIMessage(
-            "<strong>Error:</strong> Failed to load specialization profile.",
+            "<strong>Error:</strong> Failed to load your faculty specialization. Check your Firestore permissions.",
             "danger"
         );
-
     }
-
 }
 
-
 // ============================================================
-// SPECIALIZATION TOGGLE
+// SPECIALIZATION SELECT
 // ============================================================
 
 function setupSpecializationToggle() {
+    const dropdown = getElement("specializationSelect");
+    const section = getElement("examCreationSection");
 
-    const dropdown =
-        document.getElementById(
-            "specializationSelect"
-        );
+    if (!dropdown || !section) return;
 
-
-    const section =
-        document.getElementById(
-            "examCreationSection"
-        );
-
-
-    if (
-        !dropdown ||
-        !section
-    ) {
-        return;
-    }
-
-
-    section.style.display =
-        "none";
-
-
-    dropdown.addEventListener(
-        "change",
-        () => {
-
-            if (
-                dropdown.value !== ""
-            ) {
-
-                section.style.display =
-                    "block";
-
-                hideUIMessage();
-
-            }
-
-            else {
-
-                section.style.display =
-                    "none";
-
-            }
-
+    dropdown.addEventListener("change", () => {
+        if (
+            dropdown.value &&
+            dropdown.value !== assignedSpecialization
+        ) {
+            dropdown.value = assignedSpecialization;
         }
-    );
 
+        section.style.display = dropdown.value
+            ? "block"
+            : "none";
+
+        hideUIMessage();
+    });
 }
 
-
 // ============================================================
-// LOAD ACTIVE ACADEMIC YEAR
+// ACTIVE ACADEMIC YEAR
 // ============================================================
 
 async function loadActiveAcademicYear() {
-
     try {
-
-        const snapshot =
-            await getDocs(
-                query(
-                    collection(
-                        db,
-                        "academicYears"
-                    ),
-                    where(
-                        "active",
-                        "==",
-                        true
-                    )
-                )
-            );
-
-
-        activeAcademicYear =
-            "";
-
-
-        if (
-            !snapshot.empty
-        ) {
-
-            const data =
-                snapshot.docs[0].data();
-
-
-            activeAcademicYear =
-                data.year ||
-                "";
-
-        }
-
-
-        if (
-            activeAcademicYear === ""
-        ) {
-
-            showUIMessage(
-                "<strong>Notice:</strong> No Active Academic Year found. Please ask the Administrator to set one.",
-                "warning"
-            );
-
-        }
-
-    }
-
-    catch (error) {
-
-        console.error(
-            "Academic Year Error:",
-            error
+        const snapshot = await getDocs(
+            query(
+                collection(db, "academicYears"),
+                where("active", "==", true)
+            )
         );
 
+        activeAcademicYear = "";
+
+        if (!snapshot.empty) {
+            const data = snapshot.docs[0].data();
+
+            activeAcademicYear = String(
+                data.year || data.name || ""
+            ).trim();
+        }
+
+        if (!activeAcademicYear) {
+            showUIMessage(
+                "<strong>Notice:</strong> No active academic year was found. Ask the Administrator to activate an academic year before creating an exam.",
+                "warning"
+            );
+        }
+    } catch (error) {
+        console.error("Academic year error:", error);
 
         showUIMessage(
             "<strong>Error:</strong> Failed to load the active academic year.",
             "danger"
         );
-
     }
-
 }
 
+// ============================================================
+// VALIDATE EXAM DETAILS
+// ============================================================
+
+function validateExamDetails() {
+    const title = getElement("examTitle")?.value.trim() || "";
+
+    const specialization =
+        getElement("specializationSelect")?.value.trim() || "";
+
+    if (!title) {
+        showUIMessage(
+            "<strong>Warning:</strong> Please enter an exam title.",
+            "warning"
+        );
+        return null;
+    }
+
+    if (!specialization) {
+        showUIMessage(
+            "<strong>Warning:</strong> Please select your specialization.",
+            "warning"
+        );
+        return null;
+    }
+
+    if (specialization !== assignedSpecialization) {
+        showUIMessage(
+            "<strong>Access denied:</strong> You can only create exams for your assigned specialization.",
+            "danger"
+        );
+        return null;
+    }
+
+    if (!activeAcademicYear) {
+        showUIMessage(
+            "<strong>Warning:</strong> No active academic year was found.",
+            "warning"
+        );
+        return null;
+    }
+
+    if (!currentFacultyUid) {
+        showUIMessage(
+            "<strong>Error:</strong> Your faculty session has expired. Please log in again.",
+            "danger"
+        );
+        return null;
+    }
+
+    return {
+        title,
+        specialization,
+        academicYear: activeAcademicYear
+    };
+}
 
 // ============================================================
-// ADD MANUAL QUESTION
+// MANUAL QUESTION ENTRY
 // ============================================================
 
 function addManualQuestion() {
+    if (isSaving) return;
 
-    const specialization =
-        document.getElementById(
-            "specializationSelect"
-        ).value;
-
+    const details = validateExamDetails();
+    if (!details) return;
 
     const question =
-        document.getElementById(
-            "manualQuestion"
-        ).value.trim();
+        getElement("manualQuestion")?.value.trim() || "";
 
-
-    const A =
-        document.getElementById(
-            "choiceA"
-        ).value.trim();
-
-
-    const B =
-        document.getElementById(
-            "choiceB"
-        ).value.trim();
-
-
-    const C =
-        document.getElementById(
-            "choiceC"
-        ).value.trim();
-
-
-    const D =
-        document.getElementById(
-            "choiceD"
-        ).value.trim();
-
+    const A = getElement("choiceA")?.value.trim() || "";
+    const B = getElement("choiceB")?.value.trim() || "";
+    const C = getElement("choiceC")?.value.trim() || "";
+    const D = getElement("choiceD")?.value.trim() || "";
 
     const correctAnswer =
-        document.getElementById(
-            "correctAnswer"
-        ).value;
+        getElement("correctAnswer")?.value || "";
 
-
-    if (
-        specialization === ""
-    ) {
-
+    if (!question || !A || !B || !C || !D || !correctAnswer) {
         showUIMessage(
-            "<strong>Warning:</strong> Please select a specialization first.",
+            "<strong>Warning:</strong> Complete the question, all four choices, and the correct answer.",
             "warning"
         );
-
         return;
     }
 
+    const choices = [A, B, C, D];
 
-    if (
-        question === "" ||
-        A === "" ||
-        B === "" ||
-        C === "" ||
-        D === "" ||
-        correctAnswer === ""
-    ) {
-
+    if (new Set(choices.map(normalizeText)).size !== 4) {
         showUIMessage(
-            "<strong>Warning:</strong> Please fill in all fields for the manual question.",
+            "<strong>Warning:</strong> Each answer choice must be different.",
             "warning"
         );
-
         return;
     }
-
-
-    if (
-        activeAcademicYear === ""
-    ) {
-
-        showUIMessage(
-            "<strong>Warning:</strong> No Active Academic Year found.",
-            "warning"
-        );
-
-        return;
-    }
-
 
     manualQuestionsArray.push({
-
-        question:
-            question,
-
-        A:
-            A,
-
-        B:
-            B,
-
-        C:
-            C,
-
-        D:
-            D,
-
-        correctAnswer:
-            correctAnswer
-
+        question,
+        A,
+        B,
+        C,
+        D,
+        correctAnswer
     });
-
 
     renderManualQuestionsList();
 
-
-    document.getElementById(
-        "manualQuestion"
-    ).value = "";
-
-
-    document.getElementById(
-        "choiceA"
-    ).value = "";
-
-
-    document.getElementById(
-        "choiceB"
-    ).value = "";
-
-
-    document.getElementById(
-        "choiceC"
-    ).value = "";
-
-
-    document.getElementById(
-        "choiceD"
-    ).value = "";
-
-
-    document.getElementById(
+    [
+        "manualQuestion",
+        "choiceA",
+        "choiceB",
+        "choiceC",
+        "choiceD",
         "correctAnswer"
-    ).value = "";
-
+    ].forEach((id) => {
+        const field = getElement(id);
+        if (field) field.value = "";
+    });
 
     showUIMessage(
-        "<strong>Success:</strong> Question added to the exam.",
+        "<strong>Success:</strong> Question added to the unsaved exam list.",
         "success"
     );
-
 }
-
-
-// ============================================================
-// RENDER MANUAL QUESTIONS
-// ============================================================
 
 function renderManualQuestionsList() {
-
-    const list =
-        document.getElementById(
-            "manualQuestionsList"
-        );
-
-
-    const count =
-        document.getElementById(
-            "manualCount"
-        );
-
-
-    const saveButton =
-        document.getElementById(
-            "saveManualExamBtn"
-        );
-
+    const list = getElement("manualQuestionsList");
+    const count = getElement("manualCount");
+    const saveButton = getElement("saveManualExamBtn");
 
     if (count) {
-
-        count.textContent =
-            manualQuestionsArray.length;
-
+        count.textContent = manualQuestionsArray.length;
     }
-
-
-    if (!list) {
-        return;
-    }
-
-
-    list.innerHTML =
-        "";
-
-
-    manualQuestionsArray.forEach(
-        (item, index) => {
-
-            const li =
-                document.createElement(
-                    "li"
-                );
-
-
-            li.innerHTML = `
-                <strong>
-                    Q${index + 1}:
-                    ${escapeHTML(
-                        item.question
-                    )}
-                </strong>
-
-                <br>
-
-                A:
-                ${escapeHTML(item.A)}
-                |
-
-                B:
-                ${escapeHTML(item.B)}
-                |
-
-                C:
-                ${escapeHTML(item.C)}
-                |
-
-                D:
-                ${escapeHTML(item.D)}
-
-                <br>
-
-                <em>
-                    Correct Answer:
-                    ${escapeHTML(
-                        item.correctAnswer
-                    )}
-                </em>
-            `;
-
-
-            list.appendChild(li);
-
-        }
-    );
-
 
     if (saveButton) {
-
-        saveButton.style.display =
-            manualQuestionsArray.length > 0
-                ? "inline-block"
-                : "none";
-
+        saveButton.style.display = manualQuestionsArray.length
+            ? "inline-block"
+            : "none";
     }
 
-}
+    if (!list) return;
 
+    list.innerHTML = "";
+
+    manualQuestionsArray.forEach((item, index) => {
+        const li = document.createElement("li");
+
+        const questionTitle = document.createElement("strong");
+        questionTitle.textContent =
+            `Q${index + 1}: ${item.question}`;
+
+        const choices = document.createElement("p");
+        choices.textContent =
+            `A: ${item.A} | B: ${item.B} | C: ${item.C} | D: ${item.D}`;
+
+        const answer = document.createElement("p");
+        answer.textContent =
+            `Correct Answer: ${item.correctAnswer}`;
+
+        const removeButton = document.createElement("button");
+        removeButton.type = "button";
+        removeButton.className = "submit-btn";
+        removeButton.textContent = "Remove";
+
+        removeButton.addEventListener("click", async () => {
+            const confirmed = await appConfirm(
+                `Remove question ${index + 1} from the unsaved exam?`,
+                {
+                    title: "Remove Question",
+                    confirmText: "Remove",
+                    cancelText: "Keep",
+                    danger: true
+                }
+            );
+
+            if (!confirmed) return;
+
+            manualQuestionsArray.splice(index, 1);
+            renderManualQuestionsList();
+        });
+
+        li.append(
+            questionTitle,
+            choices,
+            answer,
+            removeButton
+        );
+
+        list.appendChild(li);
+    });
+}
 
 // ============================================================
 // SAVE MANUAL EXAM
 // ============================================================
 
 async function saveManualQuestionsToFirestore() {
+    if (isSaving) return;
 
-    const title =
-        document.getElementById(
-            "examTitle"
-        ).value.trim();
+    const details = validateExamDetails();
+    if (!details) return;
 
-
-    const specialization =
-        document.getElementById(
-            "specializationSelect"
-        ).value;
-
-
-    if (!title) {
-
+    if (manualQuestionsArray.length === 0) {
         showUIMessage(
-            "<strong>Warning:</strong> Please enter an Exam Title.",
+            "<strong>Warning:</strong> Add at least one question before saving.",
             "warning"
         );
-
         return;
     }
 
+    const confirmed = await appConfirm(
+        `Save "${details.title}" with ${manualQuestionsArray.length} manual questions?\n\nThe questions will be saved as pending administration.`,
+        {
+            title: "Save Manual Exam",
+            confirmText: "Save Exam",
+            cancelText: "Cancel"
+        }
+    );
 
-    if (!specialization) {
+    if (!confirmed) return;
 
-        showUIMessage(
-            "<strong>Warning:</strong> Please select a Specialization.",
-            "warning"
-        );
-
-        return;
-    }
-
-
-    if (
-        manualQuestionsArray.length === 0
-    ) {
-
-        showUIMessage(
-            "<strong>Warning:</strong> No manual questions to save.",
-            "warning"
-        );
-
-        return;
-    }
-
-
-    if (
-        activeAcademicYear === ""
-    ) {
-
-        showUIMessage(
-            "<strong>Warning:</strong> No Active Academic Year found.",
-            "warning"
-        );
-
-        return;
-    }
-
+    isSaving = true;
+    setButtonLoading(
+        "saveManualExamBtn",
+        true,
+        "Saving Questions..."
+    );
 
     try {
+        await saveQuestionsInBatches(
+            manualQuestionsArray.map((item) => ({
+                title: details.title,
+                specialization: details.specialization,
+                academicYear: details.academicYear,
+                question: item.question,
+                choices: [item.A, item.B, item.C, item.D],
+                correctAnswer: item.correctAnswer,
+                createdBy: currentFacultyUid,
+                type: "manual",
+                status: "ready_for_admin",
+                createdAt: serverTimestamp()
+            }))
+        );
 
-        const questionCollection =
-            collection(
-                db,
-                "questionBank"
-            );
+        manualQuestionsArray = [];
+        renderManualQuestionsList();
 
-
-        const chunkSize =
-            450;
-
-
-        for (
-            let start = 0;
-            start < manualQuestionsArray.length;
-            start += chunkSize
-        ) {
-
-            const batch =
-                writeBatch(db);
-
-
-            const chunk =
-                manualQuestionsArray.slice(
-                    start,
-                    start + chunkSize
-                );
-
-
-            chunk.forEach(
-                (question) => {
-
-                    const ref =
-                        doc(
-                            questionCollection
-                        );
-
-
-                    batch.set(
-                        ref,
-                        {
-
-                            title:
-                                title,
-
-                            specialization:
-                                specialization,
-
-                            academicYear:
-                                activeAcademicYear,
-
-                            question:
-                                question.question,
-
-                            choices: [
-
-                                question.A,
-                                question.B,
-                                question.C,
-                                question.D
-
-                            ],
-
-                            correctAnswer:
-                                question.correctAnswer,
-
-                            createdBy:
-                                currentFacultyUid,
-
-                            type:
-                                "manual",
-
-                            status:
-                                "ready_for_admin",
-
-                            createdAt:
-                                serverTimestamp()
-
-                        }
-                    );
-
-                }
-            );
-
-
-            await batch.commit();
-
+        if (getElement("examTitle")) {
+            getElement("examTitle").value = "";
         }
 
-
         showUIMessage(
-            "<strong>Success!</strong> Manual Exam created successfully and is ready for Program Chair administration.",
+            "<strong>Success!</strong> Manual questions were saved and are awaiting Program Chair/Admin administration.",
             "success"
         );
 
-
-        manualQuestionsArray =
-            [];
-
-
-        renderManualQuestionsList();
-
-
-        document.getElementById(
-            "examTitle"
-        ).value = "";
-
-
         await loadExistingExams();
+    } catch (error) {
+        console.error("Saving manual exam failed:", error);
 
-    }
-
-    catch (error) {
-
-        console.error(
-            "Error saving manual exam:",
-            error
+        await appAlert(
+            "The manual exam could not be saved. Check Firestore permissions and try again.",
+            {
+                title: "Save Failed",
+                type: "error"
+            }
         );
-
-
-        showUIMessage(
-            "<strong>Error:</strong> Failed to save the manual exam. Please try again.",
-            "danger"
-        );
-
+    } finally {
+        isSaving = false;
+        setButtonLoading("saveManualExamBtn", false);
     }
-
 }
 
+// ============================================================
+// FIRESTORE BATCH SAVING
+// ============================================================
+
+async function saveQuestionsInBatches(questionDocuments) {
+    const collectionRef = collection(db, "questionBank");
+    const chunkSize = 450;
+
+    for (
+        let start = 0;
+        start < questionDocuments.length;
+        start += chunkSize
+    ) {
+        const batch = writeBatch(db);
+
+        const chunk = questionDocuments.slice(
+            start,
+            start + chunkSize
+        );
+
+        chunk.forEach((questionData) => {
+            const newRef = doc(collectionRef);
+            batch.set(newRef, questionData);
+        });
+
+        await batch.commit();
+    }
+}
 
 // ============================================================
-// QUESTION PDF UPLOAD
+// PDF LIBRARY CHECK
 // ============================================================
+
+function checkPDFLibrary() {
+    pdfLibraryReady = typeof window.pdfjsLib !== "undefined";
+
+    if (!pdfLibraryReady) {
+        console.error(
+            "PDF.js was not found. Check ../js/pdf.js."
+        );
+    }
+}
+
+// ============================================================
+// PDF DROP AREA SETUP
+// ============================================================
+
+function setupDropArea(dropAreaId, inputId, onFileSelected) {
+    const dropArea = getElement(dropAreaId);
+    const fileInput = getElement(inputId);
+
+    if (!dropArea || !fileInput) return;
+
+    dropArea.addEventListener("click", () => {
+        fileInput.click();
+    });
+
+    dropArea.addEventListener("dragover", (event) => {
+        event.preventDefault();
+        dropArea.classList.add("dragover");
+    });
+
+    dropArea.addEventListener("dragleave", () => {
+        dropArea.classList.remove("dragover");
+    });
+
+    dropArea.addEventListener("drop", (event) => {
+        event.preventDefault();
+        dropArea.classList.remove("dragover");
+
+        const file = event.dataTransfer?.files?.[0];
+
+        if (file) {
+            onFileSelected(file);
+        }
+    });
+
+    fileInput.addEventListener("change", () => {
+        const file = fileInput.files?.[0];
+
+        if (file) {
+            onFileSelected(file);
+        }
+    });
+}
 
 function setupQuestionPDFUpload() {
-
-    const dropArea =
-        document.getElementById(
-            "dropArea"
-        );
-
-
-    const fileInput =
-        document.getElementById(
-            "fileInput"
-        );
-
-
-    if (
-        !dropArea ||
-        !fileInput
-    ) {
-        return;
-    }
-
-
-    dropArea.addEventListener(
-        "click",
-        () => {
-
-            fileInput.click();
-
-        }
-    );
-
-
-    dropArea.addEventListener(
-        "dragover",
-        (event) => {
-
-            event.preventDefault();
-
-            dropArea.classList.add(
-                "dragover"
-            );
-
-        }
-    );
-
-
-    dropArea.addEventListener(
-        "dragleave",
-        () => {
-
-            dropArea.classList.remove(
-                "dragover"
-            );
-
-        }
-    );
-
-
-    dropArea.addEventListener(
-        "drop",
-        (event) => {
-
-            event.preventDefault();
-
-            dropArea.classList.remove(
-                "dragover"
-            );
-
-
-            const file =
-                event.dataTransfer.files[0];
-
-
-            readPDF(file);
-
-        }
-    );
-
-
-    fileInput.addEventListener(
-        "change",
-        () => {
-
-            readPDF(
-                fileInput.files[0]
-            );
-
-        }
-    );
-
+    setupDropArea("dropArea", "fileInput", readPDF);
 }
 
+function setupAnswerPDFUpload() {
+    setupDropArea(
+        "answerDropArea",
+        "answerFileInput",
+        readAnswerPDF
+    );
+}
 
 // ============================================================
-// READ PDF
+// READ PDF TEXT
 // ============================================================
 
-async function readPDF(file) {
-
+async function extractPDFText(file) {
     if (!file) {
-        return;
+        throw new Error("No file was selected.");
     }
-
 
     if (
         file.type !== "application/pdf" &&
-        !file.name
-            .toLowerCase()
-            .endsWith(".pdf")
+        !file.name.toLowerCase().endsWith(".pdf")
     ) {
-
-        showUIMessage(
-            "<strong>Warning:</strong> Please upload a PDF file.",
-            "warning"
-        );
-
-        return;
+        throw new Error("Please select a PDF file.");
     }
 
+    checkPDFLibrary();
 
-    const status =
-        document.getElementById(
-            "uploadStatus"
+    if (!pdfLibraryReady) {
+        throw new Error(
+            "PDF.js did not load. Check your ../js/pdf.js file."
         );
-
-
-    if (status) {
-
-        status.innerText =
-            "Scanning PDF...";
-
     }
 
+    const arrayBuffer = await file.arrayBuffer();
 
-    try {
+    const pdf = await window.pdfjsLib.getDocument({
+        data: new Uint8Array(arrayBuffer)
+    }).promise;
 
-        const reader =
-            new FileReader();
+    let text = "";
 
+    for (
+        let pageNumber = 1;
+        pageNumber <= pdf.numPages;
+        pageNumber++
+    ) {
+        const page = await pdf.getPage(pageNumber);
+        const content = await page.getTextContent();
 
-        reader.onload =
-            async function () {
-
-                try {
-
-                    const typedArray =
-                        new Uint8Array(
-                            this.result
-                        );
-
-
-                    const pdf =
-                        await pdfjsLib
-                            .getDocument(
-                                typedArray
-                            )
-                            .promise;
-
-
-                    let text =
-                        "";
-
-
-                    for (
-                        let i = 1;
-                        i <= pdf.numPages;
-                        i++
-                    ) {
-
-                        const page =
-                            await pdf.getPage(
-                                i
-                            );
-
-
-                        const content =
-                            await page.getTextContent();
-
-
-                        const strings =
-                            content.items.map(
-                                item =>
-                                    item.str
-                            );
-
-
-                        text +=
-                            strings.join(
-                                " "
-                            ) + " ";
-
-                    }
-
-
-                    extractQuestions(text);
-
-                }
-
-                catch (error) {
-
-                    console.error(
-                        "PDF Reading Error:",
-                        error
-                    );
-
-
-                    if (status) {
-
-                        status.innerText =
-                            "Failed to read PDF.";
-
-                    }
-
-
-                    showUIMessage(
-                        "<strong>Error:</strong> Failed to read the exam PDF.",
-                        "danger"
-                    );
-
-                }
-
-            };
-
-
-        reader.readAsArrayBuffer(
-            file
-        );
-
+        text += content.items
+            .map((item) => item.str || "")
+            .join(" ") + "\n";
     }
 
-    catch (error) {
-
-        console.error(
-            "PDF Error:",
-            error
-        );
-
-    }
-
+    return text;
 }
 
+// ============================================================
+// READ QUESTION PDF
+// ============================================================
+
+async function readPDF(file) {
+    const status = getElement("uploadStatus");
+
+    if (status) {
+        status.textContent = "Scanning PDF...";
+    }
+
+    try {
+        const text = await extractPDFText(file);
+
+        extractQuestions(text);
+
+        if (status) {
+            status.textContent =
+                `${extractedQuestions.length} questions detected`;
+        }
+    } catch (error) {
+        console.error("Question PDF error:", error);
+
+        if (status) {
+            status.textContent = "Failed to read PDF.";
+        }
+
+        await appAlert(error.message, {
+            title: "Unable to Read Exam PDF",
+            type: "error"
+        });
+    }
+}
 
 // ============================================================
-// EXTRACT QUESTIONS
+// EXTRACT MULTIPLE-CHOICE QUESTIONS
+// Expected format:
+// 1. Question text A. Choice A B. Choice B C. Choice C D. Choice D
 // ============================================================
 
 function extractQuestions(text) {
+    extractedQuestions = [];
 
-    extractedQuestions =
-        [];
+    const normalized = String(text || "")
+        .replace(/\r/g, "\n")
+        .replace(/[ \t]+/g, " ");
 
+    const blocks = normalized
+        .split(/(?=\b\d+\s*[\.\)]\s+)/g)
+        .map((block) => block.trim())
+        .filter(Boolean);
 
-    const blocks =
-        text
-            .split(
-                /\s+(?=\d+\s*[\.\)])/g
-            )
-            .map(
-                block =>
-                    block.trim()
-            )
-            .filter(
-                block =>
-                    block.length > 10
-            );
-
-
-    blocks.forEach(
-        block => {
-
-            block =
-                block.replace(
-                    /^\d+\s*[\.\)]\s*/,
-                    ""
-                );
-
-
-            const optionMatches =
-                [
-                    ...block.matchAll(
-                        /\s+([A-D])\s*[\.\)]\s+/gi
-                    )
-                ];
-
-
-            if (
-                optionMatches.length < 4
-            ) {
-                return;
-            }
-
-
-            const questionEnd =
-                optionMatches[0].index;
-
-
-            const question =
-                block
-                    .substring(
-                        0,
-                        questionEnd
-                    )
-                    .trim();
-
-
-            const choices =
-                [];
-
-
-            for (
-                let i = 0;
-                i < optionMatches.length;
-                i++
-            ) {
-
-                const current =
-                    optionMatches[i];
-
-
-                const start =
-                    current.index +
-                    current[0].length;
-
-
-                const end =
-                    i + 1 <
-                    optionMatches.length
-                        ? optionMatches[
-                            i + 1
-                        ].index
-                        : block.length;
-
-
-                choices.push(
-                    block
-                        .substring(
-                            start,
-                            end
-                        )
-                        .trim()
-                );
-
-            }
-
-
-            if (
-                question &&
-                choices.length >= 4
-            ) {
-
-                extractedQuestions.push({
-
-                    question:
-                        question,
-
-                    A:
-                        choices[0],
-
-                    B:
-                        choices[1],
-
-                    C:
-                        choices[2],
-
-                    D:
-                        choices[3]
-
-                });
-
-            }
-
-        }
-    );
-
-
-    const status =
-        document.getElementById(
-            "uploadStatus"
+    for (const originalBlock of blocks) {
+        const block = originalBlock.replace(
+            /^\d+\s*[\.\)]\s*/,
+            ""
         );
 
-
-    if (status) {
-
-        status.innerText =
-            extractedQuestions.length +
-            " questions detected successfully";
-
-    }
-
-
-    if (
-        extractedQuestions.length === 0
-    ) {
-
-        showUIMessage(
-            "<strong>Warning:</strong> No multiple-choice questions were detected. Please check the PDF format.",
-            "warning"
-        );
-
-    }
-
-    else {
-
-        showUIMessage(
-            "<strong>Success:</strong> " +
-            extractedQuestions.length +
-            " questions detected from the PDF.",
-            "success"
-        );
-
-    }
-
-}
-
-
-// ============================================================
-// ANSWER PDF UPLOAD
-// ============================================================
-
-function setupAnswerPDFUpload() {
-
-    const dropArea =
-        document.getElementById(
-            "answerDropArea"
-        );
-
-
-    const fileInput =
-        document.getElementById(
-            "answerFileInput"
-        );
-
-
-    if (
-        !dropArea ||
-        !fileInput
-    ) {
-        return;
-    }
-
-
-    dropArea.addEventListener(
-        "click",
-        () => {
-
-            fileInput.click();
-
-        }
-    );
-
-
-    dropArea.addEventListener(
-        "dragover",
-        (event) => {
-
-            event.preventDefault();
-
-            dropArea.classList.add(
-                "dragover"
-            );
-
-        }
-    );
-
-
-    dropArea.addEventListener(
-        "dragleave",
-        () => {
-
-            dropArea.classList.remove(
-                "dragover"
-            );
-
-        }
-    );
-
-
-    dropArea.addEventListener(
-        "drop",
-        (event) => {
-
-            event.preventDefault();
-
-            dropArea.classList.remove(
-                "dragover"
-            );
-
-
-            const file =
-                event.dataTransfer.files[0];
-
-
-            readAnswerPDF(file);
-
-        }
-    );
-
-
-    fileInput.addEventListener(
-        "change",
-        () => {
-
-            readAnswerPDF(
-                fileInput.files[0]
-            );
-
-        }
-    );
-
-}
-
-
-// ============================================================
-// READ ANSWER PDF
-// ============================================================
-
-async function readAnswerPDF(file) {
-
-    if (!file) {
-        return;
-    }
-
-
-    const status =
-        document.getElementById(
-            "answerStatus"
-        );
-
-
-    if (status) {
-
-        status.innerText =
-            "Scanning Answer Key...";
-
-    }
-
-
-    try {
-
-        const reader =
-            new FileReader();
-
-
-        reader.onload =
-            async function () {
-
-                try {
-
-                    const typedArray =
-                        new Uint8Array(
-                            this.result
-                        );
-
-
-                    const pdf =
-                        await pdfjsLib
-                            .getDocument(
-                                typedArray
-                            )
-                            .promise;
-
-
-                    let text =
-                        "";
-
-
-                    for (
-                        let i = 1;
-                        i <= pdf.numPages;
-                        i++
-                    ) {
-
-                        const page =
-                            await pdf.getPage(
-                                i
-                            );
-
-
-                        const content =
-                            await page.getTextContent();
-
-
-                        const strings =
-                            content.items.map(
-                                item =>
-                                    item.str
-                            );
-
-
-                        text +=
-                            strings.join(
-                                " "
-                            ) + " ";
-
-                    }
-
-
-                    extractAnswers(text);
-
-                }
-
-                catch (error) {
-
-                    console.error(
-                        "Answer PDF Error:",
-                        error
-                    );
-
-
-                    if (status) {
-
-                        status.innerText =
-                            "Failed to read answer key.";
-
-                    }
-
-
-                    showUIMessage(
-                        "<strong>Error:</strong> Failed to read the answer key PDF.",
-                        "danger"
-                    );
-
-                }
-
-            };
-
-
-        reader.readAsArrayBuffer(
-            file
-        );
-
-    }
-
-    catch (error) {
-
-        console.error(
-            "Answer Reading Error:",
-            error
-        );
-
-    }
-
-}
-
-
-// ============================================================
-// EXTRACT ANSWERS
-// ============================================================
-
-function extractAnswers(text) {
-
-    extractedAnswers =
-        [];
-
-
-    const numbered =
-        [
-            ...text.matchAll(
-                /\b\d+\s*[\.\)]\s*([A-D])\b/gi
+        const optionMatches = [
+            ...block.matchAll(
+                /(?:^|\s)([A-D])\s*[\.\)]\s+/gi
             )
         ];
 
+        if (optionMatches.length < 4) continue;
 
-    if (
-        numbered.length > 0
-    ) {
+        const firstOption = optionMatches[0];
 
-        extractedAnswers =
-            numbered.map(
-                match =>
-                    match[1]
-                        .toUpperCase()
+        const questionStart = block
+            .substring(0, firstOption.index)
+            .trim();
+
+        const choices = [];
+
+        for (let i = 0; i < optionMatches.length; i++) {
+            const current = optionMatches[i];
+
+            const start =
+                current.index + current[0].length;
+
+            const end = i + 1 < optionMatches.length
+                ? optionMatches[i + 1].index
+                : block.length;
+
+            choices.push(
+                block.substring(start, end).trim()
             );
-
-    }
-
-    else {
-
-        const matches =
-            text.match(
-                /\b[A-D]\b/gi
-            );
-
-
-        if (matches) {
-
-            extractedAnswers =
-                matches.map(
-                    answer =>
-                        answer
-                            .trim()
-                            .toUpperCase()
-                );
-
         }
 
+        if (
+            questionStart &&
+            choices.length >= 4 &&
+            choices.slice(0, 4).every(Boolean)
+        ) {
+            extractedQuestions.push({
+                question: questionStart,
+                A: choices[0],
+                B: choices[1],
+                C: choices[2],
+                D: choices[3]
+            });
+        }
     }
 
-
-    const status =
-        document.getElementById(
-            "answerStatus"
-        );
-
-
-    if (status) {
-
-        status.innerText =
-            extractedAnswers.length +
-            " answers detected successfully";
-
-    }
-
-
-    if (
-        extractedAnswers.length === 0
-    ) {
-
+    if (extractedQuestions.length === 0) {
         showUIMessage(
-            "<strong>Warning:</strong> No answers were detected from the answer key PDF.",
+            "<strong>Warning:</strong> No multiple-choice questions were detected. Use a text-based PDF with numbered questions and A–D choices.",
             "warning"
         );
-
+        return;
     }
 
-    else {
-
-        showUIMessage(
-            "<strong>Success:</strong> " +
-            extractedAnswers.length +
-            " answers detected.",
-            "success"
-        );
-
-    }
-
+    showUIMessage(
+        `<strong>Success:</strong> ${extractedQuestions.length} questions detected from the PDF. Review the PDF format and answer key before submitting.`,
+        "success"
+    );
 }
 
+// ============================================================
+// READ ANSWER KEY PDF
+// Supported format: 1. A  2. C  3. B
+// ============================================================
+
+async function readAnswerPDF(file) {
+    const status = getElement("answerStatus");
+
+    if (status) {
+        status.textContent = "Scanning answer key...";
+    }
+
+    try {
+        const text = await extractPDFText(file);
+
+        extractAnswers(text);
+
+        if (status) {
+            status.textContent =
+                `${extractedAnswers.length} answers detected`;
+        }
+    } catch (error) {
+        console.error("Answer key PDF error:", error);
+
+        if (status) {
+            status.textContent = "Failed to read answer key.";
+        }
+
+        await appAlert(error.message, {
+            title: "Unable to Read Answer Key",
+            type: "error"
+        });
+    }
+}
+
+function extractAnswers(text) {
+    extractedAnswers = [];
+
+    const normalized = String(text || "")
+        .replace(/\r/g, "\n")
+        .toUpperCase();
+
+    const numberedMatches = [
+        ...normalized.matchAll(
+            /(?:^|\s)(\d+)\s*[\.\)]\s*([A-D])\b/g
+        )
+    ];
+
+    if (numberedMatches.length > 0) {
+        const answerMap = new Map();
+
+        numberedMatches.forEach((match) => {
+            answerMap.set(Number(match[1]), match[2]);
+        });
+
+        const questionNumbers = [...answerMap.keys()].sort(
+            (a, b) => a - b
+        );
+
+        const continuous = questionNumbers.every(
+            (number, index) => number === index + 1
+        );
+
+        if (!continuous) {
+            showUIMessage(
+                "<strong>Warning:</strong> The answer key numbering is not continuous. Check that answers start at 1 and do not skip question numbers.",
+                "warning"
+            );
+            return;
+        }
+
+        extractedAnswers = questionNumbers.map(
+            (number) => answerMap.get(number)
+        );
+    } else {
+        const matches = normalized.match(/\b[A-D]\b/g);
+
+        if (matches) {
+            extractedAnswers = matches;
+        }
+    }
+
+    if (extractedAnswers.length === 0) {
+        showUIMessage(
+            "<strong>Warning:</strong> No answer key entries were detected. Use a numbered answer key such as 1. A, 2. C, 3. B.",
+            "warning"
+        );
+        return;
+    }
+
+    showUIMessage(
+        `<strong>Success:</strong> ${extractedAnswers.length} answer entries detected.`,
+        "success"
+    );
+}
 
 // ============================================================
 // SUBMIT PDF QUESTIONS
 // ============================================================
 
 async function submitQuestions() {
+    if (isSaving) return;
 
-    const title =
-        document.getElementById(
-            "examTitle"
-        ).value.trim();
+    const details = validateExamDetails();
+    if (!details) return;
 
-
-    const specialization =
-        document.getElementById(
-            "specializationSelect"
-        ).value;
-
-
-    if (!title) {
-
+    if (extractedQuestions.length === 0) {
         showUIMessage(
-            "<strong>Warning:</strong> Enter an exam title.",
+            "<strong>Warning:</strong> Upload a question PDF first.",
             "warning"
         );
-
         return;
     }
 
-
-    if (!specialization) {
-
+    if (extractedAnswers.length === 0) {
         showUIMessage(
-            "<strong>Warning:</strong> Select a specialization.",
+            "<strong>Warning:</strong> Upload an answer key PDF first.",
             "warning"
         );
-
         return;
     }
 
-
-    if (
-        extractedQuestions.length === 0
-    ) {
-
-        showUIMessage(
-            "<strong>Warning:</strong> No questions loaded.",
-            "warning"
+    if (extractedAnswers.length !== extractedQuestions.length) {
+        await appAlert(
+            `Detected questions: ${extractedQuestions.length}\nDetected answers: ${extractedAnswers.length}\n\nCheck both PDF files and upload them again.`,
+            {
+                title: "Question and Answer Count Mismatch",
+                type: "warning"
+            }
         );
-
         return;
     }
 
+    const confirmed = await appConfirm(
+        `Submit "${details.title}"?\n\nSpecialization: ${details.specialization}\nAcademic Year: ${details.academicYear}\nQuestions: ${extractedQuestions.length}\n\nThe exam will await Program Chair/Admin administration.`,
+        {
+            title: "Submit PDF Exam",
+            confirmText: "Submit Exam",
+            cancelText: "Review"
+        }
+    );
 
-    if (
-        extractedAnswers.length === 0
-    ) {
+    if (!confirmed) return;
 
-        showUIMessage(
-            "<strong>Warning:</strong> No answer key loaded.",
-            "warning"
-        );
-
-        return;
-    }
-
-
-    if (
-        extractedAnswers.length !==
-        extractedQuestions.length
-    ) {
-
-        showUIMessage(
-            "<strong>Warning:</strong> Answer key count does not match the number of questions.",
-            "warning"
-        );
-
-        return;
-    }
-
-
-    if (
-        activeAcademicYear === ""
-    ) {
-
-        showUIMessage(
-            "<strong>Warning:</strong> No Active Academic Year found.",
-            "warning"
-        );
-
-        return;
-    }
-
+    isSaving = true;
+    setButtonLoading(
+        "submitPdfBtn",
+        true,
+        "Saving PDF Questions..."
+    );
 
     try {
+        const documents = extractedQuestions.map(
+            (question, index) => ({
+                title: details.title,
+                specialization: details.specialization,
+                academicYear: details.academicYear,
+                question: question.question,
+                choices: [
+                    question.A,
+                    question.B,
+                    question.C,
+                    question.D
+                ],
+                correctAnswer: extractedAnswers[index],
+                createdBy: currentFacultyUid,
+                type: "pdf",
+                status: "ready_for_admin",
+                createdAt: serverTimestamp()
+            })
+        );
 
-        const collectionRef =
-            collection(
-                db,
-                "questionBank"
-            );
+        await saveQuestionsInBatches(documents);
 
+        extractedQuestions = [];
+        extractedAnswers = [];
 
-        const chunkSize =
-            450;
-
-
-        for (
-            let start = 0;
-            start < extractedQuestions.length;
-            start += chunkSize
-        ) {
-
-            const batch =
-                writeBatch(db);
-
-
-            const chunk =
-                extractedQuestions.slice(
-                    start,
-                    start + chunkSize
-                );
-
-
-            chunk.forEach(
-                (question, index) => {
-
-                    const actualIndex =
-                        start + index;
-
-
-                    const ref =
-                        doc(
-                            collectionRef
-                        );
-
-
-                    batch.set(
-                        ref,
-                        {
-
-                            title:
-                                title,
-
-                            specialization:
-                                specialization,
-
-                            academicYear:
-                                activeAcademicYear,
-
-                            question:
-                                question.question,
-
-                            choices: [
-
-                                question.A,
-                                question.B,
-                                question.C,
-                                question.D
-
-                            ],
-
-                            correctAnswer:
-                                extractedAnswers[
-                                    actualIndex
-                                ],
-
-                            createdBy:
-                                currentFacultyUid,
-
-                            type:
-                                "pdf",
-
-                            status:
-                                "ready_for_admin",
-
-                            createdAt:
-                                serverTimestamp()
-
-                        }
-                    );
-
-                }
-            );
-
-
-            await batch.commit();
-
+        if (getElement("examTitle")) {
+            getElement("examTitle").value = "";
         }
 
+        if (getElement("uploadStatus")) {
+            getElement("uploadStatus").textContent =
+                "No exam file uploaded yet";
+        }
+
+        if (getElement("answerStatus")) {
+            getElement("answerStatus").textContent =
+                "No answer key uploaded yet";
+        }
+
+        if (getElement("fileInput")) {
+            getElement("fileInput").value = "";
+        }
+
+        if (getElement("answerFileInput")) {
+            getElement("answerFileInput").value = "";
+        }
+
+        if (getElement("examCreationSection")) {
+            getElement("examCreationSection").style.display = "none";
+        }
+
+        if (getElement("specializationSelect")) {
+            getElement("specializationSelect").value =
+                assignedSpecialization;
+        }
 
         showUIMessage(
-            "<strong>Success!</strong> " +
-            extractedQuestions.length +
-            " PDF questions were added successfully and are ready for Program Chair administration.",
+            `<strong>Success!</strong> ${documents.length} PDF questions were saved and are awaiting Program Chair/Admin administration.`,
             "success"
         );
 
-
-        extractedQuestions =
-            [];
-
-
-        extractedAnswers =
-            [];
-
-
         await loadExistingExams();
+    } catch (error) {
+        console.error("Submit PDF questions error:", error);
 
-
-        document.getElementById(
-            "examTitle"
-        ).value = "";
-
-
-        document.getElementById(
-            "specializationSelect"
-        ).value = "";
-
-
-        const status =
-            document.getElementById(
-                "uploadStatus"
-            );
-
-
-        if (status) {
-
-            status.innerText =
-                "No exam file uploaded yet";
-
-        }
-
-
-        const answerStatus =
-            document.getElementById(
-                "answerStatus"
-            );
-
-
-        if (answerStatus) {
-
-            answerStatus.innerText =
-                "No answer key uploaded yet";
-
-        }
-
-
-        const fileInput =
-            document.getElementById(
-                "fileInput"
-            );
-
-
-        if (fileInput) {
-
-            fileInput.value =
-                "";
-
-        }
-
-
-        const answerInput =
-            document.getElementById(
-                "answerFileInput"
-            );
-
-
-        if (answerInput) {
-
-            answerInput.value =
-                "";
-
-        }
-
-
-        const section =
-            document.getElementById(
-                "examCreationSection"
-            );
-
-
-        if (section) {
-
-            section.style.display =
-                "none";
-
-        }
-
-    }
-
-    catch (error) {
-
-        console.error(
-            "Submit Questions Error:",
-            error
+        await appAlert(
+            "The PDF questions could not be saved. Check Firestore permissions and try again.",
+            {
+                title: "Submission Failed",
+                type: "error"
+            }
         );
-
-
-        showUIMessage(
-            "<strong>Error:</strong> Failed to save questions. Please try again.",
-            "danger"
-        );
-
+    } finally {
+        isSaving = false;
+        setButtonLoading("submitPdfBtn", false);
     }
-
 }
 
-
 // ============================================================
-// LOAD EXISTING EXAMS
+// LOAD EXISTING EXAMS CREATED BY THIS FACULTY
 // ============================================================
 
 async function loadExistingExams() {
+    const container = getElement("existingExams");
 
-    const container =
-        document.getElementById(
-            "existingExams"
-        );
+    if (!container || !currentFacultyUid) return;
 
-
-    if (
-        !container ||
-        !currentFacultyUid
-    ) {
-        return;
-    }
-
+    container.innerHTML = "<p>Loading exams...</p>";
 
     try {
-
-        const snapshot =
-            await getDocs(
-                query(
-                    collection(
-                        db,
-                        "questionBank"
-                    ),
-                    where(
-                        "createdBy",
-                        "==",
-                        currentFacultyUid
-                    )
-                )
-            );
-
-
-        questionBankData =
-            [];
-
-
-        snapshot.forEach(
-            docSnap => {
-
-                questionBankData.push({
-
-                    id:
-                        docSnap.id,
-
-                    ...docSnap.data()
-
-                });
-
-            }
+        const snapshot = await getDocs(
+            query(
+                collection(db, "questionBank"),
+                where("createdBy", "==", currentFacultyUid)
+            )
         );
 
+        questionBankData = snapshot.docs.map((document) => ({
+            id: document.id,
+            ...document.data()
+        }));
 
         renderExistingExams();
+    } catch (error) {
+        console.error("Load existing exams error:", error);
 
+        container.innerHTML =
+            "<p>Failed to load existing exams. Check Firestore permissions.</p>";
     }
-
-    catch (error) {
-
-        console.error(
-            "Existing Exams Error:",
-            error
-        );
-
-    }
-
 }
-
 
 // ============================================================
 // RENDER EXISTING EXAMS
 // ============================================================
 
 function renderExistingExams() {
+    const container = getElement("existingExams");
 
-    const container =
-        document.getElementById(
-            "existingExams"
-        );
+    if (!container) return;
 
+    container.innerHTML = "";
 
-    if (!container) {
+    const grouped = new Map();
+
+    questionBankData.forEach((data) => {
+        if (!data.title || !data.specialization) return;
+
+        const key = getExamGroupKey(data);
+
+        if (!grouped.has(key)) {
+            grouped.set(key, {
+                title: data.title,
+                specialization: data.specialization,
+                academicYear: data.academicYear || "No Year",
+                type: data.type || "manual",
+                status: data.status || "ready_for_admin",
+                count: 0
+            });
+        }
+
+        const exam = grouped.get(key);
+        exam.count += 1;
+
+        if (data.status) {
+            exam.status = data.status;
+        }
+    });
+
+    if (grouped.size === 0) {
+        container.innerHTML = "<p>No exams created yet.</p>";
         return;
     }
 
+    const bySpecialization = new Map();
 
-    container.innerHTML =
-        "";
+    for (const exam of grouped.values()) {
+        if (!bySpecialization.has(exam.specialization)) {
+            bySpecialization.set(exam.specialization, []);
+        }
 
+        bySpecialization.get(exam.specialization).push(exam);
+    }
 
-    const grouped =
-        {};
+    for (const [specialization, exams] of bySpecialization.entries()) {
+        const details = document.createElement("details");
+        details.className = "exam-specialization";
 
+        const summary = document.createElement("summary");
+        summary.textContent = specialization;
+        details.appendChild(summary);
 
-    questionBankData.forEach(
-        data => {
+        exams.forEach((exam) => {
+            const item = document.createElement("div");
+            item.className = "exam-item";
 
-            if (
-                !data.specialization ||
-                !data.title
-            ) {
-                return;
-            }
+            const title = document.createElement("strong");
+            title.textContent = exam.title;
 
+            const metadata = document.createElement("p");
+            metadata.textContent =
+                `Academic Year: ${exam.academicYear}`;
 
-            if (
-                !grouped[
-                    data.specialization
-                ]
-            ) {
+            const type = document.createElement("p");
+            type.textContent =
+                `Type: ${exam.type === "pdf" ? "PDF Upload" : "Manual Questions"}`;
 
-                grouped[
-                    data.specialization
-                ] = [];
+            const count = document.createElement("p");
+            count.textContent = `Questions: ${exam.count}`;
 
-            }
+            const status = document.createElement("p");
+            status.textContent =
+                `Status: ${formatStatus(exam.status)}`;
 
+            item.append(title, metadata, type, count, status);
 
-            const year =
-                data.academicYear ||
-                "No Year";
+            const deleteButton = document.createElement("button");
+            deleteButton.type = "button";
+            deleteButton.className = "submit-btn";
+            deleteButton.textContent = "Delete Exam";
 
-
-            const exists =
-                grouped[
-                    data.specialization
-                ].find(
-                    exam =>
-                        exam.title ===
-                            data.title &&
-                        exam.academicYear ===
-                            year
+            deleteButton.addEventListener("click", () => {
+                void deleteExam(
+                    exam.title,
+                    exam.specialization,
+                    exam.academicYear
                 );
+            });
 
+            item.appendChild(deleteButton);
+            details.appendChild(item);
+        });
 
-            if (!exists) {
+        container.appendChild(details);
+    }
+}
 
-                grouped[
-                    data.specialization
-                ].push({
+function formatStatus(status) {
+    const labels = {
+        ready_for_admin: "Awaiting Admin Administration",
+        active: "Active",
+        administered: "Administered",
+        inactive: "Inactive",
+        archived: "Archived"
+    };
 
-                    title:
-                        data.title,
+    return labels[status] || String(status || "Unknown");
+}
 
-                    academicYear:
-                        year,
+// ============================================================
+// DELETE EXAM — CUSTOM UI CONFIRMATION
+// ============================================================
 
-                    type:
-                        data.type ||
-                        "manual",
+async function deleteExam(title, specialization, academicYear) {
+    if (isSaving) return;
 
-                    status:
-                        data.status ||
-                        "ready_for_admin"
-
-                });
-
-            }
-
+    const confirmed = await appConfirm(
+        `Delete "${title}"?\n\nSpecialization: ${specialization}\nAcademic Year: ${academicYear}\n\nThis permanently deletes the matching question documents created by your account.`,
+        {
+            title: "Delete Exam",
+            confirmText: "Delete Exam",
+            cancelText: "Keep Exam",
+            danger: true
         }
     );
 
-
-    if (
-        Object.keys(grouped).length === 0
-    ) {
-
-        container.innerHTML =
-            "<p>No exams created yet.</p>";
-
-        return;
-    }
-
-
-    for (
-        const specialization in grouped
-    ) {
-
-        let html = `
-            <details class="exam-specialization">
-
-                <summary>
-                    ${escapeHTML(
-                        specialization
-                    )}
-                </summary>
-        `;
-
-
-        grouped[
-            specialization
-        ].forEach(
-            exam => {
-
-                const type =
-                    exam.type === "pdf"
-                        ? "PDF Upload"
-                        : "Manual Questions";
-
-
-                html += `
-                    <div class="exam-item">
-
-                        <div>
-
-                            <b>
-                                ${escapeHTML(
-                                    exam.title
-                                )}
-                            </b>
-
-                            <br>
-
-                            <small>
-                                Academic Year:
-                                ${escapeHTML(
-                                    exam.academicYear
-                                )}
-                            </small>
-
-                            <br>
-
-                            <small>
-                                Type:
-                                ${type}
-                            </small>
-
-                            <br>
-
-                            <small>
-                                Status:
-                                Ready for Administration
-                            </small>
-
-                        </div>
-
-                    </div>
-                `;
-
-            }
-        );
-
-
-        html += `
-            </details>
-        `;
-
-
-        container.innerHTML +=
-            html;
-
-    }
-
-}
-
-
-// ============================================================
-// DELETE EXAM
-// ============================================================
-
-async function deleteExam(
-    title,
-    specialization,
-    academicYear
-) {
-
-    const confirmed =
-        confirm(
-            "Do you want to delete this exam?"
-        );
-
-
-    if (!confirmed) {
-        return;
-    }
-
+    if (!confirmed) return;
 
     try {
-
-        const snapshot =
-            await getDocs(
-                query(
-
-                    collection(
-                        db,
-                        "questionBank"
-                    ),
-
-                    where(
-                        "title",
-                        "==",
-                        title
-                    ),
-
-                    where(
-                        "specialization",
-                        "==",
-                        specialization
-                    ),
-
-                    where(
-                        "academicYear",
-                        "==",
-                        academicYear
-                    ),
-
-                    where(
-                        "createdBy",
-                        "==",
-                        currentFacultyUid
-                    )
-
-                )
-            );
-
+        const snapshot = await getDocs(
+            query(
+                collection(db, "questionBank"),
+                where("title", "==", title),
+                where("specialization", "==", specialization),
+                where("academicYear", "==", academicYear),
+                where("createdBy", "==", currentFacultyUid)
+            )
+        );
 
         if (snapshot.empty) {
-
-            showUIMessage(
-                "<strong>Notice:</strong> Exam questions not found.",
-                "warning"
+            await appAlert(
+                "No matching exam questions were found.",
+                {
+                    title: "Exam Not Found",
+                    type: "warning"
+                }
             );
-
             return;
         }
 
+        const docs = snapshot.docs;
+        const chunkSize = 450;
 
-        const batch =
-            writeBatch(db);
+        for (let start = 0; start < docs.length; start += chunkSize) {
+            const batch = writeBatch(db);
 
+            docs.slice(start, start + chunkSize).forEach((item) => {
+                batch.delete(doc(db, "questionBank", item.id));
+            });
 
-        snapshot.docs.forEach(
-            docSnap => {
+            await batch.commit();
+        }
 
-                batch.delete(
-                    doc(
-                        db,
-                        "questionBank",
-                        docSnap.id
-                    )
-                );
-
+        await appAlert(
+            "The exam questions were deleted successfully.",
+            {
+                title: "Exam Deleted",
+                type: "success"
             }
         );
 
-
-        await batch.commit();
-
-
-        showUIMessage(
-            "<strong>Success:</strong> Exam deleted successfully.",
-            "success"
-        );
-
-
         await loadExistingExams();
+    } catch (error) {
+        console.error("Delete exam error:", error);
 
-    }
-
-    catch (error) {
-
-        console.error(
-            "Delete Exam Error:",
-            error
+        await appAlert(
+            "Failed to delete this exam. Check Firestore permissions and try again.",
+            {
+                title: "Delete Failed",
+                type: "error"
+            }
         );
-
-
-        showUIMessage(
-            "<strong>Error:</strong> Failed to delete exam. Please try again.",
-            "danger"
-        );
-
     }
-
 }
 
-
 // ============================================================
-// SIDEBAR
+// SIDEBAR AND PAGE NAVIGATION
 // ============================================================
 
 function toggleSidebar() {
-
-    const sidebar =
-        document.getElementById(
-            "sidebar"
-        );
-
-
-    if (sidebar) {
-
-        sidebar.classList.toggle(
-            "active"
-        );
-
-    }
-
+    getElement("sidebar")?.classList.toggle("active");
 }
-
-
-// ============================================================
-// PAGE NAVIGATION
-// ============================================================
 
 function goPage(url) {
+    if (!url) return;
 
-    window.location.href =
-        url;
-
+    window.location.href = url;
 }
 
-
 // ============================================================
-// DOM READY
-// ============================================================
-
-document.addEventListener(
-    "DOMContentLoaded",
-    async () => {
-
-        setupSpecializationToggle();
-
-        setupQuestionPDFUpload();
-
-        setupAnswerPDFUpload();
-
-        renderManualQuestionsList();
-
-    }
-);
-
-
-// ============================================================
-// GLOBAL FUNCTIONS
+// GLOBAL FUNCTIONS FOR HTML ONCLICK ATTRIBUTES
 // ============================================================
 
-window.addManualQuestion =
-    addManualQuestion;
-
-window.saveManualExam =
-    saveManualQuestionsToFirestore;
-
-window.submitQuestions =
-    submitQuestions;
-
-window.toggleSidebar =
-    toggleSidebar;
-
-window.deleteExam =
-    deleteExam;
-
-window.goPage =
-    goPage;
+window.addManualQuestion = addManualQuestion;
+window.saveManualExam = saveManualQuestionsToFirestore;
+window.submitQuestions = submitQuestions;
+window.toggleSidebar = toggleSidebar;
+window.deleteExam = deleteExam;
+window.goPage = goPage;

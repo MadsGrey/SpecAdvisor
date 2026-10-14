@@ -13,9 +13,13 @@ import {
 import {
     collection,
     getDocs,
+    getDoc,
+    doc,
     query,
     orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+import { appAlert } from "./ui-dialog.js";
 
 
 /* =========================================================
@@ -25,6 +29,11 @@ import {
 let currentUser = null;
 let allLogs = [];
 let academicYears = [];
+
+// For the daily reset of the totals
+let totalUsersCount = 0;
+let statsDayKey = "";
+let rolloverWatcherStarted = false;
 
 
 /* =========================================================
@@ -43,23 +52,17 @@ onAuthStateChanged(auth, async (user) => {
 
     currentUser = user;
 
-    console.log(
-        "Monitoring Auth:",
-        user.email
-    );
-
-
-    /* Make sure logout modal is hidden
-       when the page first loads. */
+    /* Make sure the logout modal is hidden on first load. */
 
     hideLogoutModal();
-
 
     await loadAdminName();
 
     await loadAcademicYears();
 
     await loadMonitoring();
+
+    startDayRolloverWatcher();
 
 });
 
@@ -71,49 +74,30 @@ onAuthStateChanged(auth, async (user) => {
 async function loadAdminName() {
 
     const adminName =
-        document.getElementById(
-            "admin-name"
-        );
+        document.getElementById("admin-name");
 
     if (!adminName) return;
 
-
     try {
 
-        const usersSnapshot =
-            await getDocs(
-                collection(
+        const snapshot =
+            await getDoc(
+                doc(
                     db,
-                    "users"
+                    "users",
+                    currentUser.uid
                 )
             );
 
-
-        let fullname = "ADMIN";
-
-
-        usersSnapshot.forEach((docSnap) => {
-
-            const data =
-                docSnap.data();
-
-
-            if (
-                docSnap.id === currentUser.uid
-            ) {
-
-                fullname =
-                    data.fullname ||
-                    data.name ||
-                    "ADMIN";
-
-            }
-
-        });
-
+        const data =
+            snapshot.exists()
+                ? snapshot.data()
+                : {};
 
         adminName.textContent =
-            fullname;
+            data.fullname ||
+            data.name ||
+            "ADMIN";
 
     }
 
@@ -133,39 +117,28 @@ async function loadAdminName() {
 
 
 /* =========================================================
-   SIDEBAR
+   SIDEBAR + NAVIGATION
 ========================================================= */
 
 function toggleSidebar() {
 
     const sidebar =
-        document.getElementById(
-            "sidebar"
-        );
+        document.getElementById("sidebar");
 
     if (!sidebar) return;
 
-    sidebar.classList.toggle(
-        "active"
-    );
+    sidebar.classList.toggle("active");
 
 }
 
 
-/* =========================================================
-   PAGE NAVIGATION
-========================================================= */
-
 function goPage(page) {
 
-    document.body.style.opacity =
-        "0";
-
+    document.body.style.opacity = "0";
 
     setTimeout(() => {
 
-        window.location.href =
-            page;
+        window.location.href = page;
 
     }, 150);
 
@@ -173,27 +146,21 @@ function goPage(page) {
 
 
 /* =========================================================
-   LOGOUT MODAL
+   LOGOUT MODAL (unchanged behavior)
 ========================================================= */
 
 function hideLogoutModal() {
 
     const overlay =
-        document.getElementById(
-            "logout-overlay"
-        );
+        document.getElementById("logout-overlay");
 
     if (!overlay) return;
 
-    overlay.classList.remove(
-        "active"
-    );
+    overlay.classList.remove("active");
 
-    overlay.style.display =
-        "none";
+    overlay.style.display = "none";
 
-    document.body.style.overflow =
-        "";
+    document.body.style.overflow = "";
 
 }
 
@@ -201,73 +168,38 @@ function hideLogoutModal() {
 function logout() {
 
     const overlay =
-        document.getElementById(
-            "logout-overlay"
-        );
-
+        document.getElementById("logout-overlay");
 
     if (!overlay) {
 
-        console.error(
-            "Logout modal not found."
-        );
+        console.error("Logout modal not found.");
 
         return;
 
     }
 
+    overlay.classList.add("active");
 
-    overlay.classList.add(
-        "active"
-    );
+    overlay.style.display = "flex";
 
-    overlay.style.display =
-        "flex";
-
-    document.body.style.overflow =
-        "hidden";
+    document.body.style.overflow = "hidden";
 
 }
 
-
-/* =========================================================
-   CLOSE LOGOUT MODAL
-========================================================= */
 
 function closeLogoutModal() {
 
-    const overlay =
-        document.getElementById(
-            "logout-overlay"
-        );
-
-    if (!overlay) return;
-
-
-    overlay.classList.remove(
-        "active"
-    );
-
-    overlay.style.display =
-        "none";
-
-    document.body.style.overflow =
-        "";
+    hideLogoutModal();
 
 }
 
-
-/* =========================================================
-   CLOSE LOGOUT MODAL OUTSIDE
-========================================================= */
 
 function closeLogoutOutside(event) {
 
     if (
         event &&
         event.target &&
-        event.target.id ===
-            "logout-overlay"
+        event.target.id === "logout-overlay"
     ) {
 
         closeLogoutModal();
@@ -277,28 +209,18 @@ function closeLogoutOutside(event) {
 }
 
 
-/* =========================================================
-   CONFIRM LOGOUT
-========================================================= */
-
 async function confirmLogout() {
 
     const confirmButton =
-        document.querySelector(
-            ".logout-confirm-btn"
-        );
-
+        document.querySelector(".logout-confirm-btn");
 
     if (confirmButton) {
 
-        confirmButton.disabled =
-            true;
+        confirmButton.disabled = true;
 
-        confirmButton.textContent =
-            "Logging out...";
+        confirmButton.textContent = "Logging out...";
 
     }
-
 
     try {
 
@@ -306,33 +228,25 @@ async function confirmLogout() {
 
         localStorage.clear();
 
-        window.location.replace(
-            "../login.html"
-        );
+        window.location.replace("../login.html");
 
     }
 
     catch (error) {
 
-        console.error(
-            "Logout error:",
-            error
-        );
-
+        console.error("Logout error:", error);
 
         if (confirmButton) {
 
-            confirmButton.disabled =
-                false;
+            confirmButton.disabled = false;
 
-            confirmButton.textContent =
-                "Log Out";
+            confirmButton.textContent = "Log Out";
 
         }
 
-
-        alert(
-            "Unable to log out. Please try again."
+        await appAlert(
+            "Unable to log out. Please try again.",
+            { type: "error" }
         );
 
     }
@@ -341,50 +255,30 @@ async function confirmLogout() {
 
 
 /* =========================================================
-   FORMAT DATE
+   DATE HELPERS
 ========================================================= */
+
+function getTimestampDate(timestamp) {
+
+    if (!timestamp) return null;
+
+    const date =
+        typeof timestamp.toDate === "function"
+            ? timestamp.toDate()
+            : new Date(timestamp);
+
+    return isNaN(date.getTime())
+        ? null
+        : date;
+
+}
+
 
 function formatDate(timestamp) {
 
-    if (!timestamp) {
+    const date = getTimestampDate(timestamp);
 
-        return "N/A";
-
-    }
-
-
-    let date;
-
-
-    if (
-        timestamp &&
-        typeof timestamp.toDate ===
-            "function"
-    ) {
-
-        date =
-            timestamp.toDate();
-
-    }
-
-    else {
-
-        date =
-            new Date(timestamp);
-
-    }
-
-
-    if (
-        isNaN(
-            date.getTime()
-        )
-    ) {
-
-        return "N/A";
-
-    }
-
+    if (!date) return "N/A";
 
     return date.toLocaleDateString(
         "en-US",
@@ -398,51 +292,11 @@ function formatDate(timestamp) {
 }
 
 
-/* =========================================================
-   FORMAT TIME
-========================================================= */
-
 function formatTime(timestamp) {
 
-    if (!timestamp) {
+    const date = getTimestampDate(timestamp);
 
-        return "N/A";
-
-    }
-
-
-    let date;
-
-
-    if (
-        timestamp &&
-        typeof timestamp.toDate ===
-            "function"
-    ) {
-
-        date =
-            timestamp.toDate();
-
-    }
-
-    else {
-
-        date =
-            new Date(timestamp);
-
-    }
-
-
-    if (
-        isNaN(
-            date.getTime()
-        )
-    ) {
-
-        return "N/A";
-
-    }
-
+    if (!date) return "N/A";
 
     return date.toLocaleTimeString(
         "en-US",
@@ -456,53 +310,34 @@ function formatTime(timestamp) {
 }
 
 
+/* One key per calendar day, e.g. "2026-10-13" (local time). */
+
+function getDayKey(date = new Date()) {
+
+    const month =
+        String(date.getMonth() + 1).padStart(2, "0");
+
+    const day =
+        String(date.getDate()).padStart(2, "0");
+
+    return `${date.getFullYear()}-${month}-${day}`;
+
+}
+
+
 /* =========================================================
-   GET DATE OBJECT
+   ESCAPE HTML
 ========================================================= */
 
-function getTimestampDate(timestamp) {
+function escapeHtml(value) {
 
-    if (!timestamp) {
+    const div =
+        document.createElement("div");
 
-        return null;
+    div.textContent =
+        value ?? "";
 
-    }
-
-
-    let date;
-
-
-    if (
-        timestamp &&
-        typeof timestamp.toDate ===
-            "function"
-    ) {
-
-        date =
-            timestamp.toDate();
-
-    }
-
-    else {
-
-        date =
-            new Date(timestamp);
-
-    }
-
-
-    if (
-        isNaN(
-            date.getTime()
-        )
-    ) {
-
-        return null;
-
-    }
-
-
-    return date;
+    return div.innerHTML;
 
 }
 
@@ -514,20 +349,13 @@ function getTimestampDate(timestamp) {
 function renderTable(logs) {
 
     const table =
-        document.getElementById(
-            "activityTable"
-        );
+        document.getElementById("activityTable");
 
     if (!table) return;
 
-
     table.innerHTML = "";
 
-
-    if (
-        !logs ||
-        logs.length === 0
-    ) {
+    if (!logs || logs.length === 0) {
 
         table.innerHTML = `
             <tr class="no-data">
@@ -541,34 +369,20 @@ function renderTable(logs) {
 
     }
 
-
     logs.forEach((log) => {
 
-        const timestampDate =
-            getTimestampDate(
-                log.timestamp
-            );
-
+        const hasDate =
+            !!getTimestampDate(log.timestamp);
 
         const date =
-            timestampDate
-                ? formatDate(
-                    log.timestamp
-                )
+            hasDate
+                ? formatDate(log.timestamp)
                 : "N/A";
-
 
         const time =
-            timestampDate
-                ? formatTime(
-                    log.timestamp
-                )
+            hasDate
+                ? formatTime(log.timestamp)
                 : "N/A";
-
-
-        /* =================================================
-           USER
-        ================================================= */
 
         const user =
             log.resolvedFullname ||
@@ -579,32 +393,10 @@ function renderTable(logs) {
             log.email ||
             "N/A";
 
-
-        /* =================================================
-           ROLE
-        ================================================= */
-
         const role =
-            log.role ||
-            "N/A";
+            log.role || "N/A";
 
-
-        /* =================================================
-           ACTION
-
-           IMPORTANT:
-           SYSTEM ACTIVITY REPORT uses log.action.
-
-           We now prioritize ACTION first so Monitoring
-           shows the exact same activity descriptions.
-
-           Example:
-           - Exam Finished
-           - Exam Completed
-           - Cheating Detected
-           - Browser Violation
-           - Login Attempt
-           ================================================= */
+        /* Same wording as the System Activity Report (log.action). */
 
         const activity =
             log.action ||
@@ -612,75 +404,27 @@ function renderTable(logs) {
             log.description ||
             "N/A";
 
-
-        /* =================================================
-           STATUS
-        ================================================= */
-
         const status =
-            log.status ||
-            "Success";
-
+            log.status || "Success";
 
         const row =
-            document.createElement(
-                "tr"
-            );
-
+            document.createElement("tr");
 
         row.innerHTML = `
-
             <td>
                 ${escapeHtml(date)}
                 <br>
-                <small>
-                    ${escapeHtml(time)}
-                </small>
+                <small>${escapeHtml(time)}</small>
             </td>
-
-            <td>
-                ${escapeHtml(user)}
-            </td>
-
-            <td>
-                ${escapeHtml(role)}
-            </td>
-
-            <td>
-                ${escapeHtml(activity)}
-            </td>
-
-            <td>
-                ${escapeHtml(status)}
-            </td>
-
+            <td>${escapeHtml(user)}</td>
+            <td>${escapeHtml(role)}</td>
+            <td>${escapeHtml(activity)}</td>
+            <td>${escapeHtml(status)}</td>
         `;
 
-
-        table.appendChild(
-            row
-        );
+        table.appendChild(row);
 
     });
-
-}
-
-
-/* =========================================================
-   ESCAPE HTML
-========================================================= */
-
-function escapeHtml(value) {
-
-    const div =
-        document.createElement(
-            "div"
-        );
-
-    div.textContent =
-        value ?? "";
-
-    return div.innerHTML;
 
 }
 
@@ -692,12 +436,9 @@ function escapeHtml(value) {
 async function loadAcademicYears() {
 
     const select =
-        document.getElementById(
-            "filterYear"
-        );
+        document.getElementById("filterYear");
 
     if (!select) return;
-
 
     try {
 
@@ -709,72 +450,44 @@ async function loadAcademicYears() {
                 )
             );
 
-
         academicYears = [];
-
 
         snapshot.forEach((docSnap) => {
 
-            const data =
-                docSnap.data();
-
+            const data = docSnap.data();
 
             const year =
                 data.academicYear ||
                 data.year ||
                 docSnap.id;
 
-
             if (year) {
 
-                academicYears.push(
-                    String(year)
-                );
+                academicYears.push(String(year));
 
             }
 
         });
 
-
         academicYears =
-            [
-                ...new Set(
-                    academicYears
-                )
-            ];
-
-
-        academicYears.sort();
-
+            [...new Set(academicYears)].sort();
 
         select.innerHTML = `
-
             <option value="">
                 All Academic Years
             </option>
-
         `;
-
 
         academicYears.forEach((year) => {
 
             const option =
-                document.createElement(
-                    "option"
-                );
+                document.createElement("option");
 
+            option.value = year;
 
-            option.value =
-                year;
+            option.textContent = year;
 
-
-            option.textContent =
-                year;
-
-
-            select.appendChild(
-                option
-            );
+            select.appendChild(option);
 
         });
 
@@ -793,49 +506,106 @@ async function loadAcademicYears() {
 
 
 /* =========================================================
+   RESOLVE A LOG'S USER TO A FULL NAME
+========================================================= */
+
+function resolveFullname(log, usersByIdentifier) {
+
+    /* log.user can already be a full name, or an email / ID. */
+
+    if (
+        log.user &&
+        String(log.user).trim() !== ""
+    ) {
+
+        const loggedUser =
+            String(log.user).trim();
+
+        if (
+            loggedUser.includes(" ") &&
+            !loggedUser.includes("@")
+        ) {
+
+            return loggedUser;
+
+        }
+
+        const found =
+            usersByIdentifier.get(
+                loggedUser.toLowerCase()
+            );
+
+        if (found) return found;
+
+    }
+
+    /* Try the other identifiers a log may carry. */
+
+    const identifiers = [
+        log.uid,
+        log.userUid,
+        log.userId,
+        log.email,
+        log.studentNumber,
+        log.facultyId,
+        log.idNumber,
+        log.username
+    ];
+
+    for (const identifier of identifiers) {
+
+        if (
+            identifier === undefined ||
+            identifier === null
+        ) {
+
+            continue;
+
+        }
+
+        const key =
+            String(identifier)
+                .trim()
+                .toLowerCase();
+
+        if (!key) continue;
+
+        const found =
+            usersByIdentifier.get(key);
+
+        if (found) return found;
+
+    }
+
+    return "";
+
+}
+
+
+/* =========================================================
    LOAD MONITORING
 ========================================================= */
 
 async function loadMonitoring() {
 
     const table =
-        document.getElementById(
-            "activityTable"
-        );
-
+        document.getElementById("activityTable");
 
     if (table) {
 
         table.innerHTML = `
-
             <tr>
-
-                <td
-                    colspan="5"
-                    class="no-data"
-                >
+                <td colspan="5" class="no-data">
                     Loading activity logs...
                 </td>
-
             </tr>
-
         `;
 
     }
 
-
     try {
 
-        /* =================================================
-           LOAD ALL ACTIVITY LOGS
-
-           IMPORTANT:
-           There is NO limit(100) anymore.
-
-           This allows Monitoring Activities to show
-           older activity records too, just like the
-           System Activity Report.
-        ================================================= */
+        /* All logs, newest first (no limit). */
 
         const logsQuery =
             query(
@@ -849,325 +619,102 @@ async function loadMonitoring() {
                 )
             );
 
-
-        /* =================================================
-           LOAD LOGS + USERS
-        ================================================= */
-
         const [
             logsSnapshot,
             usersSnapshot
-        ] =
-            await Promise.all([
+        ] = await Promise.all([
 
-                getDocs(
-                    logsQuery
-                ),
+            getDocs(logsQuery),
 
-                getDocs(
-                    collection(
-                        db,
-                        "users"
-                    )
+            getDocs(
+                collection(
+                    db,
+                    "users"
                 )
+            )
 
-            ]);
+        ]);
 
-
-        /* =================================================
-           CREATE USER LOOKUP
-        ================================================= */
+        /* Lookup: any identifier -> full name */
 
         const usersByIdentifier =
             new Map();
 
+        usersSnapshot.forEach((docSnap) => {
 
-        usersSnapshot.forEach(
-            (docSnap) => {
+            const user = docSnap.data();
 
-                const user =
-                    docSnap.data();
+            const fullname =
+                user.fullname ||
+                user.name ||
+                "";
 
+            if (!fullname) return;
 
-                const fullname =
-                    user.fullname ||
-                    user.name ||
-                    "";
+            [
+                docSnap.id,
+                user.uid,
+                user.userId,
+                user.email,
+                user.studentNumber,
+                user.facultyId,
+                user.idNumber,
+                user.username
+            ].forEach((identifier) => {
 
-
-                if (!fullname) {
+                if (
+                    identifier === undefined ||
+                    identifier === null
+                ) {
 
                     return;
 
                 }
 
-
-                /* FIRESTORE DOCUMENT ID */
-
-                usersByIdentifier.set(
-
-                    String(
-                        docSnap.id
-                    )
+                const key =
+                    String(identifier)
                         .trim()
-                        .toLowerCase(),
+                        .toLowerCase();
 
-                    fullname
+                if (key) {
 
-                );
+                    usersByIdentifier.set(
+                        key,
+                        fullname
+                    );
 
+                }
 
-                /* OTHER IDENTIFIERS */
+            });
 
-                const identifiers = [
-
-                    user.uid,
-
-                    user.userId,
-
-                    user.email,
-
-                    user.studentNumber,
-
-                    user.facultyId,
-
-                    user.idNumber,
-
-                    user.username
-
-                ];
-
-
-                identifiers.forEach(
-                    (identifier) => {
-
-                        if (
-                            identifier ===
-                                undefined ||
-                            identifier ===
-                                null
-                        ) {
-
-                            return;
-
-                        }
-
-
-                        const key =
-                            String(
-                                identifier
-                            )
-                                .trim()
-                                .toLowerCase();
-
-
-                        if (!key) {
-
-                            return;
-
-                        }
-
-
-                        usersByIdentifier.set(
-
-                            key,
-
-                            fullname
-
-                        );
-
-                    }
-                );
-
-            }
-        );
-
-
-        /* =================================================
-           RESOLVE FULLNAME FOR EACH LOG
-        ================================================= */
+        });
 
         allLogs = [];
 
+        logsSnapshot.forEach((docSnap) => {
 
-        logsSnapshot.forEach(
-            (docSnap) => {
+            const log = docSnap.data();
 
-                const log =
-                    docSnap.data();
+            allLogs.push({
 
+                id: docSnap.id,
 
-                let resolvedFullname =
-                    "";
+                ...log,
 
+                resolvedFullname:
+                    resolveFullname(
+                        log,
+                        usersByIdentifier
+                    ) || "N/A"
 
-                /* =================================================
-                   CHECK log.user FIRST
-                ================================================= */
+            });
 
-                if (
-                    log.user &&
-                    String(
-                        log.user
-                    ).trim() !== ""
-                ) {
-
-                    const loggedUser =
-                        String(
-                            log.user
-                        ).trim();
-
-
-                    /* Already a fullname */
-
-                    if (
-                        loggedUser.includes(
-                            " "
-                        ) &&
-                        !loggedUser.includes(
-                            "@"
-                        )
-                    ) {
-
-                        resolvedFullname =
-                            loggedUser;
-
-                    }
-
-                    else {
-
-                        const key =
-                            loggedUser
-                                .toLowerCase();
-
-
-                        resolvedFullname =
-                            usersByIdentifier.get(
-                                key
-                            ) || "";
-
-                    }
-
-                }
-
-
-                /* =================================================
-                   TRY OTHER IDENTIFIERS
-                ================================================= */
-
-                if (
-                    !resolvedFullname
-                ) {
-
-                    const identifiers = [
-
-                        log.uid,
-
-                        log.userUid,
-
-                        log.userId,
-
-                        log.email,
-
-                        log.studentNumber,
-
-                        log.facultyId,
-
-                        log.idNumber,
-
-                        log.username
-
-                    ];
-
-
-                    for (
-                        const identifier
-                        of identifiers
-                    ) {
-
-                        if (
-                            identifier ===
-                                undefined ||
-                            identifier ===
-                                null
-                        ) {
-
-                            continue;
-
-                        }
-
-
-                        const key =
-                            String(
-                                identifier
-                            )
-                                .trim()
-                                .toLowerCase();
-
-
-                        if (!key) {
-
-                            continue;
-
-                        }
-
-
-                        const foundName =
-                            usersByIdentifier.get(
-                                key
-                            );
-
-
-                        if (
-                            foundName
-                        ) {
-
-                            resolvedFullname =
-                                foundName;
-
-                            break;
-
-                        }
-
-                    }
-
-                }
-
-
-                /* =================================================
-                   SAVE RESOLVED NAME
-                ================================================= */
-
-                allLogs.push({
-
-                    id:
-                        docSnap.id,
-
-                    ...log,
-
-                    resolvedFullname:
-                        resolvedFullname ||
-                        "N/A"
-
-                });
-
-            }
-        );
-
-
-        /* =================================================
-           UPDATE STATISTICS
-        ================================================= */
+        });
 
         calculateMonitoringStats(
-    allLogs,
-    usersSnapshot.size
-);
-
-
-        /* =================================================
-           APPLY FILTERS
-        ================================================= */
+            allLogs,
+            usersSnapshot.size
+        );
 
         applyFilters();
 
@@ -1180,22 +727,14 @@ async function loadMonitoring() {
             error
         );
 
-
         if (table) {
 
             table.innerHTML = `
-
                 <tr>
-
-                    <td
-                        colspan="5"
-                        class="no-data"
-                    >
+                    <td colspan="5" class="no-data">
                         Unable to load monitoring data.
                     </td>
-
                 </tr>
-
             `;
 
         }
@@ -1206,7 +745,12 @@ async function loadMonitoring() {
 
 
 /* =========================================================
-   MONITORING STATISTICS
+   MONITORING STATISTICS (DAILY TOTALS)
+
+   Login, failed-login and cheating totals count ONLY
+   today's activity, so they start from zero every new day.
+   "Total users" is the number of accounts, so it is not
+   reset. The table below still lists every log.
 ========================================================= */
 
 function calculateMonitoringStats(
@@ -1214,20 +758,31 @@ function calculateMonitoringStats(
     totalUsers
 ) {
 
+    totalUsersCount = totalUsers;
+
+    statsDayKey = getDayKey();
+
     let totalLogins = 0;
 
     let failedLogins = 0;
 
     let cheatingAlerts = 0;
 
-
     logs.forEach((log) => {
 
-        /*
-         * IMPORTANT:
-         * Use ACTION first because this is what
-         * System Activity Report uses.
-         */
+        const logDate =
+            getTimestampDate(log.timestamp);
+
+        /* Skip anything that did not happen today. */
+
+        if (
+            !logDate ||
+            getDayKey(logDate) !== statsDayKey
+        ) {
+
+            return;
+
+        }
 
         const activity =
             String(
@@ -1237,31 +792,16 @@ function calculateMonitoringStats(
                 ""
             ).toLowerCase();
 
-
         const status =
             String(
-                log.status ||
-                ""
+                log.status || ""
             ).toLowerCase();
 
-
-        /* =================================================
-           LOGIN STATISTICS
-        ================================================= */
-
-        if (
-            activity.includes(
-                "login"
-            )
-        ) {
+        if (activity.includes("login")) {
 
             if (
-                activity.includes(
-                    "failed"
-                ) ||
-                status.includes(
-                    "failed"
-                )
+                activity.includes("failed") ||
+                status.includes("failed")
             ) {
 
                 failedLogins++;
@@ -1276,21 +816,10 @@ function calculateMonitoringStats(
 
         }
 
-
-        /* =================================================
-           CHEATING / VIOLATION STATISTICS
-        ================================================= */
-
         if (
-            activity.includes(
-                "cheat"
-            ) ||
-            activity.includes(
-                "violation"
-            ) ||
-            activity.includes(
-                "warning"
-            )
+            activity.includes("cheat") ||
+            activity.includes("violation") ||
+            activity.includes("warning")
         ) {
 
             cheatingAlerts++;
@@ -1299,63 +828,101 @@ function calculateMonitoringStats(
 
     });
 
+    setText("totalLogins", totalLogins);
 
-    const totalLoginsElement =
-        document.getElementById(
-            "totalLogins"
-        );
+    setText("failedLogins", failedLogins);
 
+    setText("cheatingAlerts", cheatingAlerts);
 
-    const failedLoginsElement =
-        document.getElementById(
-            "failedLogins"
-        );
+    const usersElement =
+        document.getElementById("totalUsers") ||
+        document.getElementById("activeUsers");
 
+    if (usersElement) {
 
-    const cheatingAlertsElement =
-        document.getElementById(
-            "cheatingAlerts"
-        );
-
-
-    if (
-        totalLoginsElement
-    ) {
-
-        totalLoginsElement.textContent =
-            totalLogins;
+        usersElement.textContent = totalUsers;
 
     }
 
+    /* Optional: <span id="statsDate"></span> in the HTML */
 
-    if (
-        failedLoginsElement
-    ) {
+    const dateLabel =
+        document.getElementById("statsDate");
 
-        failedLoginsElement.textContent =
-            failedLogins;
+    if (dateLabel) {
+
+        dateLabel.textContent =
+            "Today, " +
+            new Date().toLocaleDateString(
+                "en-US",
+                {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric"
+                }
+            );
 
     }
 
-
-    if (
-        cheatingAlertsElement
-    ) {
-
-        cheatingAlertsElement.textContent =
-            cheatingAlerts;
-
-    }
-
-
-    const totalUsersElement =
-    document.getElementById("totalUsers") ||
-    document.getElementById("activeUsers");
-
-if (totalUsersElement) {
-    totalUsersElement.textContent =
-        totalUsers;
 }
+
+
+function setText(id, value) {
+
+    const element =
+        document.getElementById(id);
+
+    if (element) {
+
+        element.textContent = value;
+
+    }
+
+}
+
+
+/* =========================================================
+   DAILY RESET WATCHER
+
+   Checks every 30 seconds (and whenever the tab becomes
+   visible again, e.g. after the computer wakes up) whether
+   the date changed. If it did, the logs are reloaded and
+   the totals restart from zero for the new day.
+========================================================= */
+
+function startDayRolloverWatcher() {
+
+    if (rolloverWatcherStarted) return;
+
+    rolloverWatcherStarted = true;
+
+    const checkRollover = async () => {
+
+        if (
+            statsDayKey &&
+            getDayKey() !== statsDayKey
+        ) {
+
+            await loadMonitoring();
+
+        }
+
+    };
+
+    setInterval(checkRollover, 30000);
+
+    document.addEventListener(
+        "visibilitychange",
+        () => {
+
+            if (!document.hidden) {
+
+                checkRollover();
+
+            }
+
+        }
+    );
 
 }
 
@@ -1367,201 +934,75 @@ if (totalUsersElement) {
 function applyFilters() {
 
     const selectedDate =
-        document.getElementById(
-            "filterDate"
-        )?.value || "";
-
+        document.getElementById("filterDate")?.value || "";
 
     const selectedYear =
-        document.getElementById(
-            "filterYear"
-        )?.value || "";
-
+        document.getElementById("filterYear")?.value || "";
 
     const selectedTime =
-        document.getElementById(
-            "filterTime"
-        )?.value || "";
+        document.getElementById("filterTime")?.value || "";
 
+    /* 09:00 = 9:00 AM through 9:59 AM, and so on. */
 
-    let filteredLogs =
-        [
-            ...allLogs
-        ];
+    let selectedHour = null;
 
-
-    /* =================================================
-       TIME FILTER
-       
-       09:00 = 9:00 AM through 9:59 AM
-       10:00 = 10:00 AM through 10:59 AM
-       12:00 = 12:00 PM through 12:59 PM
-       13:00 = 1:00 PM through 1:59 PM
-       18:00 = 6:00 PM through 6:59 PM
-       21:00 = 9:00 PM through 9:59 PM
-    ================================================= */
-
-    let selectedHour =
-        null;
-
-
-    if (
-        selectedTime
-    ) {
-
-        const timeParts =
-            selectedTime.split(":");
-
+    if (selectedTime) {
 
         selectedHour =
             parseInt(
-                timeParts[0],
+                selectedTime.split(":")[0],
                 10
             );
 
+        if (isNaN(selectedHour)) {
 
-        if (
-            isNaN(
-                selectedHour
-            )
-        ) {
-
-            selectedHour =
-                null;
+            selectedHour = null;
 
         }
 
     }
 
+    const filteredLogs =
+        allLogs.filter((log) => {
 
-    filteredLogs =
-        filteredLogs.filter(
-            (log) => {
+            const timestampDate =
+                getTimestampDate(log.timestamp);
 
-                const timestampDate =
-                    getTimestampDate(
-                        log.timestamp
-                    );
+            if (!timestampDate) return false;
 
+            if (
+                selectedDate &&
+                getDayKey(timestampDate) !== selectedDate
+            ) {
 
-                if (
-                    !timestampDate
-                ) {
-
-                    return false;
-
-                }
-
-
-                /* =================================================
-                   DATE FILTER
-                ================================================= */
-
-                if (
-                    selectedDate
-                ) {
-
-                    const year =
-                        timestampDate.getFullYear();
-
-
-                    const month =
-                        String(
-                            timestampDate.getMonth() + 1
-                        ).padStart(
-                            2,
-                            "0"
-                        );
-
-
-                    const day =
-                        String(
-                            timestampDate.getDate()
-                        ).padStart(
-                            2,
-                            "0"
-                        );
-
-
-                    const logDate =
-                        `${year}-${month}-${day}`;
-
-
-                    if (
-                        logDate !==
-                        selectedDate
-                    ) {
-
-                        return false;
-
-                    }
-
-                }
-
-
-                /* =================================================
-                   ACADEMIC YEAR FILTER
-                ================================================= */
-
-                if (
-                    selectedYear
-                ) {
-
-                    const logYear =
-                        String(
-                            log.academicYear ||
-                            ""
-                        ).trim();
-
-
-                    if (
-                        logYear !==
-                        String(
-                            selectedYear
-                        ).trim()
-                    ) {
-
-                        return false;
-
-                    }
-
-                }
-
-
-                /* =================================================
-                   TIME FILTER
-                ================================================= */
-
-                if (
-                    selectedHour !==
-                    null
-                ) {
-
-                    const logHour =
-                        timestampDate.getHours();
-
-
-                    if (
-                        logHour !==
-                        selectedHour
-                    ) {
-
-                        return false;
-
-                    }
-
-                }
-
-
-                return true;
+                return false;
 
             }
-        );
 
+            if (
+                selectedYear &&
+                String(log.academicYear || "").trim() !==
+                String(selectedYear).trim()
+            ) {
 
-    renderTable(
-        filteredLogs
-    );
+                return false;
+
+            }
+
+            if (
+                selectedHour !== null &&
+                timestampDate.getHours() !== selectedHour
+            ) {
+
+                return false;
+
+            }
+
+            return true;
+
+        });
+
+    renderTable(filteredLogs);
 
 }
 
@@ -1572,57 +1013,21 @@ function applyFilters() {
 
 function clearFilters() {
 
-    const dateFilter =
-        document.getElementById(
-            "filterDate"
-        );
+    ["filterDate", "filterYear", "filterTime"]
+        .forEach((id) => {
 
+            const element =
+                document.getElementById(id);
 
-    const yearFilter =
-        document.getElementById(
-            "filterYear"
-        );
+            if (element) {
 
+                element.value = "";
 
-    const timeFilter =
-        document.getElementById(
-            "filterTime"
-        );
+            }
 
+        });
 
-    if (
-        dateFilter
-    ) {
-
-        dateFilter.value =
-            "";
-
-    }
-
-
-    if (
-        yearFilter
-    ) {
-
-        yearFilter.value =
-            "";
-
-    }
-
-
-    if (
-        timeFilter
-    ) {
-
-        timeFilter.value =
-            "";
-
-    }
-
-
-    renderTable(
-        allLogs
-    );
+    renderTable(allLogs);
 
 }
 
@@ -1633,58 +1038,17 @@ function clearFilters() {
 
 function setupFilterListeners() {
 
-    const dateFilter =
-        document.getElementById(
-            "filterDate"
-        );
+    ["filterDate", "filterYear", "filterTime"]
+        .forEach((id) => {
 
+            document
+                .getElementById(id)
+                ?.addEventListener(
+                    "change",
+                    applyFilters
+                );
 
-    const yearFilter =
-        document.getElementById(
-            "filterYear"
-        );
-
-
-    const timeFilter =
-        document.getElementById(
-            "filterTime"
-        );
-
-
-    if (
-        dateFilter
-    ) {
-
-        dateFilter.addEventListener(
-            "change",
-            applyFilters
-        );
-
-    }
-
-
-    if (
-        yearFilter
-    ) {
-
-        yearFilter.addEventListener(
-            "change",
-            applyFilters
-        );
-
-    }
-
-
-    if (
-        timeFilter
-    ) {
-
-        timeFilter.addEventListener(
-            "change",
-            applyFilters
-        );
-
-    }
+        });
 
 }
 
@@ -1696,8 +1060,6 @@ function setupFilterListeners() {
 document.addEventListener(
     "DOMContentLoaded",
     () => {
-
-        /* Hide logout modal immediately */
 
         hideLogoutModal();
 

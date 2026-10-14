@@ -12,8 +12,14 @@ import {
     collection,
     getDocs,
     doc,
-    updateDoc
+    updateDoc,
+    deleteField
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+import {
+    appAlert,
+    appConfirm
+} from "./ui-dialog.js";
 
 
 /* AUTH PROTECTION */
@@ -144,6 +150,49 @@ async function confirmLogout() {
         );
 
     }
+
+}
+
+
+/* HELPERS */
+
+function isTerminatedForCheating(user) {
+
+    return (
+        user.active !== true &&
+        !!user.deactivatedReason
+    );
+
+}
+
+
+function getStatusText(user) {
+
+    const isInactive =
+        user.active !== true;
+
+    if (isTerminatedForCheating(user)) {
+
+        return "Terminated (Cheating)";
+
+    }
+
+    if (
+        user.role === "Faculty" &&
+        isInactive
+    ) {
+
+        return "Pending Approval";
+
+    }
+
+    if (isInactive) {
+
+        return "Not Active";
+
+    }
+
+    return "Active";
 
 }
 
@@ -571,8 +620,9 @@ async function updateAssignment(
         );
 
 
-        alert(
-            "Unable to save the assignment."
+        await appAlert(
+            "Unable to save the assignment.",
+            { type: "error" }
         );
 
 
@@ -658,7 +708,7 @@ function renderTable() {
     }
 
 
-    /* SEARCH */
+    /* SEARCH (name, role, section, specialization, status) */
 
     filtered =
         filtered.filter(
@@ -708,6 +758,11 @@ function renderTable() {
                 .toLowerCase();
 
 
+                const status =
+                    getStatusText(user)
+                        .toLowerCase();
+
+
                 return (
 
                     name.includes(
@@ -723,6 +778,10 @@ function renderTable() {
                     ) ||
 
                     specialization.includes(
+                        search
+                    ) ||
+
+                    status.includes(
                         search
                     )
 
@@ -869,30 +928,26 @@ function renderTable() {
                 user.active !== true;
 
 
+            statusCell.textContent =
+                getStatusText(user);
+
+
             if (
-                user.role ===
-                    "Faculty" &&
-                isInactive
+                isTerminatedForCheating(
+                    user
+                )
             ) {
 
-                statusCell.textContent =
-                    "Pending Approval";
+                /* Hover to see why the account was locked */
 
-            }
+                statusCell.title =
+                    user.deactivatedReason;
 
-            else if (
-                isInactive
-            ) {
+                statusCell.style.color =
+                    "#a52e3c";
 
-                statusCell.textContent =
-                    "Not Active";
-
-            }
-
-            else {
-
-                statusCell.textContent =
-                    "Active";
+                statusCell.style.fontWeight =
+                    "600";
 
             }
 
@@ -1022,6 +1077,14 @@ async function toggleUser(
     role
 ) {
 
+    const targetUser =
+        allUsers.find(
+            (item) =>
+                item.id ===
+                userId
+        );
+
+
     if (isInactive) {
 
         let confirmMessage =
@@ -1039,9 +1102,55 @@ async function toggleUser(
         }
 
 
+        /* Student locked out by the exam anti-cheat system */
+
+        if (
+            targetUser &&
+            isTerminatedForCheating(
+                targetUser
+            )
+        ) {
+
+            confirmMessage =
+                "This account was deactivated because of an " +
+                "exam violation:\n\n" +
+                targetUser.deactivatedReason +
+                "\n\nReactivate it so the student can log in " +
+                "and retake the exam?";
+
+        }
+
+
+        const wasCheating =
+            targetUser &&
+            isTerminatedForCheating(
+                targetUser
+            );
+
+
         const confirmActivate =
-            confirm(
-                confirmMessage
+            await appConfirm(
+                confirmMessage,
+                {
+
+                    title:
+                        wasCheating
+                            ? "Reactivate Student Account"
+                            : role === "Faculty"
+                                ? "Approve Faculty Account"
+                                : "Activate Account",
+
+                    confirmText:
+                        wasCheating
+                            ? "Reactivate"
+                            : role === "Faculty"
+                                ? "Approve"
+                                : "Activate",
+
+                    type:
+                        "question"
+
+                }
             );
 
 
@@ -1058,8 +1167,23 @@ async function toggleUser(
     else {
 
         const confirmDeactivate =
-            confirm(
-                "Do you want to deactivate this account?"
+            await appConfirm(
+                "Do you want to deactivate this account?",
+                {
+
+                    title:
+                        "Deactivate Account",
+
+                    confirmText:
+                        "Deactivate",
+
+                    type:
+                        "warning",
+
+                    danger:
+                        true
+
+                }
             );
 
 
@@ -1080,6 +1204,27 @@ async function toggleUser(
             isInactive;
 
 
+        const updates = {
+
+            active:
+                newActiveState
+
+        };
+
+
+        /* Reactivating clears the cheating lock information */
+
+        if (newActiveState) {
+
+            updates.deactivatedReason =
+                deleteField();
+
+            updates.deactivatedAt =
+                deleteField();
+
+        }
+
+
         await updateDoc(
 
             doc(
@@ -1088,28 +1233,24 @@ async function toggleUser(
                 userId
             ),
 
-            {
-
-                active:
-                    newActiveState
-
-            }
+            updates
 
         );
 
 
-        const user =
-            allUsers.find(
-                (item) =>
-                    item.id ===
-                    userId
-            );
+        if (targetUser) {
 
-
-        if (user) {
-
-            user.active =
+            targetUser.active =
                 newActiveState;
+
+
+            if (newActiveState) {
+
+                delete targetUser.deactivatedReason;
+
+                delete targetUser.deactivatedAt;
+
+            }
 
         }
 
@@ -1126,8 +1267,9 @@ async function toggleUser(
         );
 
 
-        alert(
-            "Unable to update account status."
+        await appAlert(
+            "Unable to update account status.",
+            { type: "error" }
         );
 
 

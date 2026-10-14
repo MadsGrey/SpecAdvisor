@@ -691,7 +691,7 @@ button:active,
 .generate-btn,
 .subject-btn,
 .filter-btn {
-  background: #4da6b3;
+  background: #5296ff;
   color: white;
 }
 
@@ -699,16 +699,16 @@ button:active,
 .generate-btn:hover,
 .subject-btn:hover,
 .filter-btn:hover {
-  background: #398e9a;
+  background: #5296ff;
 }
 
 .download-btn {
-  background: #2f2fa2;
+  background: #5296ff;
   color: white;
 }
 
 .download-btn:hover {
-  background: #24247e;
+  background: #5296ff;
 }
 
 .manage-btn {
@@ -1140,7 +1140,7 @@ button[id*="delete"]:hover,
   overflow-x: auto;
   overflow-y: auto;
   margin-top: 25px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #656b74;
   border-radius: 10px;
   background: white;
   -webkit-overflow-scrolling: touch;
@@ -1377,20 +1377,20 @@ button[id*="delete"]:hover,
   width: 100%;
   min-height: 120px;
   padding: 30px;
-  border: 2px dashed #4da6b3;
+  border: 2px dashed #77aaf7;
   border-radius: 10px;
-  background: #9fc3cc;
+  background: #5296ff;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
   cursor: pointer;
-  color: #2f2fa2;
+  color: white;
 }
 
 .drop-area:hover {
-  background: #91bbc5;
+  background: #5296ff;
 }
 
 .upload-status {
@@ -2107,7 +2107,7 @@ button[id*="delete"]:hover,
 
 .profile-header h2,
 .profile-modal h2 {
-  color: #3036a5;
+  color: #5296ff;
   margin: 0 0 18px;
   font-size: 22px;
   font-weight: 700;
@@ -2165,7 +2165,7 @@ button[id*="delete"]:hover,
 
 .profile-field label {
   display: block;
-  color: #3036a5;
+  color: #5296ff;
   font-size: 13px;
   font-weight: 500;
   margin-bottom: 5px;
@@ -2195,7 +2195,7 @@ button[id*="delete"]:hover,
 }
 
 .profile-field input:focus {
-  border-color: #4da6b3;
+  border-color: #5296ff;
   box-shadow: 0 0 0 2px rgba(77, 166, 179, 0.12);
 }
 
@@ -3450,7 +3450,7 @@ input[type="password"]::-webkit-credentials-auto-fill-button {
   padding: 16px;
   border: none;
   border-radius: 10px;
-  background: hsl(188, 56%, 42%);
+  background: #5296ff;
   color: white;
   font-size: 16px;
   font-weight: bold;

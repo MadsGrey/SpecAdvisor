@@ -497,10 +497,11 @@ img {
   grid-template-columns: repeat(4, 1fr);
   gap: 18px;
   margin: 25px 0;
+  border-color: rgb(137, 113, 132);
 }
 
 .stat-card {
-  background: #ff4fa3;
+  background: #ff6fae;
   color: #2f2fa2;
   min-height: 105px;
   padding: 18px 22px;
@@ -523,7 +524,7 @@ img {
   font-size: 34px;
   line-height: 1;
   font-weight: 700;
-  color: #2f2fa2;
+  color: white;
 }
 
 /* =========================================================
@@ -550,9 +551,11 @@ img {
 
 .card-title {
   background: #ff6fae;
+
   color: white;
-  border: none;
   padding: 9px 15px;
+  border: solid;
+  border-color: white;
   border-radius: 6px;
   font-size: 13px;
   font-weight: 600;
@@ -565,7 +568,7 @@ img {
 
 .card-title:hover {
   transform: translateY(-1px);
-  background: #f8f8f8;
+  background: #ff6fae;
 }
 
 /* =========================================================
@@ -952,21 +955,23 @@ button[id*="delete"]:hover,
 ========================================================= */
 
 .manage-box {
-  background: white;
+  background: #ff6fae;
   width: 100%;
-  padding: 28px;
+  padding: 20px;
   margin-bottom: 25px;
   border-radius: 14px;
+  border-color: rgb(137, 116, 126);
+  border-style: solid;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
 }
 
 .manage-box h2 {
-  color: #2f2fa2;
+  color: white;
   margin-bottom: 8px;
 }
 
 .manage-desc {
-  color: #555;
+  color: white;
   margin-bottom: 20px;
 }
 

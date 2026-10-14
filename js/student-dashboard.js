@@ -2,19 +2,13 @@ import { auth, db } from "./firebase-config.js";
 
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-import {
-<<<<<<< HEAD
-    onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 import {
-    collection,
-    query,
-    where,
-    getDocs,
-    doc,
-    getDoc
-=======
+  collection,
+  query,
+  where,
+  getDocs,
   doc,
   getDoc,
 >>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
@@ -546,10 +540,7 @@ function renderProgress(
         </div>
 
     `;
-
 }
-
-
 /* ================================================= */
 /* CALENDAR */
 /* ================================================= */
@@ -682,9 +673,5 @@ document.addEventListener("DOMContentLoaded", () => {
 
 window.goPage = goPage;
 
-<<<<<<< HEAD
-window.renderCalendar =
-    renderCalendar;
-=======
 window.renderCalendar = renderCalendar;
 >>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)

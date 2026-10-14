@@ -1,640 +1,321 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-
-<head>
-
-<title>Specialization Recommendation</title>
-
-<link
-  rel="icon"
-  type="image/png"
-  href="../images/SpecAdvisor-logofavicon.png?v=2"
->
-
-<meta
-  name="viewport"
-  content="width=device-width, initial-scale=1.0"
->
-
-<link
-  rel="stylesheet"
-  href="../css/styles.css"
->
-
-</head>
-
-
-<body>
-
-
-<!-- ===================================================== -->
-<!-- SIDEBAR -->
-<!-- ===================================================== -->
-
-<div class="sidebar" id="sidebar">
-
-
-  <div class="sidebar-logo">
-
-    <img src="../images/SpecAdvisor-Logo.png">
-
-  </div>
-
-
-  <button
-    class="sidebar-item"
-    onclick="goPage('../student/dashboard.html')"
-  >
-
-    <span class="sidebar-icon">
-
-      <svg viewBox="0 0 24 24">
-
-        <path d="M3 11.5L12 4l9 7.5"></path>
-
-        <path d="M5 10v10h14V10"></path>
-
-        <path d="M9 20v-6h6v6"></path>
-
-      </svg>
-
-    </span>
-
-    <span>
-      Dashboard
-    </span>
-
-  </button>
-
-
-  <button
-    class="sidebar-item"
-    onclick="goPage('../student/take-exam.html')"
-  >
-
-    <span class="sidebar-icon">
-
-      <svg viewBox="0 0 24 24">
-
-        <rect
-          x="5"
-          y="3"
-          width="14"
-          height="18"
-          rx="2"
-        ></rect>
-
-        <path d="M8 7h8"></path>
-
-        <path d="M8 11h8"></path>
-
-        <path d="M8 15h5"></path>
-
-      </svg>
-
-    </span>
-
-    <span>
-      Take Exam
-    </span>
-
-  </button>
-
-
-  <button
-    class="sidebar-item active"
-  >
-
-    <span class="sidebar-icon">
-
-      <svg viewBox="0 0 24 24">
-
-        <path d="M12 3l2.2 5.1L20 10l-5.8 1.9L12 17l-2.2-5.1L4 10l5.8-1.9L12 3z"></path>
-
-        <path d="M19 16l.8 1.8L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8L19 16z"></path>
-
-      </svg>
-
-    </span>
-
-    <span>
-      Specialization Recommendation
-    </span>
-
-  </button>
-
-
-  <button
-    class="sidebar-item"
-    onclick="goPage('../student/specialization-selection.html')"
-  >
-
-    <span class="sidebar-icon">
-
-      <svg viewBox="0 0 24 24">
-
-        <path d="M5 4h14v16H5z"></path>
-
-        <path d="M8 8h8"></path>
-
-        <path d="M8 12h8"></path>
-
-        <path d="M8 16h5"></path>
-
-      </svg>
-
-    </span>
-
-    <span>
-      Specialization Selection
-    </span>
-
-  </button>
-
-
-  <div class="sidebar-credit">
-
-    ©SpecAdvisor 2026
-
-  </div>
-
-
-</div>
-
-
-
-<!-- ===================================================== -->
-<!-- MAIN -->
-<!-- ===================================================== -->
-
-<div class="main">
-
-
-  <!-- TOPBAR -->
-
-  <div class="topbar">
-
-
-    <button
-      class="menu-btn"
-      onclick="toggleSidebar()"
-    >
-
-      ☰
-
-    </button>
-
-
-    <span class="title">
-
-      Specialization Recommendation
-
-    </span>
-
-
-    <!-- PROFILE -->
-
-    <div class="profile-wrapper">
-
+  <head>
+    <title>Specialization Recommendation</title>
+
+    <link
+      rel="icon"
+      type="image/png"
+      href="../images/SpecAdvisor-logofavicon.png?v=2"
+    />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="stylesheet" href="../css/styles.css" />
+  </head>
+
+  <body>
+    <!-- ===================================================== -->
+    <!-- SIDEBAR -->
+    <!-- ===================================================== -->
+
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <img src="../images/SpecAdvisor-Logo.png" />
+      </div>
 
       <button
-        class="profile-btn"
-        onclick="toggleProfileMenu()"
-        title="Account"
+        class="sidebar-item"
+        onclick="goPage('../student/dashboard.html')"
       >
+        <span class="sidebar-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M3 11.5L12 4l9 7.5"></path>
 
-        <svg viewBox="0 0 24 24">
+            <path d="M5 10v10h14V10"></path>
 
-          <circle
-            cx="12"
-            cy="8"
-            r="4"
-          ></circle>
+            <path d="M9 20v-6h6v6"></path>
+          </svg>
+        </span>
 
-          <path
-            d="M4 21c0-4 3.5-7 8-7s8 3 8 7"
-          ></path>
-
-        </svg>
-
+        <span> Dashboard </span>
       </button>
 
-
-      <div
-        class="profile-menu"
-        id="profile-menu"
+      <button
+        class="sidebar-item"
+        onclick="goPage('../student/take-exam.html')"
       >
-
-
-        <button
-          onclick="openProfile()"
-        >
-
+        <span class="sidebar-icon">
           <svg viewBox="0 0 24 24">
+            <rect x="5" y="3" width="14" height="18" rx="2"></rect>
 
-            <circle
-              cx="12"
-              cy="8"
-              r="4"
-            ></circle>
+            <path d="M8 7h8"></path>
 
+            <path d="M8 11h8"></path>
+
+            <path d="M8 15h5"></path>
+          </svg>
+        </span>
+
+        <span> Take Exam </span>
+      </button>
+
+      <button class="sidebar-item active">
+        <span class="sidebar-icon">
+          <svg viewBox="0 0 24 24">
             <path
-              d="M4 21c0-4 3.5-7 8-7s8 3 8 7"
+              d="M12 3l2.2 5.1L20 10l-5.8 1.9L12 17l-2.2-5.1L4 10l5.8-1.9L12 3z"
             ></path>
 
+            <path
+              d="M19 16l.8 1.8L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8L19 16z"
+            ></path>
           </svg>
+        </span>
 
-          <span>
-            Profile
-          </span>
-
-        </button>
-
-
-        <button
-          onclick="logout()"
-        >
-
-          <svg viewBox="0 0 24 24">
-
-            <path d="M10 17l5-5-5-5"></path>
-
-            <path d="M15 12H3"></path>
-
-            <path d="M21 19V5a2 2 0 0 0-2-2h-5"></path>
-
-          </svg>
-
-          <span>
-            Log out
-          </span>
-
-        </button>
-
-
-      </div>
-
-
-    </div>
-
-
-  </div>
-
-
-
-  <!-- =================================================== -->
-  <!-- CONTENT -->
-  <!-- =================================================== -->
-
-  <div class="content">
-
-
-    <h1 class="rec-title">
-
-      SPECIALIZATION IT RECOMMENDATION
-
-    </h1>
-
-
-    <div class="rec-description">
-
-      Your specialization recommendation
-      is based on your exam scores.
-
-    </div>
-
-
-    <div id="recommendationContainer">
-
-
-      <div class="rec-empty">
-
-        <p>
-
-          Take the specialization exam first
-          to receive your recommendation.
-
-        </p>
-
-      </div>
-
-
-    </div>
-
-
-    <br>
-
-
-    <div style="text-align:center;">
-
+        <span> Specialization Recommendation </span>
+      </button>
 
       <button
-        id="continueBtn"
-        class="submit-btn"
-        style="display:none;"
+        class="sidebar-item"
         onclick="goPage('../student/specialization-selection.html')"
       >
+        <span class="sidebar-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M5 4h14v16H5z"></path>
 
-        Continue
+            <path d="M8 8h8"></path>
 
+            <path d="M8 12h8"></path>
+
+            <path d="M8 16h5"></path>
+          </svg>
+        </span>
+
+        <span> Specialization Selection </span>
       </button>
 
-
+      <div class="sidebar-credit">©SpecAdvisor 2026</div>
     </div>
 
+    <!-- ===================================================== -->
+    <!-- MAIN -->
+    <!-- ===================================================== -->
 
-  </div>
+    <div class="main">
+      <!-- TOPBAR -->
 
+      <div class="topbar">
+        <button class="menu-btn" onclick="toggleSidebar()">☰</button>
 
-</div>
+        <span class="title"> Specialization Recommendation </span>
 
+        <!-- PROFILE -->
 
+        <div class="profile-wrapper">
+          <button
+            class="profile-btn"
+            onclick="toggleProfileMenu()"
+            title="Account"
+          >
+            <svg viewBox="0 0 24 24">
+              <circle cx="12" cy="8" r="4"></circle>
 
-<!-- ===================================================== -->
-<!-- PROFILE MODAL -->
-<!-- ===================================================== -->
+              <path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"></path>
+            </svg>
+          </button>
 
-<div
-  class="profile-overlay"
-  id="profile-overlay"
-  onclick="closeProfileOutside(event)"
->
+          <div class="profile-menu" id="profile-menu">
+            <button onclick="openProfile()">
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="8" r="4"></circle>
 
+                <path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"></path>
+              </svg>
 
-  <div
-    class="profile-modal"
-    onclick="event.stopPropagation()"
-  >
+              <span> Profile </span>
+            </button>
 
+            <button onclick="logout()">
+              <svg viewBox="0 0 24 24">
+                <path d="M10 17l5-5-5-5"></path>
 
-    <div class="profile-header">
+                <path d="M15 12H3"></path>
 
+                <path d="M21 19V5a2 2 0 0 0-2-2h-5"></path>
+              </svg>
 
-      <h2>
-        My Profile
-      </h2>
+              <span> Log out </span>
+            </button>
+          </div>
+        </div>
+      </div>
 
+      <!-- =================================================== -->
+      <!-- CONTENT -->
+      <!-- =================================================== -->
 
-      <button
-        class="close-profile"
-        onclick="closeProfile()"
-      >
+      <div class="content">
+        <h1 class="rec-title">SPECIALIZATION IT RECOMMENDATION</h1>
 
-        ×
+        <div class="rec-description">
+          Your specialization recommendation is based on your exam scores.
+        </div>
 
-      </button>
+        <div id="recommendationContainer">
+          <div class="rec-empty">
+            <p>
+              Take the specialization exam first to receive your recommendation.
+            </p>
+          </div>
+        </div>
 
+        <br />
 
+        <div style="text-align: center">
+          <button
+            id="continueBtn"
+            class="submit-btn"
+            style="display: none"
+            onclick="goPage('../student/specialization-selection.html')"
+          >
+            Continue
+          </button>
+        </div>
+      </div>
     </div>
 
+    <!-- ===================================================== -->
+    <!-- PROFILE MODAL -->
+    <!-- ===================================================== -->
 
     <div
-      class="profile-avatar"
-      id="profile-avatar"
+      class="profile-overlay"
+      id="profile-overlay"
+      onclick="closeProfileOutside(event)"
     >
+      <div class="profile-modal" onclick="event.stopPropagation()">
+        <div class="profile-header">
+          <h2>My Profile</h2>
 
-      ?
+          <button class="close-profile" onclick="closeProfile()">×</button>
+        </div>
 
+        <div class="profile-avatar" id="profile-avatar">?</div>
+
+        <div class="profile-info">
+          <div class="profile-field">
+            <label> Full Name </label>
+
+            <input type="text" id="profile-fullname" disabled />
+          </div>
+
+          <div class="profile-field">
+            <label> Email </label>
+
+            <input type="email" id="profile-email" disabled />
+          </div>
+
+          <div class="profile-field">
+            <label> Student ID </label>
+
+            <input type="text" id="profile-student-id" disabled />
+          </div>
+
+          <div class="profile-field">
+            <label> Section </label>
+
+            <input type="text" id="profile-section" disabled />
+          </div>
+
+          <div class="profile-field">
+            <label> Academic Year </label>
+
+            <input type="text" id="profile-academic-year" disabled />
+          </div>
+
+          <div class="profile-field">
+            <label> Role </label>
+
+            <input type="text" id="profile-role" disabled />
+          </div>
+        </div>
+
+        <div class="profile-message" id="profile-message"></div>
+
+        <div class="profile-actions">
+          <button
+            class="edit-profile-btn"
+            id="edit-profile-btn"
+            onclick="enableProfileEdit()"
+          >
+            Edit Profile
+          </button>
+
+          <button
+            class="cancel-profile-btn"
+            id="cancel-profile-btn"
+            onclick="cancelProfileEdit()"
+          >
+            Cancel
+          </button>
+
+          <button
+            class="save-profile-btn"
+            id="save-profile-btn"
+            onclick="saveProfile()"
+          >
+            Save Changes
+          </button>
+        </div>
+      </div>
     </div>
 
+    <!-- ===================================================== -->
+    <!-- LOGOUT MODAL -->
+    <!-- ===================================================== -->
 
-    <div class="profile-info">
-
-
-      <div class="profile-field">
-
-        <label>
-          Full Name
-        </label>
-
-        <input
-          type="text"
-          id="profile-fullname"
-          disabled
+    <div id="logout-overlay" onclick="closeLogoutOutside(event)">
+      <div class="logout-modal-box" onclick="event.stopPropagation()">
+        <button
+          type="button"
+          class="logout-close-btn"
+          onclick="closeLogoutModal()"
+          aria-label="Close"
         >
+          ×
+        </button>
 
+        <h2>Log Out?</h2>
+
+        <p>Are you sure you want to log out?</p>
+
+        <div class="logout-actions">
+          <button
+            type="button"
+            class="logout-cancel-btn"
+            onclick="closeLogoutModal()"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            class="logout-confirm-btn"
+            onclick="performLogout()"
+          >
+            Log Out
+          </button>
+        </div>
       </div>
-
-
-      <div class="profile-field">
-
-        <label>
-          Email
-        </label>
-
-        <input
-          type="email"
-          id="profile-email"
-          disabled
-        >
-
-      </div>
-
-
-      <div class="profile-field">
-
-        <label>
-          Student ID
-        </label>
-
-        <input
-          type="text"
-          id="profile-student-id"
-          disabled
-        >
-
-      </div>
-
-
-      <div class="profile-field">
-
-        <label>
-          Section
-        </label>
-
-        <input
-          type="text"
-          id="profile-section"
-          disabled
-        >
-
-      </div>
-
-
-      <div class="profile-field">
-
-        <label>
-          Academic Year
-        </label>
-
-        <input
-          type="text"
-          id="profile-academic-year"
-          disabled
-        >
-
-      </div>
-
-
-      <div class="profile-field">
-
-        <label>
-          Role
-        </label>
-
-        <input
-          type="text"
-          id="profile-role"
-          disabled
-        >
-
-      </div>
-
-
     </div>
 
+    <!-- ===================================================== -->
+    <!-- JAVASCRIPT -->
+    <!-- ===================================================== -->
 
-    <div
-      class="profile-message"
-      id="profile-message"
-    ></div>
+    <script type="module" src="../js/recommendation.js"></script>
 
-
-    <div class="profile-actions">
-
-
-      <button
-        class="edit-profile-btn"
-        id="edit-profile-btn"
-        onclick="enableProfileEdit()"
-      >
-
-        Edit Profile
-
-      </button>
-
-
-      <button
-        class="cancel-profile-btn"
-        id="cancel-profile-btn"
-        onclick="cancelProfileEdit()"
-      >
-
-        Cancel
-
-      </button>
-
-
-      <button
-        class="save-profile-btn"
-        id="save-profile-btn"
-        onclick="saveProfile()"
-      >
-
-        Save Changes
-
-      </button>
-
-
-    </div>
-
-
-  </div>
-
-
-</div>
-
-
-
-<!-- ===================================================== -->
-<!-- LOGOUT MODAL -->
-<!-- ===================================================== -->
-
-<div
-  id="logout-overlay"
-  onclick="closeLogoutOutside(event)"
->
-
-
-  <div
-    class="logout-modal-box"
-    onclick="event.stopPropagation()"
-  >
-
-
-    <button
-      type="button"
-      class="logout-close-btn"
-      onclick="closeLogoutModal()"
-      aria-label="Close"
-    >
-
-      ×
-
-    </button>
-
-
-    <h2>
-      Log Out?
-    </h2>
-
-
-    <p>
-      Are you sure you want to log out?
-    </p>
-
-
-    <div class="logout-actions">
-
-
-      <button
-        type="button"
-        class="logout-cancel-btn"
-        onclick="closeLogoutModal()"
-      >
-
-        Cancel
-
-      </button>
-
-
-      <button
-        type="button"
-        class="logout-confirm-btn"
-        onclick="performLogout()"
-      >
-
-        Log Out
-
-      </button>
-
-
-    </div>
-
-
-  </div>
-
-
-</div>
-
-
-
-<!-- ===================================================== -->
-<!-- JAVASCRIPT -->
-<!-- ===================================================== -->
-
-<script
-  type="module"
-  src="../js/recommendation.js"
-></script>
-
-
-<script
-  type="module"
-  src="../js/student-profile.js"
-></script>
-
-
-</body>
-
+    <script type="module" src="../js/student-profile.js"></script>
+  </body>
 </html>

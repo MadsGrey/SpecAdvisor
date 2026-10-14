@@ -1,284 +1,209 @@
-import {
-    auth,
-    db
-} from "./firebase-config.js";
+import { auth, db } from "./firebase-config.js";
+
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 import {
-    onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-import {
-    collection,
-    getDocs,
-    getDoc,
-    doc,
-    query,
-    where
+  collection,
+  getDocs,
+  getDoc,
+  doc,
+  query,
+  where,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-
 let selectedAcademicYear = "";
-
 
 // ===============================
 // AUTHENTICATION
 // ===============================
 
 onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    window.location.replace("../Login.html");
+    return;
+  }
 
-    if (!user) {
-        window.location.replace("../login.html");
-        return;
-    }
-
-    // Load faculty name for welcome message
-    await loadFacultyWelcomeName(user.uid);
+  // Load faculty name for welcome message
+  await loadFacultyWelcomeName(user.uid);
 });
-
 
 // ===============================
 // LOAD FACULTY FULL NAME
 // ===============================
 
 async function loadFacultyWelcomeName(uid) {
+  const welcomeName = document.getElementById("faculty-welcome-name");
 
-    const welcomeName = document.getElementById("faculty-welcome-name");
+  if (!welcomeName) {
+    console.warn("faculty-welcome-name element was not found.");
+    return;
+  }
 
-    if (!welcomeName) {
-        console.warn("faculty-welcome-name element was not found.");
-        return;
+  try {
+    const facultyRef = doc(db, "users", uid);
+    const facultySnap = await getDoc(facultyRef);
+
+    if (facultySnap.exists()) {
+      const data = facultySnap.data();
+
+      const fullname = data.fullname || data.name || "Faculty";
+
+      welcomeName.textContent = fullname;
+    } else {
+      welcomeName.textContent = "Faculty";
     }
+  } catch (error) {
+    console.error("Faculty Welcome Name Error:", error);
 
-    try {
-
-        const facultyRef = doc(db, "users", uid);
-        const facultySnap = await getDoc(facultyRef);
-
-        if (facultySnap.exists()) {
-
-            const data = facultySnap.data();
-
-            const fullname =
-                data.fullname ||
-                data.name ||
-                "Faculty";
-
-            welcomeName.textContent = fullname;
-
-        } else {
-
-            welcomeName.textContent = "Faculty";
-        }
-
-    } catch (error) {
-
-        console.error(
-            "Faculty Welcome Name Error:",
-            error
-        );
-
-        welcomeName.textContent = "Faculty";
-    }
+    welcomeName.textContent = "Faculty";
+  }
 }
-
 
 // ===============================
 // RELOAD WHEN PAGE IS RESTORED
 // ===============================
 
 window.addEventListener("pageshow", (event) => {
-
-    if (event.persisted) {
-        window.location.reload();
-    }
-
+  if (event.persisted) {
+    window.location.reload();
+  }
 });
-
 
 // ===============================
 // SIDEBAR
 // ===============================
 
 function toggleSidebar() {
+  const sidebar = document.getElementById("sidebar");
 
-    const sidebar = document.getElementById("sidebar");
+  if (!sidebar) {
+    return;
+  }
 
-    if (!sidebar) {
-        return;
-    }
-
-    sidebar.classList.toggle("active");
+  sidebar.classList.toggle("active");
 }
-
 
 // ===============================
 // PAGE NAVIGATION
 // ===============================
 
 function goPage(url) {
-
-    window.location.href = url;
+  window.location.href = url;
 }
-
 
 // ===============================
 // LOAD ACADEMIC YEARS
 // ===============================
 
 async function loadAcademicYears() {
+  const select = document.getElementById("academicYearSelect");
 
-    const select =
-        document.getElementById("academicYearSelect");
+  if (!select) {
+    console.warn("academicYearSelect was not found.");
+    return;
+  }
 
-    if (!select) {
-        console.warn("academicYearSelect was not found.");
-        return;
-    }
+  try {
+    const snapshot = await getDocs(collection(db, "academicYears"));
 
-    try {
+    const years = [];
 
-        const snapshot =
-            await getDocs(
-                collection(db, "academicYears")
-            );
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
 
-        const years = [];
+      years.push({
+        id: docSnap.id,
+        year: data.year,
+        active: data.active === true,
+      });
+    });
 
-        snapshot.forEach((docSnap) => {
+    // ===============================
+    // SORT YEARS
+    // ===============================
 
-            const data = docSnap.data();
+    years.sort((a, b) => {
+      return String(b.year).localeCompare(String(a.year));
+    });
 
-            years.push({
-                id: docSnap.id,
-                year: data.year,
-                active: data.active === true
-            });
+    // ===============================
+    // CLEAR DROPDOWN
+    // ===============================
 
-        });
+    select.innerHTML = "";
 
+    // ===============================
+    // NO ACADEMIC YEAR
+    // ===============================
 
-        // ===============================
-        // SORT YEARS
-        // ===============================
-
-        years.sort((a, b) => {
-
-            return String(b.year).localeCompare(
-                String(a.year)
-            );
-
-        });
-
-
-        // ===============================
-        // CLEAR DROPDOWN
-        // ===============================
-
-        select.innerHTML = "";
-
-
-        // ===============================
-        // NO ACADEMIC YEAR
-        // ===============================
-
-        if (years.length === 0) {
-
-            select.innerHTML = `
+    if (years.length === 0) {
+      select.innerHTML = `
                 <option value="">
                     No academic year available
                 </option>
             `;
 
-            selectedAcademicYear = "";
+      selectedAcademicYear = "";
 
-            await loadDashboardStats("");
+      await loadDashboardStats("");
 
-            return;
-        }
+      return;
+    }
 
+    // ===============================
+    // ADD YEARS
+    // ===============================
 
-        // ===============================
-        // ADD YEARS
-        // ===============================
+    years.forEach((item) => {
+      const option = document.createElement("option");
 
-        years.forEach((item) => {
+      option.value = item.year;
+      option.textContent = item.year;
 
-            const option =
-                document.createElement("option");
+      select.appendChild(option);
+    });
 
-            option.value = item.year;
-            option.textContent = item.year;
+    // ===============================
+    // FIND ACTIVE YEAR
+    // ===============================
 
-            select.appendChild(option);
+    const activeYear = years.find((item) => item.active);
 
-        });
+    if (activeYear) {
+      selectedAcademicYear = activeYear.year;
 
+      select.value = activeYear.year;
+    } else {
+      selectedAcademicYear = years[0].year;
 
-        // ===============================
-        // FIND ACTIVE YEAR
-        // ===============================
+      select.value = years[0].year;
+    }
 
-        const activeYear =
-            years.find((item) => item.active);
+    // ===============================
+    // YEAR CHANGE
+    // ===============================
 
+    select.onchange = async function () {
+      selectedAcademicYear = this.value;
 
-        if (activeYear) {
+      await loadDashboardStats(selectedAcademicYear);
+    };
 
-            selectedAcademicYear =
-                activeYear.year;
+    // ===============================
+    // INITIAL DASHBOARD LOAD
+    // ===============================
 
-            select.value =
-                activeYear.year;
+    await loadDashboardStats(selectedAcademicYear);
+  } catch (error) {
+    console.error("Unable to load academic years:", error);
 
-        } else {
-
-            selectedAcademicYear =
-                years[0].year;
-
-            select.value =
-                years[0].year;
-        }
-
-
-        // ===============================
-        // YEAR CHANGE
-        // ===============================
-
-        select.onchange = async function () {
-
-            selectedAcademicYear =
-                this.value;
-
-            await loadDashboardStats(
-                selectedAcademicYear
-            );
-
-        };
-
-
-        // ===============================
-        // INITIAL DASHBOARD LOAD
-        // ===============================
-
-        await loadDashboardStats(
-            selectedAcademicYear
-        );
-
-    } catch (error) {
-
-        console.error(
-            "Unable to load academic years:",
-            error
-        );
-
-        select.innerHTML = `
+    select.innerHTML = `
             <option value="">
                 Unable to load academic years
             </option>
         `;
-    }
+  }
 }
-
 
 // ===============================
 // MATCHING HELPERS
@@ -290,308 +215,194 @@ async function loadAcademicYears() {
 // ===============================
 
 function normalizeKey(value) {
-
-    return String(value ?? "")
-        .trim()
-        .toLowerCase();
+  return String(value ?? "")
+    .trim()
+    .toLowerCase();
 }
-
 
 function getStudentKeys(student) {
-
-    return [
-        student.id,
-        student.uid,
-        student.userId,
-        student.email
-    ]
-        .map(normalizeKey)
-        .filter(Boolean);
+  return [student.id, student.uid, student.userId, student.email]
+    .map(normalizeKey)
+    .filter(Boolean);
 }
-
 
 function hasCompletedExam(student, completedKeys) {
-
-    return getStudentKeys(student).some(
-        (key) => completedKeys.has(key)
-    );
+  return getStudentKeys(student).some((key) => completedKeys.has(key));
 }
-
 
 // ===============================
 // LOAD DASHBOARD STATISTICS
 // ===============================
 
 async function loadDashboardStats(year) {
+  try {
+    // ===============================
+    // STUDENTS
+    // ===============================
 
-    try {
+    let students = [];
 
-        // ===============================
-        // STUDENTS
-        // ===============================
+    if (year) {
+      const studentsQuery = query(
+        collection(db, "users"),
+        where("role", "==", "Student"),
+        where("activeAcademicYear", "==", year),
+      );
 
-        let students = [];
+      const studentsSnapshot = await getDocs(studentsQuery);
 
-        if (year) {
-
-            const studentsQuery =
-                query(
-                    collection(db, "users"),
-                    where("role", "==", "Student"),
-                    where(
-                        "activeAcademicYear",
-                        "==",
-                        year
-                    )
-                );
-
-            const studentsSnapshot =
-                await getDocs(studentsQuery);
-
-            studentsSnapshot.forEach((docSnap) => {
-
-                students.push({
-                    id: docSnap.id,
-                    ...docSnap.data()
-                });
-
-            });
-
-        }
-
-
-        // ===============================
-        // RESULTS
-        // ===============================
-
-        let results = [];
-
-        if (year) {
-
-            const resultsQuery =
-                query(
-                    collection(db, "results"),
-                    where(
-                        "academicYear",
-                        "==",
-                        year
-                    )
-                );
-
-            const resultsSnapshot =
-                await getDocs(resultsQuery);
-
-            resultsSnapshot.forEach((docSnap) => {
-
-                results.push({
-                    id: docSnap.id,
-                    ...docSnap.data()
-                });
-
-            });
-
-        }
-
-
-        // ===============================
-        // SPECIALIZATIONS
-        // ===============================
-
-        const specializationSnapshot =
-            await getDocs(
-                collection(db, "specializations")
-            );
-
-        const specializations = [];
-
-        specializationSnapshot.forEach((docSnap) => {
-
-            specializations.push({
-                id: docSnap.id,
-                ...docSnap.data()
-            });
-
+      studentsSnapshot.forEach((docSnap) => {
+        students.push({
+          id: docSnap.id,
+          ...docSnap.data(),
         });
-
-
-        // ===============================
-        // TOTAL STUDENTS
-        // ===============================
-
-        const totalStudents =
-            students.length;
-
-
-        // ===============================
-        // IDS / EMAILS THAT HAVE A RESULT
-        // ===============================
-
-        const completedKeys =
-            new Set();
-
-
-        results.forEach((result) => {
-
-            const uidKey =
-                normalizeKey(result.studentUid);
-
-            const emailKey =
-                normalizeKey(result.studentEmail);
-
-
-            if (uidKey) {
-
-                completedKeys.add(uidKey);
-
-            }
-
-
-            if (emailKey) {
-
-                completedKeys.add(emailKey);
-
-            }
-
-        });
-
-
-        // ===============================
-        // COMPLETED STUDENTS
-        //
-        // Counted from the SAME student list the
-        // table uses, so the card and the table
-        // always show the same numbers.
-        // ===============================
-
-        const completedStudents =
-            students.filter(
-                (student) =>
-                    hasCompletedExam(
-                        student,
-                        completedKeys
-                    )
-            ).length;
-
-
-        // ===============================
-        // REMAINING STUDENTS
-        // ===============================
-
-        const remainingStudents =
-            Math.max(
-                totalStudents -
-                completedStudents,
-                0
-            );
-
-
-        // ===============================
-        // UPDATE DASHBOARD CARDS
-        // ===============================
-
-        const totalStudentsElement =
-            document.getElementById(
-                "totalStudents"
-            );
-
-        const completedStudentsElement =
-            document.getElementById(
-                "completedStudents"
-            );
-
-        const remainingStudentsElement =
-            document.getElementById(
-                "remainingStudents"
-            );
-
-        const totalSpecializationsElement =
-            document.getElementById(
-                "totalSpecializations"
-            );
-
-
-        if (totalStudentsElement) {
-
-            totalStudentsElement.textContent =
-                totalStudents;
-
-        }
-
-
-        if (completedStudentsElement) {
-
-            completedStudentsElement.textContent =
-                completedStudents;
-
-        }
-
-
-        if (remainingStudentsElement) {
-
-            remainingStudentsElement.textContent =
-                remainingStudents;
-
-        }
-
-
-        if (totalSpecializationsElement) {
-
-            totalSpecializationsElement.textContent =
-                specializations.length;
-
-        }
-
-
-        // ===============================
-        // COMPLETION TABLE
-        // ===============================
-
-        loadCompletionTable(
-            students,
-            completedKeys
-        );
-
-
-    } catch (error) {
-
-        console.error(
-            "Unable to load dashboard statistics:",
-            error
-        );
-
+      });
     }
-}
 
+    // ===============================
+    // RESULTS
+    // ===============================
+
+    let results = [];
+
+    if (year) {
+      const resultsQuery = query(
+        collection(db, "results"),
+        where("academicYear", "==", year),
+      );
+
+      const resultsSnapshot = await getDocs(resultsQuery);
+
+      resultsSnapshot.forEach((docSnap) => {
+        results.push({
+          id: docSnap.id,
+          ...docSnap.data(),
+        });
+      });
+    }
+
+    // ===============================
+    // SPECIALIZATIONS
+    // ===============================
+
+    const specializationSnapshot = await getDocs(
+      collection(db, "specializations"),
+    );
+
+    const specializations = [];
+
+    specializationSnapshot.forEach((docSnap) => {
+      specializations.push({
+        id: docSnap.id,
+        ...docSnap.data(),
+      });
+    });
+
+    // ===============================
+    // TOTAL STUDENTS
+    // ===============================
+
+    const totalStudents = students.length;
+
+    // ===============================
+    // IDS / EMAILS THAT HAVE A RESULT
+    // ===============================
+
+    const completedKeys = new Set();
+
+    results.forEach((result) => {
+      const uidKey = normalizeKey(result.studentUid);
+
+      const emailKey = normalizeKey(result.studentEmail);
+
+      if (uidKey) {
+        completedKeys.add(uidKey);
+      }
+
+      if (emailKey) {
+        completedKeys.add(emailKey);
+      }
+    });
+
+    // ===============================
+    // COMPLETED STUDENTS
+    //
+    // Counted from the SAME student list the
+    // table uses, so the card and the table
+    // always show the same numbers.
+    // ===============================
+
+    const completedStudents = students.filter((student) =>
+      hasCompletedExam(student, completedKeys),
+    ).length;
+
+    // ===============================
+    // REMAINING STUDENTS
+    // ===============================
+
+    const remainingStudents = Math.max(totalStudents - completedStudents, 0);
+
+    // ===============================
+    // UPDATE DASHBOARD CARDS
+    // ===============================
+
+    const totalStudentsElement = document.getElementById("totalStudents");
+
+    const completedStudentsElement =
+      document.getElementById("completedStudents");
+
+    const remainingStudentsElement =
+      document.getElementById("remainingStudents");
+
+    const totalSpecializationsElement = document.getElementById(
+      "totalSpecializations",
+    );
+
+    if (totalStudentsElement) {
+      totalStudentsElement.textContent = totalStudents;
+    }
+
+    if (completedStudentsElement) {
+      completedStudentsElement.textContent = completedStudents;
+    }
+
+    if (remainingStudentsElement) {
+      remainingStudentsElement.textContent = remainingStudents;
+    }
+
+    if (totalSpecializationsElement) {
+      totalSpecializationsElement.textContent = specializations.length;
+    }
+
+    // ===============================
+    // COMPLETION TABLE
+    // ===============================
+
+    loadCompletionTable(students, completedKeys);
+  } catch (error) {
+    console.error("Unable to load dashboard statistics:", error);
+  }
+}
 
 // ===============================
 // COMPLETION TABLE
 // ===============================
 
-function loadCompletionTable(
-    students,
-    completedKeys
-) {
+function loadCompletionTable(students, completedKeys) {
+  const tableBody = document.querySelector("#completionTable tbody");
 
-    const tableBody =
-        document.querySelector(
-            "#completionTable tbody"
-        );
+  if (!tableBody) {
+    return;
+  }
 
-    if (!tableBody) {
-        return;
-    }
+  tableBody.innerHTML = "";
 
+  // ===============================
+  // NO STUDENTS
+  // ===============================
 
-    tableBody.innerHTML = "";
-
-
-    // ===============================
-    // NO STUDENTS
-    // ===============================
-
-    if (students.length === 0) {
-
-        tableBody.innerHTML = `
+  if (students.length === 0) {
+    tableBody.innerHTML = `
             <tr>
                 <td colspan="4">
                     No students available yet.
@@ -599,51 +410,28 @@ function loadCompletionTable(
             </tr>
         `;
 
-        return;
-    }
+    return;
+  }
 
+  // ===============================
+  // ADD STUDENTS
+  // ===============================
 
-    // ===============================
-    // ADD STUDENTS
-    // ===============================
+  students.forEach((student) => {
+    const row = document.createElement("tr");
 
-    students.forEach((student) => {
+    const fullname = student.fullname || student.name || "N/A";
 
-        const row =
-            document.createElement("tr");
+    const section = student.section || "N/A";
 
+    const academicYear =
+      student.activeAcademicYear || selectedAcademicYear || "N/A";
 
-        const fullname =
-            student.fullname ||
-            student.name ||
-            "N/A";
+    const completed = hasCompletedExam(student, completedKeys);
 
+    const status = completed ? "Completed" : "Not Completed";
 
-        const section =
-            student.section ||
-            "N/A";
-
-
-        const academicYear =
-            student.activeAcademicYear ||
-            selectedAcademicYear ||
-            "N/A";
-
-
-        const completed =
-            hasCompletedExam(
-                student,
-                completedKeys
-            );
-
-
-        const status =
-            completed
-                ? "Completed"
-                : "Not Completed";
-
-
-        row.innerHTML = `
+    row.innerHTML = `
             <td>${escapeHtml(fullname)}</td>
 
             <td>${escapeHtml(section)}</td>
@@ -651,68 +439,50 @@ function loadCompletionTable(
             <td>${escapeHtml(academicYear)}</td>
 
             <td>
-                <span class="status ${
-                    completed
-                        ? "completed"
-                        : "pending"
-                }">
+                <span class="status ${completed ? "completed" : "pending"}">
                     ${status}
                 </span>
             </td>
         `;
 
-
-        tableBody.appendChild(row);
-
-    });
-
+    tableBody.appendChild(row);
+  });
 }
-
 
 // ===============================
 // BASIC HTML ESCAPE
 // ===============================
 
 function escapeHtml(value) {
-
-    return String(value)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
-
 
 // ===============================
 // INITIALIZE DASHBOARD
 // ===============================
 
-document.addEventListener(
-    "DOMContentLoaded",
-    async () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  await loadAcademicYears();
 
-        await loadAcademicYears();
-
-        if (
-            typeof generateCalendar ===
-            "function"
-        ) {
-
-            generateCalendar();
-
-        }
-
-    }
-);
-
+  if (typeof generateCalendar === "function") {
+    generateCalendar();
+  }
+});
 
 // ===============================
 // WINDOW EXPORTS
 // ===============================
 
-window.toggleSidebar =
-    toggleSidebar;
+window.toggleSidebar = toggleSidebar;
 
+<<<<<<< HEAD
 window.goPage =
     goPage;
+=======
+window.goPage = goPage;
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)

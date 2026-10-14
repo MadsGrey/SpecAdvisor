@@ -1,9 +1,9 @@
-import {
-    auth,
-    db
-} from "./firebase-config.js";
+import { auth, db } from "./firebase-config.js";
+
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 import {
+<<<<<<< HEAD
     onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
@@ -14,8 +14,11 @@ import {
     getDocs,
     doc,
     getDoc
+=======
+  doc,
+  getDoc,
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
 
 /* ================================================= */
 /* AUTHENTICATION */
@@ -23,17 +26,18 @@ import {
 
 let currentUser = null;
 
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    window.location.replace("../Login.html");
 
-onAuthStateChanged(
-    auth,
-    async (user) => {
+    return;
+  }
 
-        if (!user) {
+  currentUser = user;
 
-            window.location.replace(
-                "../login.html"
-            );
+  console.log("Student Dashboard Auth:", user.email);
 
+<<<<<<< HEAD
             return;
 
         }
@@ -60,7 +64,12 @@ onAuthStateChanged(
 
     }
 );
+=======
+  console.log("Student Dashboard UID:", user.uid);
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
+  await loadStudentName();
+});
 
 /* ================================================= */
 /* ESCAPE HTML */
@@ -83,125 +92,67 @@ function escapeHTML(value) {
 /* ================================================= */
 
 async function loadStudentName() {
+  const welcomeName = document.getElementById("student-welcome-name");
 
-    const welcomeName =
-        document.getElementById(
-            "student-welcome-name"
-        );
+  if (!welcomeName) {
+    return;
+  }
 
+  const user = currentUser || auth.currentUser;
 
-    if (!welcomeName) {
+  if (!user) {
+    welcomeName.textContent = "Student";
+
+    return;
+  }
+
+  try {
+    /*
+     * IMPORTANT:
+     * Read only the student's own
+     * users document using UID.
+     *
+     * This avoids querying the
+     * entire users collection.
+     */
+
+    const userRef = doc(db, "users", user.uid);
+
+    const snapshot = await getDoc(userRef);
+
+    if (snapshot.exists()) {
+      const data = snapshot.data();
+
+      const fullname = (data.fullname || data.name || "").trim();
+
+      if (fullname) {
+        welcomeName.textContent = fullname;
 
         return;
-
+      }
     }
 
+    /*
+     * Fallback to Firebase email
+     * if fullname does not exist.
+     */
 
-    const user =
-        currentUser ||
-        auth.currentUser;
-
-
-    if (!user) {
-
-        welcomeName.textContent =
-            "Student";
-
-        return;
-
+    if (user.email) {
+      welcomeName.textContent = user.email.split("@")[0];
+    } else {
+      welcomeName.textContent = "Student";
     }
+  } catch (error) {
+    console.error("Unable to load student name:", error);
 
+    /*
+     * Do not break the dashboard
+     * just because the name failed.
+     */
 
-    try {
-
-        /*
-         * IMPORTANT:
-         * Read only the student's own
-         * users document using UID.
-         *
-         * This avoids querying the
-         * entire users collection.
-         */
-
-        const userRef =
-            doc(
-                db,
-                "users",
-                user.uid
-            );
-
-
-        const snapshot =
-            await getDoc(
-                userRef
-            );
-
-
-        if (snapshot.exists()) {
-
-            const data =
-                snapshot.data();
-
-
-            const fullname =
-                (
-                    data.fullname ||
-                    data.name ||
-                    ""
-                ).trim();
-
-
-            if (fullname) {
-
-                welcomeName.textContent =
-                    fullname;
-
-                return;
-
-            }
-
-        }
-
-
-        /*
-         * Fallback to Firebase email
-         * if fullname does not exist.
-         */
-
-        if (user.email) {
-
-            welcomeName.textContent =
-                user.email.split("@")[0];
-
-        }
-        else {
-
-            welcomeName.textContent =
-                "Student";
-
-        }
-
-    }
-    catch (error) {
-
-        console.error(
-            "Unable to load student name:",
-            error
-        );
-
-
-        /*
-         * Do not break the dashboard
-         * just because the name failed.
-         */
-
-        welcomeName.textContent =
-            "Student";
-
-    }
-
+    welcomeName.textContent = "Student";
+  }
 }
-
 
 /* ================================================= */
 /* MY PROGRESS                                       */
@@ -604,258 +555,136 @@ function renderProgress(
 /* ================================================= */
 
 function renderCalendar() {
+  const calendarBody = document.getElementById("calendar-body");
 
-    const calendarBody =
-        document.getElementById(
-            "calendar-body"
-        );
+  const calendarTitle = document.getElementById("calendar-title");
 
+  if (!calendarBody) {
+    return;
+  }
 
-    const calendarTitle =
-        document.getElementById(
-            "calendar-title"
-        );
+  const today = new Date();
 
+  const year = today.getFullYear();
 
-    if (!calendarBody) {
+  const month = today.getMonth();
 
-        return;
+  const monthNames = [
+    "JANUARY",
+    "FEBRUARY",
+    "MARCH",
+    "APRIL",
+    "MAY",
+    "JUNE",
+    "JULY",
+    "AUGUST",
+    "SEPTEMBER",
+    "OCTOBER",
+    "NOVEMBER",
+    "DECEMBER",
+  ];
 
-    }
+  if (calendarTitle) {
+    calendarTitle.textContent = `${monthNames[month]} ${year}`;
+  }
 
+  const firstDay = new Date(year, month, 1).getDay();
 
-    const today =
-        new Date();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
 
+  calendarBody.innerHTML = "";
 
-    const year =
-        today.getFullYear();
+  let row = document.createElement("tr");
 
+  /*
+   * Empty cells before
+   * the first day.
+   */
 
-    const month =
-        today.getMonth();
+  for (let i = 0; i < firstDay; i++) {
+    const cell = document.createElement("td");
 
+    cell.innerHTML = "&nbsp;";
 
-    const monthNames = [
+    row.appendChild(cell);
+  }
 
-        "JANUARY",
-        "FEBRUARY",
-        "MARCH",
-        "APRIL",
-        "MAY",
-        "JUNE",
-        "JULY",
-        "AUGUST",
-        "SEPTEMBER",
-        "OCTOBER",
-        "NOVEMBER",
-        "DECEMBER"
+  /*
+   * Calendar days.
+   */
 
-    ];
+  for (let day = 1; day <= daysInMonth; day++) {
+    const cell = document.createElement("td");
 
-
-    if (calendarTitle) {
-
-        calendarTitle.textContent =
-            `${monthNames[month]} ${year}`;
-
-    }
-
-
-    const firstDay =
-        new Date(
-            year,
-            month,
-            1
-        ).getDay();
-
-
-    const daysInMonth =
-        new Date(
-            year,
-            month + 1,
-            0
-        ).getDate();
-
-
-    calendarBody.innerHTML =
-        "";
-
-
-    let row =
-        document.createElement(
-            "tr"
-        );
-
+    cell.textContent = day;
 
     /*
-     * Empty cells before
-     * the first day.
+     * Highlight today.
      */
 
-    for (
-        let i = 0;
-        i < firstDay;
-        i++
-    ) {
-
-        const cell =
-            document.createElement(
-                "td"
-            );
-
-
-        cell.innerHTML =
-            "&nbsp;";
-
-
-        row.appendChild(
-            cell
-        );
-
+    if (day === today.getDate()) {
+      cell.classList.add("today");
     }
 
+    row.appendChild(cell);
 
     /*
-     * Calendar days.
+     * End of week.
      */
 
-    for (
-        let day = 1;
-        day <= daysInMonth;
-        day++
-    ) {
+    if ((firstDay + day) % 7 === 0) {
+      calendarBody.appendChild(row);
 
-        const cell =
-            document.createElement(
-                "td"
-            );
+      row = document.createElement("tr");
+    }
+  }
 
+  /*
+   * Complete the final row.
+   */
 
-        cell.textContent =
-            day;
+  if (row.children.length > 0) {
+    while (row.children.length < 7) {
+      const cell = document.createElement("td");
 
+      cell.innerHTML = "&nbsp;";
 
-        /*
-         * Highlight today.
-         */
-
-        if (
-            day === today.getDate()
-        ) {
-
-            cell.classList.add(
-                "today"
-            );
-
-        }
-
-
-        row.appendChild(
-            cell
-        );
-
-
-        /*
-         * End of week.
-         */
-
-        if (
-            (firstDay + day) % 7 === 0
-        ) {
-
-            calendarBody.appendChild(
-                row
-            );
-
-
-            row =
-                document.createElement(
-                    "tr"
-                );
-
-        }
-
+      row.appendChild(cell);
     }
 
-
-    /*
-     * Complete the final row.
-     */
-
-    if (
-        row.children.length > 0
-    ) {
-
-        while (
-            row.children.length < 7
-        ) {
-
-            const cell =
-                document.createElement(
-                    "td"
-                );
-
-
-            cell.innerHTML =
-                "&nbsp;";
-
-
-            row.appendChild(
-                cell
-            );
-
-        }
-
-
-        calendarBody.appendChild(
-            row
-        );
-
-    }
-
+    calendarBody.appendChild(row);
+  }
 }
-
 
 /* ================================================= */
 /* PAGE NAVIGATION */
 /* ================================================= */
 
 function goPage(page) {
+  if (!page) {
+    return;
+  }
 
-    if (!page) {
-
-        return;
-
-    }
-
-
-    window.location.href =
-        page;
-
+  window.location.href = page;
 }
-
 
 /* ================================================= */
 /* PAGE INITIALIZATION */
 /* ================================================= */
 
-document.addEventListener(
-    "DOMContentLoaded",
-    () => {
-
-        renderCalendar();
-
-    }
-);
-
+document.addEventListener("DOMContentLoaded", () => {
+  renderCalendar();
+});
 
 /* ================================================= */
 /* EXPORT */
 /* ================================================= */
 
-window.goPage =
-    goPage;
+window.goPage = goPage;
 
+<<<<<<< HEAD
 window.renderCalendar =
     renderCalendar;
+=======
+window.renderCalendar = renderCalendar;
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)

@@ -1,621 +1,370 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
+  <head>
+    <title>Academic Management</title>
 
-<title>
-Academic Management
-</title>
+    <link
+      rel="icon"
+      type="image/png"
+      href="../images/SpecAdvisor-logofavicon.png?v=2"
+    />
 
-<link rel="icon" type="image/png" href="../images/SpecAdvisor-logofavicon.png?v=2">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<meta
-name="viewport"
-content="width=device-width, initial-scale=1.0"
->
+    <link rel="stylesheet" href="../css/styles.css" />
+  </head>
+  <style>
+    #profile-overlay {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
 
-<link
-rel="stylesheet"
-href="../css/styles.css"
->
+      width: 100vw !important;
+      height: 100vh !important;
 
-</head>
-<style>#profile-overlay {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
+      display: none;
+      align-items: center !important;
+      justify-content: center !important;
 
-    width: 100vw !important;
-    height: 100vh !important;
+      z-index: 99999 !important;
+    }
 
-    display: none;
-    align-items: center !important;
-    justify-content: center !important;
+    #profile-overlay.active {
+      display: flex !important;
+    }
 
-    z-index: 99999 !important;
-}
+    #profile-overlay .profile-modal {
+      position: relative !important;
+      top: auto !important;
+      left: auto !important;
+      right: auto !important;
+      bottom: auto !important;
 
-#profile-overlay.active {
-    display: flex !important;
-}
+      margin: 0 !important;
+      transform: none !important;
 
-#profile-overlay .profile-modal {
-    position: relative !important;
-    top: auto !important;
-    left: auto !important;
-    right: auto !important;
-    bottom: auto !important;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+  </style>
+  <body>
+    <div class="dashboard">
+      <!-- SIDEBAR -->
 
-    margin: 0 !important;
-    transform: none !important;
+      <div class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+          <img src="../images/SpecAdvisor-Logo.png" />
+        </div>
 
-    max-height: 90vh;
-    overflow-y: auto;
-}</style>
-<body>
+        <button
+          class="sidebar-item"
+          onclick="goPage('../admin/admin-dashboard.html')"
+        >
+          <span class="sidebar-icon">
+            <svg viewBox="0 0 24 24">
+              <path d="M3 11.5L12 4l9 7.5"></path>
 
-<div class="dashboard">
+              <path d="M5 10v10h14V10"></path>
 
+              <path d="M9 20v-6h6v6"></path>
+            </svg>
+          </span>
 
-<!-- SIDEBAR -->
+          <span> Dashboard </span>
+        </button>
 
-<div class="sidebar" id="sidebar">
+        <button
+          class="sidebar-item"
+          onclick="goPage('../admin/admin-manage-users.html')"
+        >
+          <span class="sidebar-icon">
+            <svg viewBox="0 0 24 24">
+              <circle cx="9" cy="8" r="3"></circle>
 
-  <div class="sidebar-logo">
-    <img src="../images/SpecAdvisor-Logo.png">
-  </div>
+              <path d="M3 20c0-3.3 2.7-6 6-6s6 3 6 6"></path>
 
+              <path d="M16 11c2.2 0 4 1.8 4 4"></path>
 
-  <button
-    class="sidebar-item"
-    onclick="goPage('../admin/admin-dashboard.html')"
-  >
+              <path d="M17 5.5a3 3 0 0 1 0 5"></path>
+            </svg>
+          </span>
 
-    <span class="sidebar-icon">
-
-      <svg viewBox="0 0 24 24">
-
-        <path d="M3 11.5L12 4l9 7.5"></path>
-
-        <path d="M5 10v10h14V10"></path>
-
-        <path d="M9 20v-6h6v6"></path>
-
-      </svg>
-
-    </span>
-
-    <span>
-      Dashboard
-    </span>
-
-  </button>
-
-
-  <button
-    class="sidebar-item"
-    onclick="goPage('../admin/admin-manage-users.html')"
-  >
-
-    <span class="sidebar-icon">
-
-      <svg viewBox="0 0 24 24">
-
-        <circle cx="9" cy="8" r="3"></circle>
-
-        <path d="M3 20c0-3.3 2.7-6 6-6s6 3 6 6"></path>
-
-        <path d="M16 11c2.2 0 4 1.8 4 4"></path>
-
-        <path d="M17 5.5a3 3 0 0 1 0 5"></path>
-
-      </svg>
-
-    </span>
-
-    <span>
-      Manage Users
-    </span>
-
-  </button>
-
-  
+          <span> Manage Users </span>
+        </button>
 
         <!-- ADMINISTER EXAMS -->
 
         <button
-            class="sidebar-item"
-            onclick="goPage('../admin/administer-exam.html')"
+          class="sidebar-item"
+          onclick="goPage('../admin/administer-exam.html')"
         >
+          <span class="sidebar-icon">
+            <svg viewBox="0 0 24 24">
+              <rect x="4" y="3" width="16" height="18" rx="2"></rect>
 
-            <span class="sidebar-icon">
+              <path d="M8 7h8"></path>
 
-                <svg viewBox="0 0 24 24">
+              <path d="M8 11h8"></path>
 
-                    <rect
-                        x="4"
-                        y="3"
-                        width="16"
-                        height="18"
-                        rx="2"
-                    ></rect>
+              <path d="M8 15h5"></path>
 
-                    <path d="M8 7h8"></path>
+              <path d="M16 17l2 2 4-4"></path>
+            </svg>
+          </span>
 
-                    <path d="M8 11h8"></path>
-
-                    <path d="M8 15h5"></path>
-
-                    <path d="M16 17l2 2 4-4"></path>
-
-                </svg>
-
-            </span>
-
-            <span>
-                Administer Exams
-            </span>
-
+          <span> Administer Exams </span>
         </button>
 
-
-  <button
-    class="sidebar-item"
-    onclick="goPage('../admin/monitoring.html')"
-  >
-
-    <span class="sidebar-icon">
-
-      <svg viewBox="0 0 24 24">
-
-        <path d="M3 12h4l2-7 4 14 2-7h6"></path>
-
-      </svg>
-
-    </span>
-
-    <span>
-      Monitoring Activities
-    </span>
-
-  </button>
-
-
-  <button class="sidebar-item active">
-
-    <span class="sidebar-icon">
-
-      <svg viewBox="0 0 24 24">
-
-        <rect
-          x="4"
-          y="4"
-          width="16"
-          height="16"
-          rx="2"
-        ></rect>
-
-        <path d="M8 8h8"></path>
-
-        <path d="M8 12h8"></path>
-
-        <path d="M8 16h5"></path>
-
-      </svg>
-
-    </span>
-
-    <span>
-      Academic Management
-    </span>
-
-  </button>
-
-
-  <button
-    class="sidebar-item"
-    onclick="goPage('../admin/system-reports.html')"
-  >
-
-    <span class="sidebar-icon">
-
-      <svg viewBox="0 0 24 24">
-
-        <path d="M5 3h14v18H5z"></path>
-
-        <path d="M8 7h8"></path>
-
-        <path d="M8 11h8"></path>
-
-        <path d="M8 15h5"></path>
-
-      </svg>
-
-    </span>
-
-    <span>
-      System Reports
-    </span>
-
-  </button>
-
-
-  <div class="sidebar-credit">
-    ©SpecAdvisor 2026
-  </div>
-
-</div>
-
-
-<!-- MAIN -->
-
-<div class="main">
-
-
-<!-- TOPBAR -->
-
-<div class="topbar">
-
-  <button
-    class="menu-btn"
-    onclick="toggleSidebar()"
-  >
-    ☰
-  </button>
-
-  <span class="title">
-    Academic Management
-  </span>
-
-
-  <div class="profile-wrapper">
-
-    <button
-      class="profile-btn"
-      onclick="toggleProfileMenu()"
-      title="Account"
-    >
-
-      <svg viewBox="0 0 24 24">
-
-        <circle
-          cx="12"
-          cy="8"
-          r="4"
-        ></circle>
-
-        <path
-          d="M4 21c0-4 3.5-7 8-7s8 3 8 7"
-        ></path>
-
-      </svg>
-
-    </button>
-
-
-    <div
-      class="profile-menu"
-      id="profile-menu"
-    >
-
-      <button onclick="openProfile()">
-
-        <svg viewBox="0 0 24 24">
-
-          <circle
-            cx="12"
-            cy="8"
-            r="4"
-          ></circle>
-
-          <path
-            d="M4 21c0-4 3.5-7 8-7s8 3 8 7"
-          ></path>
-
-        </svg>
-
-        <span>
-          Profile
-        </span>
-
-      </button>
-
-
-      <button onclick="logout()">
-
-        <svg viewBox="0 0 24 24">
-
-          <path d="M10 17l5-5-5-5"></path>
-
-          <path d="M15 12H3"></path>
-
-          <path d="M21 19V5a2 2 0 0 0-2-2h-5"></path>
-
-        </svg>
-
-        <span>
-          Log out
-        </span>
-
-      </button>
-
-    </div>
-
-  </div>
-
-</div>
-
-
-<!-- CONTENT -->
-
-<div class="content">
-
-
-<!-- SPECIALIZATIONS -->
-
-<div class="manage-box">
-
-  <h2>
-    🎯 Specializations
-  </h2>
-
-  <p class="manage-desc">
-    Add and manage all available
-    specializations.
-  </p>
-
-
-  <div class="manage-inputs">
-
-    <input
-      type="text"
-      id="specInput"
-      placeholder="Enter specialization"
-    >
-
-    <button
-      class="manage-btn"
-      onclick="addSpec()"
-    >
-      Add Specialization
-    </button>
-
-  </div>
-
-
-  <div
-    id="specList"
-    class="manage-list"
-  ></div>
-
-</div>
-
-
-<!-- SECTIONS -->
-
-<div class="manage-box">
-
-  <h2>
-    🏫 Sections
-  </h2>
-
-  <p class="manage-desc">
-    Create and manage student sections.
-  </p>
-
-
-  <div class="manage-inputs">
-
-    <input
-      type="text"
-      id="secInput"
-      placeholder="Enter section"
-    >
-
-    <button
-      class="manage-btn"
-      onclick="addSec()"
-    >
-      Add Section
-    </button>
-
-  </div>
-
-
-  <div
-    id="secList"
-    class="manage-list"
-  ></div>
-
-</div>
-
-
-<!-- ACADEMIC YEARS -->
-
-<div class="manage-box">
-
-  <h2>
-    📅 Academic Years
-  </h2>
-
-  <p class="manage-desc">
-    Create academic years and choose which one is currently active for exams and student records.
-  </p>
-
-
-  <div class="manage-inputs">
-
-    <input
-      type="text"
-      id="yearInput"
-      placeholder="Example: 2025-2026"
-    >
-
-    <button
-      class="manage-btn"
-      onclick="addAcademicYear()"
-    >
-      Add Academic Year
-    </button>
-
-  </div>
-
-
-  <div
-    id="yearList"
-    class="manage-list"
-  ></div>
-
-</div>
-
-
-</div>
-
-</div>
-
-</div>
-
-
-<!-- ADMIN PROFILE MODAL -->
-
-<div
-  class="profile-overlay"
-  id="profile-overlay"
-  onclick="closeProfileOutside(event)"
->
-
-  <div
-    class="profile-modal"
-    onclick="event.stopPropagation()"
-  >
-
-    <div class="profile-header">
-
-      <h2>
-        My Profile
-      </h2>
-
-      <button
-        class="close-profile"
-        onclick="closeProfile()"
-      >
-        ×
-      </button>
-
-    </div>
-
-
-    <div
-      class="profile-avatar"
-      id="profile-avatar"
-    >
-      A
-    </div>
-
-
-    <div class="profile-info">
-
-      <div class="profile-field">
-
-        <label>
-          Name
-        </label>
-
-        <input
-          type="text"
-          id="profile-fullname"
-          value="ADMIN"
-          disabled
+        <button
+          class="sidebar-item"
+          onclick="goPage('../admin/monitoring.html')"
         >
+          <span class="sidebar-icon">
+            <svg viewBox="0 0 24 24">
+              <path d="M3 12h4l2-7 4 14 2-7h6"></path>
+            </svg>
+          </span>
 
-      </div>
+          <span> Monitoring Activities </span>
+        </button>
 
+        <button class="sidebar-item active">
+          <span class="sidebar-icon">
+            <svg viewBox="0 0 24 24">
+              <rect x="4" y="4" width="16" height="16" rx="2"></rect>
 
-      <div class="profile-field">
+              <path d="M8 8h8"></path>
 
-        <label>
-          Email
-        </label>
+              <path d="M8 12h8"></path>
 
-        <input
-          type="email"
-          id="profile-email"
-          disabled
-        >
+              <path d="M8 16h5"></path>
+            </svg>
+          </span>
 
-      </div>
-
-
-      <div class="profile-field">
-
-        <label>
-          Role
-        </label>
-
-        <input
-          type="text"
-          id="profile-role"
-          value="ADMIN"
-          disabled
-        >
-
-      </div>
-
-    </div>
-
-
-    <div
-      class="profile-message"
-      id="profile-message"
-    ></div>
-
-
-    <div class="profile-actions">
-
-      <button
-        class="edit-profile-btn"
-        id="edit-profile-btn"
-        onclick="enableProfileEdit()"
-      >
-        Edit Profile
-      </button>
-
-      <button
-        class="cancel-profile-btn"
-        id="cancel-profile-btn"
-        onclick="cancelProfileEdit()"
-      >
-        Cancel
-      </button>
-
-      <button
-        class="save-profile-btn"
-        id="save-profile-btn"
-        onclick="saveProfile()"
-      >
-        Save Changes
-      </button>
-
-    </div>
-
-  </div>
-
-</div>
-<div
-    id="logout-overlay"
-    class="logout-overlay"
-    onclick="closeLogoutOutside(event)"
->
-
-    <div class="logout-modal-box">
+          <span> Academic Management </span>
+        </button>
 
         <button
-            type="button"
-            class="logout-close-btn"
-            onclick="closeLogoutModal()"
+          class="sidebar-item"
+          onclick="goPage('../admin/system-reports.html')"
         >
-            ×
+          <span class="sidebar-icon">
+            <svg viewBox="0 0 24 24">
+              <path d="M5 3h14v18H5z"></path>
+
+              <path d="M8 7h8"></path>
+
+              <path d="M8 11h8"></path>
+
+              <path d="M8 15h5"></path>
+            </svg>
+          </span>
+
+          <span> System Reports </span>
+        </button>
+
+        <div class="sidebar-credit">©SpecAdvisor 2026</div>
+      </div>
+
+      <!-- MAIN -->
+
+      <div class="main">
+        <!-- TOPBAR -->
+
+        <div class="topbar">
+          <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+
+          <span class="title"> Academic Management </span>
+
+          <div class="profile-wrapper">
+            <button
+              class="profile-btn"
+              onclick="toggleProfileMenu()"
+              title="Account"
+            >
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="8" r="4"></circle>
+
+                <path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"></path>
+              </svg>
+            </button>
+
+            <div class="profile-menu" id="profile-menu">
+              <button onclick="openProfile()">
+                <svg viewBox="0 0 24 24">
+                  <circle cx="12" cy="8" r="4"></circle>
+
+                  <path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"></path>
+                </svg>
+
+                <span> Profile </span>
+              </button>
+
+              <button onclick="logout()">
+                <svg viewBox="0 0 24 24">
+                  <path d="M10 17l5-5-5-5"></path>
+
+                  <path d="M15 12H3"></path>
+
+                  <path d="M21 19V5a2 2 0 0 0-2-2h-5"></path>
+                </svg>
+
+                <span> Log out </span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- CONTENT -->
+
+        <div class="content">
+          <!-- SPECIALIZATIONS -->
+
+          <div class="manage-box">
+            <h2>🎯 Specializations</h2>
+
+            <p class="manage-desc">
+              Add and manage all available specializations.
+            </p>
+
+            <div class="manage-inputs">
+              <input
+                type="text"
+                id="specInput"
+                placeholder="Enter specialization"
+              />
+
+              <button class="manage-btn" onclick="addSpec()">
+                Add Specialization
+              </button>
+            </div>
+
+            <div id="specList" class="manage-list"></div>
+          </div>
+
+          <!-- SECTIONS -->
+
+          <div class="manage-box">
+            <h2>🏫 Sections</h2>
+
+            <p class="manage-desc">Create and manage student sections.</p>
+
+            <div class="manage-inputs">
+              <input type="text" id="secInput" placeholder="Enter section" />
+
+              <button class="manage-btn" onclick="addSec()">Add Section</button>
+            </div>
+
+            <div id="secList" class="manage-list"></div>
+          </div>
+
+          <!-- ACADEMIC YEARS -->
+
+          <div class="manage-box">
+            <h2>📅 Academic Years</h2>
+
+            <p class="manage-desc">
+              Create academic years and choose which one is currently active for
+              exams and student records.
+            </p>
+
+            <div class="manage-inputs">
+              <input
+                type="text"
+                id="yearInput"
+                placeholder="Example: 2025-2026"
+              />
+
+              <button class="manage-btn" onclick="addAcademicYear()">
+                Add Academic Year
+              </button>
+            </div>
+
+            <div id="yearList" class="manage-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN PROFILE MODAL -->
+
+    <div
+      class="profile-overlay"
+      id="profile-overlay"
+      onclick="closeProfileOutside(event)"
+    >
+      <div class="profile-modal" onclick="event.stopPropagation()">
+        <div class="profile-header">
+          <h2>My Profile</h2>
+
+          <button class="close-profile" onclick="closeProfile()">×</button>
+        </div>
+
+        <div class="profile-avatar" id="profile-avatar">A</div>
+
+        <div class="profile-info">
+          <div class="profile-field">
+            <label> Name </label>
+
+            <input type="text" id="profile-fullname" value="ADMIN" disabled />
+          </div>
+
+          <div class="profile-field">
+            <label> Email </label>
+
+            <input type="email" id="profile-email" disabled />
+          </div>
+
+          <div class="profile-field">
+            <label> Role </label>
+
+            <input type="text" id="profile-role" value="ADMIN" disabled />
+          </div>
+        </div>
+
+        <div class="profile-message" id="profile-message"></div>
+
+        <div class="profile-actions">
+          <button
+            class="edit-profile-btn"
+            id="edit-profile-btn"
+            onclick="enableProfileEdit()"
+          >
+            Edit Profile
+          </button>
+
+          <button
+            class="cancel-profile-btn"
+            id="cancel-profile-btn"
+            onclick="cancelProfileEdit()"
+          >
+            Cancel
+          </button>
+
+          <button
+            class="save-profile-btn"
+            id="save-profile-btn"
+            onclick="saveProfile()"
+          >
+            Save Changes
+          </button>
+        </div>
+      </div>
+    </div>
+    <div
+      id="logout-overlay"
+      class="logout-overlay"
+      onclick="closeLogoutOutside(event)"
+    >
+      <div class="logout-modal-box">
+        <button
+          type="button"
+          class="logout-close-btn"
+          onclick="closeLogoutModal()"
+        >
+          ×
         </button>
 
         <h2>Log Out?</h2>
@@ -623,40 +372,29 @@ href="../css/styles.css"
         <p>Are you sure you want to log out?</p>
 
         <div class="logout-actions">
+          <button
+            type="button"
+            class="logout-cancel-btn"
+            onclick="closeLogoutModal()"
+          >
+            Cancel
+          </button>
 
-            <button
-                type="button"
-                class="logout-cancel-btn"
-                onclick="closeLogoutModal()"
-            >
-                Cancel
-            </button>
-
-            <button
-                type="button"
-                class="logout-confirm-btn"
-                onclick="performLogout()"
-            >
-                Log Out
-            </button>
-
+          <button
+            type="button"
+            class="logout-confirm-btn"
+            onclick="performLogout()"
+          >
+            Log Out
+          </button>
         </div>
-
+      </div>
     </div>
 
-</div>
+    <script type="module" src="../js/academic-management.js"></script>
 
-<script
-  type="module"
-  src="../js/academic-management.js"
-></script>
+    <script type="module" src="../js/admin-profile.js"></script>
 
-<script
-  type="module"
-  src="../js/admin-profile.js"
-></script>
-
-<script src="../js/script.js"></script>
-
-</body>
+    <script src="../js/script.js"></script>
+  </body>
 </html>

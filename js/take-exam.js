@@ -1,11 +1,12 @@
 import { auth, db } from "./firebase-config.js";
 
 import {
-    onAuthStateChanged,
-    signOut
+  onAuthStateChanged,
+  signOut,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 import {
+<<<<<<< HEAD
     collection,
     query,
     where,
@@ -25,6 +26,15 @@ import {
     scoreInterestAnswers
 } from "./interest-config.js";
 
+=======
+  collection,
+  query,
+  where,
+  getDocs,
+  addDoc,
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 /* =========================================================
    CONFIGURATION
 ========================================================= */
@@ -68,6 +78,7 @@ let lastViolationAt = 0;
 let warningOpen = false;
 let securityListenersInitialized = false;
 
+<<<<<<< HEAD
 // Exam schedule (loaded when the page opens)
 let scheduleSlots = [];        // [{ startMs, endMs }] of administered exams
 let scheduleLoaded = false;
@@ -95,10 +106,13 @@ function completedResultId() {
     );
 }
 
+=======
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 /* =========================================================
    AUTHENTICATION
 ========================================================= */
 
+<<<<<<< HEAD
 onAuthStateChanged(auth, async (user) => {
     if (!user) {
         window.location.replace("../login.html");
@@ -160,13 +174,84 @@ function prepareSelectorUI() {
         selector.style.display = "";
     }
 }
+=======
+const interestQuestions = [
+  {
+    question: "Which IT activity do you enjoy the most?",
+    choices: [
+      "Programming applications",
+      "Designing websites",
+      "Fixing computers",
+      "Analyzing data",
+    ],
+  },
 
+  {
+    question: "What excites you the most in IT?",
+    choices: [
+      "Building systems",
+      "Creating UI/UX designs",
+      "Networking and hardware",
+      "Cybersecurity",
+    ],
+  },
+
+  {
+    question: "Which school task do you prefer?",
+    choices: [
+      "Coding projects",
+      "Design presentations",
+      "Troubleshooting",
+      "Research and analytics",
+    ],
+  },
+
+  {
+    question: "What would you rather do?",
+    choices: [
+      "Develop software",
+      "Edit graphics/videos",
+      "Configure networks",
+      "Protect systems",
+    ],
+  },
+
+  {
+    question: "Which IT skill do you want to improve?",
+    choices: ["Programming", "Web Design", "Hardware Servicing", "Security"],
+  },
+];
+
+/* =========================================================
+   AUTH
+========================================================= */
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    window.location.replace("../login.html");
+
+    return;
+  }
+
+  currentUser = user;
+
+  console.log("Take Exam Auth:", user.email);
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
+
+  try {
+    await loadActiveAcademicYear();
+    await loadSpecializations();
+  } catch (error) {
+    console.error("Take Exam initialization error:", error);
+  }
+});
 
 /* =========================================================
    SIDEBAR AND NAVIGATION
 ========================================================= */
 
 function toggleSidebar() {
+<<<<<<< HEAD
     document.getElementById("sidebar")?.classList.toggle("active");
 }
 window.toggleSidebar = toggleSidebar;
@@ -183,6 +268,29 @@ function goPage(url) {
         window.location.href = url;
     }, 250);
 }
+=======
+  const sidebar = document.getElementById("sidebar");
+
+  if (sidebar) {
+    sidebar.classList.toggle("active");
+  }
+}
+
+window.toggleSidebar = toggleSidebar;
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
+function goPage(url) {
+  document.body.style.opacity = "0";
+
+  setTimeout(() => {
+    window.location.href = url;
+  }, 300);
+}
+
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 window.goPage = goPage;
 
 /* =========================================================
@@ -369,6 +477,7 @@ function shuffleArray(array) {
 }
 
 function normalizeChoices(data) {
+<<<<<<< HEAD
     if (Array.isArray(data.choices)) {
         return [
             data.choices[0] || "",
@@ -446,11 +555,72 @@ function showToast(message) {
     }, 2500);
 }
 
+=======
+  if (Array.isArray(data.choices)) {
+    return [
+      data.choices[0] || "",
+      data.choices[1] || "",
+      data.choices[2] || "",
+      data.choices[3] || "",
+    ].map((choice) => String(choice));
+  }
+
+  if (data.choices && typeof data.choices === "object") {
+    return [
+      data.choices.A || "",
+      data.choices.B || "",
+      data.choices.C || "",
+      data.choices.D || "",
+    ].map((choice) => String(choice));
+  }
+
+  return [
+    data.choiceA || "",
+    data.choiceB || "",
+    data.choiceC || "",
+    data.choiceD || "",
+  ].map((choice) => String(choice));
+}
+
+/*
+ * Returns "A"-"D" for the correct answer. Also handles
+ * older questions that stored the full answer text.
+ */
+
+function resolveCorrectLetter(data, choicesList) {
+  const raw = String(data.correctAnswer || "").trim();
+  const upper = raw.toUpperCase();
+
+  if (["A", "B", "C", "D"].includes(upper)) {
+    return upper;
+  }
+
+  const letters = ["A", "B", "C", "D"];
+
+  for (let i = 0; i < choicesList.length; i++) {
+    if (
+      raw &&
+      choicesList[i] &&
+      choicesList[i].trim().toLowerCase() === raw.toLowerCase()
+    ) {
+      return letters[i];
+    }
+  }
+
+  return "";
+}
+
+function getExamTitleFromData(data) {
+  return String(data.examTitle || data.title || "").trim();
+}
+
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 /* =========================================================
    LOAD ACTIVE ACADEMIC YEAR
 ========================================================= */
 
 async function loadActiveAcademicYear() {
+<<<<<<< HEAD
     const yearElement = document.getElementById("activeAcademicYear");
 
     try {
@@ -479,13 +649,43 @@ async function loadActiveAcademicYear() {
 
         throw error;
     }
-}
+=======
+  const yearElement = document.getElementById("activeAcademicYear");
 
+  try {
+    const q = query(
+      collection(db, "academicYears"),
+      where("active", "==", true),
+    );
+
+    const snapshot = await getDocs(q);
+
+    activeAcademicYear = "";
+
+    if (!snapshot.empty) {
+      const yearData = snapshot.docs[0].data();
+
+      activeAcademicYear = yearData.year || yearData.name || "";
+    }
+
+    if (yearElement) {
+      yearElement.textContent = activeAcademicYear || "No active academic year";
+    }
+  } catch (error) {
+    console.error("Error loading academic year:", error);
+
+    if (yearElement) {
+      yearElement.textContent = "Unable to load";
+    }
+  }
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
+}
 
 /* =========================================================
    EXAM SCHEDULE (is an exam open right now?)
 ========================================================= */
 
+<<<<<<< HEAD
 /*
  * Reads the schedule the Admin set when administering the exam.
  * Only the dates are kept here; the questions themselves are
@@ -732,11 +932,97 @@ async function recheckExamSchedule() {
 }
 window.recheckExamSchedule = recheckExamSchedule;
 
+=======
+async function loadSpecializations() {
+  const dropdown = document.getElementById("specializationSelect");
+
+  if (!dropdown) {
+    return;
+  }
+
+  dropdown.innerHTML = `
+        <option value="">
+            Loading specializations...
+        </option>
+    `;
+
+  if (!activeAcademicYear) {
+    dropdown.innerHTML = `
+            <option value="">
+                No active academic year
+            </option>
+        `;
+
+    return;
+  }
+
+  try {
+    /*
+     * Only questionBank records with
+     * status = "administered" are visible to students.
+     * Any number of exams can be administered at once.
+     */
+
+    const q = query(
+      collection(db, "questionBank"),
+      where("academicYear", "==", activeAcademicYear),
+    );
+
+    const snapshot = await getDocs(q);
+
+    const specializations = new Set();
+
+    snapshot.forEach((docSnapshot) => {
+      const data = docSnapshot.data();
+
+      if (data.status === "administered" && data.specialization) {
+        specializations.add(String(data.specialization).trim());
+      }
+    });
+
+    dropdown.innerHTML = `
+            <option value="">
+                Select Specialization
+            </option>
+        `;
+
+    Array.from(specializations)
+      .sort()
+      .forEach((specialization) => {
+        const option = document.createElement("option");
+
+        option.value = specialization;
+
+        option.textContent = specialization;
+
+        dropdown.appendChild(option);
+      });
+
+    if (specializations.size === 0) {
+      dropdown.innerHTML = `
+                <option value="">
+                    No approved exam available
+                </option>
+            `;
+    }
+  } catch (error) {
+    console.error("Error loading specializations:", error);
+
+    dropdown.innerHTML = `
+            <option value="">
+                Unable to load specializations
+            </option>
+        `;
+  }
+}
+
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 /* =========================================================
    START EXAM
 ========================================================= */
 
 async function startSelectedExam() {
+<<<<<<< HEAD
     if (
         !currentUser ||
         examInProgress ||
@@ -847,11 +1133,38 @@ async function proceedToExam() {
 }
 window.startSelectedExam = startSelectedExam;
 
+=======
+  if (isSubmittingExam) {
+    return;
+  }
+
+  const dropdown = document.getElementById("specializationSelect");
+
+  if (!dropdown) {
+    return;
+  }
+
+  const specialization = dropdown.value;
+
+  if (!specialization) {
+    alert("Please select a specialization first.");
+
+    return;
+  }
+
+  selectedSpecialization = specialization;
+
+  await loadExam(specialization);
+}
+
+window.startSelectedExam = startSelectedExam;
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
 /* =========================================================
    INTEREST CHECK STEP
 ========================================================= */
 
+<<<<<<< HEAD
 function renderInterestStep() {
     const container = document.getElementById("examContainer");
     const selector = document.getElementById("examSelector");
@@ -977,12 +1290,23 @@ async function loadExam() {
     if (!container) return;
 
     container.innerHTML = `
+=======
+async function loadExam(specialization) {
+  const container = document.getElementById("examContainer");
+
+  if (!container) {
+    return;
+  }
+
+  container.innerHTML = `
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
         <div class="no-exam">
             <h2>Loading Examination...</h2>
             <p>Please wait while the questions are prepared.</p>
         </div>
     `;
 
+<<<<<<< HEAD
     try {
         const alreadyCompleted = await alreadyFinishedExam();
 
@@ -1076,8 +1400,73 @@ async function loadExam() {
             }
 
             return;
-        }
+=======
+  try {
+    const q = query(
+      collection(db, "questionBank"),
+      where("academicYear", "==", activeAcademicYear),
+    );
 
+    const snapshot = await getDocs(q);
+
+    const questionMap = new Map();
+
+    const examTitleSet = new Set();
+
+    snapshot.forEach((docSnapshot) => {
+      const data = docSnapshot.data();
+
+      /* Only administered questions. */
+      if (data.status !== "administered") {
+        return;
+      }
+
+      /* Only this specialization. */
+      if (
+        String(data.specialization || "").trim() !==
+        String(specialization).trim()
+      ) {
+        return;
+      }
+
+      const questionText = String(data.question || "").trim();
+
+      if (!questionText) {
+        return;
+      }
+
+      const choicesList = normalizeChoices(data);
+
+      const correctLetter = resolveCorrectLetter(data, choicesList);
+
+      const examTitle = getExamTitleFromData(data);
+
+      /*
+       * Remove duplicate questions. If the same question
+       * appears in more than one administered exam, the
+       * student only gets it once. Case, extra spaces and
+       * trailing punctuation are ignored when comparing.
+       */
+      const duplicateKey = questionText
+        .toLowerCase()
+        .replace(/\s+/g, " ")
+        .replace(/[\s.?!:;,]+$/, "")
+        .trim();
+
+      if (questionMap.has(duplicateKey)) {
+        /*
+         * Keep the first copy, unless it has no usable
+         * correct answer and this copy does.
+         */
+        const existing = questionMap.get(duplicateKey);
+
+        if (existing.correctLetter || !correctLetter) {
+          return;
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
+        }
+      }
+
+<<<<<<< HEAD
         // Random order across ALL specializations, then take 100.
         shuffleArray(currentQuestions);
         currentQuestions = currentQuestions.slice(0, MAX_QUESTIONS);
@@ -1130,12 +1519,94 @@ async function loadExam() {
             error.message || "An error occurred while loading the exam."
         );
     }
+=======
+      if (examTitle) {
+        examTitleSet.add(examTitle);
+      }
+
+      questionMap.set(duplicateKey, {
+        id: docSnapshot.id,
+
+        ...data,
+
+        question: questionText,
+
+        choicesList: choicesList,
+
+        correctLetter: correctLetter,
+
+        sourceExamTitle: examTitle,
+      });
+    });
+
+    currentQuestions = Array.from(questionMap.values());
+
+    if (currentQuestions.length === 0) {
+      renderNoExam();
+
+      return;
+    }
+
+    /*
+     * Combined exam title(s). Sorted so the same set
+     * of administered exams always gives the same title
+     * (needed for the "already completed" check).
+     */
+    selectedExamTitles = Array.from(examTitleSet).sort((a, b) =>
+      a.localeCompare(b),
+    );
+
+    selectedExamTitle =
+      selectedExamTitles.length > 0
+        ? selectedExamTitles.join(" + ")
+        : `${specialization} Examination`;
+
+    /* Randomize, then apply the question limit. */
+    shuffleArray(currentQuestions);
+
+    currentQuestions = currentQuestions.slice(0, MAX_QUESTIONS);
+
+    /*
+     * Check if this student already completed
+     * this combined exam.
+     */
+    const alreadyCompleted = await alreadyFinishedExam(
+      selectedExamTitle,
+      specialization,
+    );
+
+    if (alreadyCompleted) {
+      renderAlreadyCompleted();
+
+      return;
+    }
+
+    renderExam();
+  } catch (error) {
+    console.error("Error loading exam:", error);
+
+    container.innerHTML = `
+            <div class="no-exam">
+
+                <h2>
+                    Unable to Load Exam
+                </h2>
+
+                <p>
+                    ${escapeHTML(error.message || "An error occurred.")}
+                </p>
+
+            </div>
+        `;
+  }
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 }
 
 /* =========================================================
    LOCKDOWN (CSS: no select, no print, watermark)
 ========================================================= */
 
+<<<<<<< HEAD
 function applyExamLockdown(enable) {
     let style = document.getElementById("examLockdownStyle");
     let watermark = document.getElementById("examWatermark");
@@ -1378,6 +1849,28 @@ function showViolationWarning(reason) {
             </h2>
             <p style="margin:0 0 10px;color:#334c55;line-height:1.5;">
                 Violation detected: <strong>${escapeHTML(reason)}</strong>
+=======
+function renderExam() {
+  const container = document.getElementById("examContainer");
+
+  if (!container) {
+    return;
+  }
+
+  let html = `
+        <div class="active-exam-header">
+
+            <h2>
+                ${escapeHTML(selectedExamTitle)}
+            </h2>
+
+            <p>
+                Specialization:
+
+                <strong>
+                    ${escapeHTML(selectedSpecialization)}
+                </strong>
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
             </p>
             <p style="margin:0 0 22px;color:#667981;line-height:1.5;">
                 You have <strong>${remaining}</strong> warning(s) left.
@@ -1393,6 +1886,7 @@ function showViolationWarning(reason) {
         </div>
     `;
 
+<<<<<<< HEAD
     document.body.appendChild(overlay);
 
     overlay.querySelector("#violationContinue").onclick = async () => {
@@ -1521,9 +2015,15 @@ function renderExamInterface() {
 
     const progress = ((currentQuestionIndex + 1) / total) * 100;
     const answeredCount = Object.keys(studentAnswers).length;
+=======
+  /* =====================================================
+       EXAM QUESTIONS
+    ===================================================== */
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
-    const letters = ["A", "B", "C", "D"];
+  const letters = ["A", "B", "C", "D"];
 
+<<<<<<< HEAD
     let html = `
         <section style="
             background:#fff;padding:20px;border-radius:12px;
@@ -1549,6 +2049,115 @@ function renderExamInterface() {
                     background:#eaf5f7;color:#244b5a;">
                     00:${String(QUESTION_TIME_SECONDS).padStart(2, "0")}
                 </strong>
+=======
+  currentQuestions.forEach((question, index) => {
+    html += `
+    <div class="exam-question-panel">
+
+        <div class="question-number">
+            Question ${index + 1}
+            of ${currentQuestions.length}
+        </div>
+
+        <div class="question-text">
+            ${escapeHTML(question.question)}
+        </div>
+`;
+
+    question.choicesList.forEach((choice, choiceIndex) => {
+      /* Skip empty choices but keep the letters aligned. */
+      if (!choice.trim()) {
+        return;
+      }
+
+      const letter = letters[choiceIndex];
+
+      html += `
+            <label class="answer-choice">
+
+                <input
+                    type="radio"
+                    name="q${index}"
+                    value="${letter}"
+                >
+
+                <span>
+                    <strong>${letter}.</strong>
+                    ${escapeHTML(choice)}
+                </span>
+
+            </label>
+        `;
+    });
+
+    html += `
+    </div>
+`;
+  });
+
+  /* =====================================================
+       INTEREST ASSESSMENT
+    ===================================================== */
+
+  html += `
+
+    <div class="interest-section">
+
+        <h2>
+            Interest Assessment
+        </h2>
+
+        <p class="question-total">
+
+            Answer the following questions based on your interests and preferences in Information Technology.
+
+        </p>
+
+`;
+
+  interestQuestions.forEach((q, index) => {
+    html += `
+
+            <div class="interest-question-panel">
+
+                <div class="question-number">
+
+                    Interest Question ${index + 1} of ${interestQuestions.length}
+
+                </div>
+
+
+                <div class="question-text">
+
+                    ${escapeHTML(q.question)}
+
+                </div>
+
+        `;
+
+    q.choices.forEach((choice, choiceIndex) => {
+      html += `
+
+                    <label class="answer-choice">
+
+                        <input
+                            type="radio"
+                            name="interest${index}"
+                            value="${escapeHTML(choice)}"
+                        >
+
+                        <span>
+                            ${letters[choiceIndex]}. ${escapeHTML(choice)}
+                        </span>
+
+                    </label>
+
+                `;
+    });
+
+    html += `
+
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
             </div>
 
             <div style="height:7px;margin-top:12px;overflow:hidden;
@@ -1601,11 +2210,17 @@ function renderExamInterface() {
                 </span>
             </label>
         `;
+<<<<<<< HEAD
     });
 
     html += `
             </div>
         </section>
+=======
+  });
+
+  html += `
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
         <div style="display:flex;justify-content:flex-end;
             gap:10px;margin-bottom:25px;">
@@ -1631,6 +2246,7 @@ function renderExamInterface() {
         `;
     }
 
+<<<<<<< HEAD
     html += "</div>";
 
     container.innerHTML = html;
@@ -1651,12 +2267,28 @@ function renderExamInterface() {
         ?.addEventListener("click", confirmAndSubmitExam);
 
     updateTimerDisplay();
+=======
+  html += `
+
+    <button
+        id="submitExamBtn"
+        class="submit-btn"
+        onclick="submitExam()"
+    >
+        Submit Exam
+    </button>
+
+`;
+
+  container.innerHTML = html;
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 }
 
 /* =========================================================
    NEXT QUESTION — NO PREVIOUS BUTTON
 ========================================================= */
 
+<<<<<<< HEAD
 function goToNextQuestion() {
     if (!examInProgress || isSubmittingExam) return;
 
@@ -1669,11 +2301,23 @@ function goToNextQuestion() {
     }
 
     if (currentQuestionIndex >= currentQuestions.length - 1) return;
+=======
+function renderAlreadyCompleted() {
+  const container = document.getElementById("examContainer");
+
+  if (!container) {
+    return;
+  }
+
+  container.innerHTML = `
+        <div class="no-exam">
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
     clearInterval(examTimerInterval);
 
     currentQuestionIndex++;
 
+<<<<<<< HEAD
     timerQuestionIndex = -1;
     questionTimeRemaining = QUESTION_TIME_SECONDS;
 
@@ -1681,11 +2325,28 @@ function goToNextQuestion() {
     startQuestionTimer();
 }
 window.goToNextQuestion = goToNextQuestion;
+=======
+                <strong>
+                    ${escapeHTML(selectedExamTitle)}
+                </strong>
+
+                for the academic year
+
+                <strong>
+                    ${escapeHTML(activeAcademicYear)}
+                </strong>.
+            </p>
+
+        </div>
+    `;
+}
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
 /* =========================================================
    PER-QUESTION TIMER
 ========================================================= */
 
+<<<<<<< HEAD
 function startQuestionTimer() {
     clearInterval(examTimerInterval);
 
@@ -1697,6 +2358,17 @@ function startQuestionTimer() {
     }
 
     updateTimerDisplay();
+=======
+function renderNoExam() {
+  const container = document.getElementById("examContainer");
+
+  if (!container) {
+    return;
+  }
+
+  container.innerHTML = `
+        <div class="no-exam">
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
     examTimerInterval = setInterval(() => {
         if (!examInProgress || isSubmittingExam) {
@@ -1706,6 +2378,7 @@ function startQuestionTimer() {
 
         questionTimeRemaining--;
 
+<<<<<<< HEAD
         updateTimerDisplay();
 
         if (questionTimeRemaining <= 0) {
@@ -1744,10 +2417,59 @@ function updateTimerDisplay() {
     }
 }
 
+=======
+        </div>
+    `;
+}
+
+/* =========================================================
+   CHECK COMPLETED EXAM
+========================================================= */
+
+async function alreadyFinishedExam(examTitle, specialization) {
+  if (!currentUser) {
+    return false;
+  }
+
+  try {
+    const q = query(
+      collection(db, "results"),
+
+      where("studentUid", "==", currentUser.uid),
+
+      where("academicYear", "==", activeAcademicYear),
+    );
+
+    const snapshot = await getDocs(q);
+
+    let completed = false;
+
+    snapshot.forEach((docSnapshot) => {
+      const result = docSnapshot.data();
+
+      if (
+        result.examTitle === examTitle &&
+        result.specialization === specialization &&
+        result.status === "Completed"
+      ) {
+        completed = true;
+      }
+    });
+
+    return completed;
+  } catch (error) {
+    console.error("Error checking previous result:", error);
+
+    return false;
+  }
+}
+
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 /* =========================================================
    SUBMIT CONFIRMATION
 ========================================================= */
 
+<<<<<<< HEAD
 function confirmAndSubmitExam() {
     if (!examInProgress || isSubmittingExam) return;
 
@@ -1774,9 +2496,57 @@ window.confirmAndSubmitExam = confirmAndSubmitExam;
 
 async function submitExam(isAutomatic = false) {
     if (isSubmittingExam || isTerminating || !examInProgress) return;
+=======
+async function submitExam() {
+  if (isSubmittingExam) {
+    return;
+  }
 
-    isSubmittingExam = true;
+  if (!currentUser) {
+    alert("Your session has expired. Please log in again.");
 
+    return;
+  }
+
+  /* =====================================================
+       VALIDATE EXAM QUESTIONS
+    ===================================================== */
+
+  for (let i = 0; i < currentQuestions.length; i++) {
+    const selected = document.querySelector(`input[name="q${i}"]:checked`);
+
+    if (!selected) {
+      alert(`Please answer Question ${i + 1}.`);
+
+      return;
+    }
+  }
+
+  /* =====================================================
+       VALIDATE INTEREST QUESTIONS
+    ===================================================== */
+
+  for (let i = 0; i < interestQuestions.length; i++) {
+    const selected = document.querySelector(
+      `input[name="interest${i}"]:checked`,
+    );
+
+    if (!selected) {
+      alert(`Please answer Interest Question ${i + 1}.`);
+
+      return;
+    }
+  }
+
+  const submitButton = document.getElementById("submitExamBtn");
+
+  isSubmittingExam = true;
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
+
+  if (submitButton) {
+    submitButton.disabled = true;
+
+<<<<<<< HEAD
     clearInterval(examTimerInterval);
 
     const nextButton = document.getElementById("nextQuestionButton");
@@ -1939,6 +2709,144 @@ async function submitExam(isAutomatic = false) {
         );
     }
 }
+=======
+    submitButton.textContent = "Submitting...";
+  }
+
+  try {
+    /* =================================================
+           CALCULATE SCORE
+        ================================================= */
+
+    let originalScore = 0;
+
+    currentQuestions.forEach((question, index) => {
+      const selected = document.querySelector(
+        `input[name="q${index}"]:checked`,
+      );
+
+      if (!selected) {
+        return;
+      }
+
+      const answer = selected.value;
+
+      if (question.correctLetter && answer === question.correctLetter) {
+        originalScore++;
+      }
+    });
+
+    /* =================================================
+           CHEATING PENALTY
+        ================================================= */
+
+    const cheatingPenalty = warningCount >= 2 ? 2 : 0;
+
+    const score = Math.max(0, originalScore - cheatingPenalty);
+
+    /* =================================================
+           INTEREST SCORES
+        ================================================= */
+
+    const interestScores = processInterestAnswers();
+
+    /* =================================================
+           STUDENT NAME
+        ================================================= */
+
+    let studentName = localStorage.getItem("currentStudentName");
+
+    if (!studentName) {
+      studentName = currentUser.email || "Student";
+    }
+
+    /* =================================================
+           SAVE RESULT
+        ================================================= */
+
+    const resultData = {
+      studentUid: currentUser.uid,
+
+      studentName: studentName,
+
+      studentEmail: currentUser.email || "",
+
+      specialization: selectedSpecialization,
+
+      examTitle: selectedExamTitle,
+
+      examTitles: selectedExamTitles,
+
+      academicYear: activeAcademicYear,
+
+      score: score,
+
+      originalScore: originalScore,
+
+      cheatingWarnings: warningCount,
+
+      cheatingPenalty: cheatingPenalty,
+
+      totalItems: currentQuestions.length,
+
+      interestScores: interestScores,
+
+      date: new Date().toLocaleString(),
+
+      status: "Completed",
+    };
+
+    const resultRef = await addDoc(collection(db, "results"), resultData);
+
+    console.log("RESULT SAVED:", resultRef.id);
+
+    /* =================================================
+           ACTIVITY LOG
+        ================================================= */
+
+    await addDoc(collection(db, "activityLogs"), {
+      user: studentName,
+
+      role: "Student",
+
+      action: "Finished Exam",
+
+      status: "Success",
+
+      time: new Date().toLocaleString(),
+
+      timestamp: Date.now(),
+    });
+
+    /* =================================================
+           SAVE LAST RESULT ID
+        ================================================= */
+
+    sessionStorage.setItem("lastSubmittedResultId", resultRef.id);
+
+    /* =================================================
+           REDIRECT
+        ================================================= */
+
+    alert("Exam submitted successfully!");
+
+    window.location.replace("../student/result.html");
+  } catch (error) {
+    console.error("Error submitting exam:", error);
+
+    alert("Unable to submit the examination.\n\n" + (error.message || ""));
+
+    isSubmittingExam = false;
+
+    if (submitButton) {
+      submitButton.disabled = false;
+
+      submitButton.textContent = "Submit Exam";
+    }
+  }
+}
+
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 window.submitExam = submitExam;
 
 /* =========================================================
@@ -1949,6 +2857,7 @@ window.submitExam = submitExam;
     reactivates the account; only "Completed" does.)
 ========================================================= */
 
+<<<<<<< HEAD
 async function alreadyFinishedExam() {
     if (!currentUser || !activeAcademicYear) return false;
 
@@ -2005,3 +2914,198 @@ async function performLogout() {
     }
 }
 window.performLogout = performLogout;
+=======
+function processInterestAnswers() {
+  const interestScores = {};
+
+  interestQuestions.forEach((question, index) => {
+    const selected = document.querySelector(
+      `input[name="interest${index}"]:checked`,
+    );
+
+    if (!selected) {
+      return;
+    }
+
+    const answer = selected.value;
+
+    if (!interestScores[answer]) {
+      interestScores[answer] = 0;
+    }
+
+    interestScores[answer]++;
+  });
+
+  return interestScores;
+}
+
+/* =========================================================
+   SHUFFLE
+========================================================= */
+
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
+
+/* =========================================================
+   ANTI-CHEATING
+========================================================= */
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden && currentQuestions.length > 0 && !isSubmittingExam) {
+    /* ONLY ALLOW 2 WARNINGS */
+
+    if (warningCount >= 2) {
+      return;
+    }
+
+    warningCount++;
+
+    console.warn("Tab switch detected:", warningCount);
+
+    const warningBox = document.getElementById("warningBox");
+
+    if (warningBox) {
+      warningBox.innerHTML = `
+                    <p>
+                        Warning: Leaving the examination page has been detected.
+                        Warning ${warningCount} of 2.
+                    </p>
+                `;
+    }
+
+    /* FIRST WARNING */
+
+    if (warningCount === 1) {
+      alert("Warning 1 of 2: Please stay on the examination page.");
+    }
+
+    /* SECOND WARNING - EXAM RECEIVES -2 POINTS */
+
+    if (warningCount === 2) {
+      alert(
+        "Warning 2 of 2: A 2-point deduction will be applied to your current specialization exam.",
+      );
+
+      if (currentUser) {
+        const studentName =
+          localStorage.getItem("currentStudentName") ||
+          currentUser.email ||
+          "Student";
+
+        addDoc(collection(db, "activityLogs"), {
+          user: studentName,
+
+          role: "Student",
+
+          action: "Cheating Attempt",
+
+          status: "Warning",
+
+          time: new Date().toLocaleString(),
+
+          timestamp: Date.now(),
+        }).catch((error) => {
+          console.error("Unable to save cheating log:", error);
+        });
+      }
+    }
+  }
+});
+
+/* =========================================================
+   LOGOUT MODAL
+========================================================= */
+
+function logout() {
+  const overlay = document.getElementById("logout-overlay");
+
+  if (!overlay) {
+    console.error("Logout overlay not found.");
+
+    return;
+  }
+
+  overlay.classList.add("active");
+}
+
+window.logout = logout;
+
+/* =========================================================
+   CLOSE LOGOUT MODAL
+========================================================= */
+
+function closeLogoutModal() {
+  const overlay = document.getElementById("logout-overlay");
+
+  if (overlay) {
+    overlay.classList.remove("active");
+  }
+}
+
+window.closeLogoutModal = closeLogoutModal;
+
+/* =========================================================
+   CLOSE LOGOUT MODAL WHEN CLICKING OUTSIDE
+========================================================= */
+
+function closeLogoutOutside(event) {
+  if (event.target && event.target.id === "logout-overlay") {
+    closeLogoutModal();
+  }
+}
+
+window.closeLogoutOutside = closeLogoutOutside;
+
+/* =========================================================
+   PERFORM LOGOUT
+========================================================= */
+
+async function performLogout() {
+  try {
+    await signOut(auth);
+
+    localStorage.clear();
+
+    sessionStorage.clear();
+
+    window.location.replace("../login.html");
+  } catch (error) {
+    console.error("Logout error:", error);
+
+    alert("Unable to log out.");
+  }
+}
+
+window.performLogout = performLogout;
+
+/* =========================================================
+   ESCAPE HTML
+========================================================= */
+
+function escapeHTML(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+/* =========================================================
+   ESCAPE ATTRIBUTE
+========================================================= */
+
+function escapeAttribute(value) {
+  return String(value ?? "")
+    .replace(/\\/g, "\\\\")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;")
+    .replace(/\r/g, "")
+    .replace(/\n/g, " ");
+}
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)

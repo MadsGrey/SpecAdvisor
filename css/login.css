@@ -1,0 +1,1110 @@
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap");
+
+html {
+  scroll-behavior: smooth;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100%;
+}
+
+body {
+  font-family: "Montserrat", sans-serif;
+  background: #ffffff;
+  color: #103777;
+}
+
+/* =========================
+   BOOTSTRAP NAVBAR
+========================= */
+.top-bar {
+  display: none;
+}
+
+.navbar {
+  width: 100%;
+  min-height: 74px;
+  margin: 0;
+  padding: 10px 40px !important;
+  background: #fff !important;
+  font-family: "Montserrat", sans-serif;
+  box-sizing: border-box;
+}
+
+.navbar .container-fluid {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0;
+}
+
+.navbar .navbar-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  color: #103777;
+  text-decoration: none;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.navbar .navbar-brand img {
+  width: 62px;
+  height: 44px;
+  object-fit: contain;
+  margin: 0;
+  flex-shrink: 0;
+  transform: translateX(-30px);
+}
+
+.navbar .navbar-brand span {
+  color: #103777;
+  font-family: "Montserrat", sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1;
+  transform: translateX(-40px);
+}
+
+/* Desktop navigation */
+.desktop-navigation .navbar-nav {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 20px;
+}
+
+.navbar .navbar-nav .nav-link {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: #334155;
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.navbar .navbar-nav .nav-link:hover,
+.navbar .navbar-nav .nav-link:focus {
+  color: #ff3291;
+  background: #fff0f6;
+}
+
+/* Shared primary button */
+.navbar .btn-primary,
+.mobile-navbar .btn-primary {
+  padding: 10px 22px;
+  border: 1px solid #ff338c;
+  border-radius: 9px;
+  background: #ff338c;
+  color: #fff;
+  font-family: "Montserrat", sans-serif;
+  font-weight: 700;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.navbar .btn-primary:hover,
+.mobile-navbar .btn-primary:hover {
+  border-color: #e6297a;
+  background: #e6297a;
+}
+
+.navbar .btn-primary:focus-visible,
+.mobile-navbar .btn-primary:focus-visible {
+  box-shadow: 0 0 0 3px rgba(255, 51, 140, 0.25);
+}
+
+/* Hamburger button */
+.navbar .navbar-toggler {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 46px;
+  padding: 8px;
+  border: 2px solid #dfe5ef;
+  border-radius: 12px;
+  box-shadow: none;
+}
+
+.navbar .navbar-toggler:focus {
+  box-shadow: 0 0 0 3px rgba(16, 55, 119, 0.12);
+}
+
+/* Right-side sliding menu */
+.mobile-navbar {
+  width: min(340px, 85vw) !important;
+  border: 0;
+  background: #fff;
+  font-family: "Montserrat", sans-serif;
+}
+
+.mobile-navbar .offcanvas-header {
+  display: flex;
+  align-items: center;
+  padding: 22px;
+  border-bottom: 1px solid #f0e7ed;
+}
+
+.mobile-navbar .offcanvas-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: #103777;
+  font-size: 21px;
+  font-weight: 800;
+}
+
+.mobile-navbar .offcanvas-body {
+  padding: 24px 22px;
+}
+
+.mobile-navbar .navbar-nav {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+}
+
+.mobile-navbar .nav-item {
+  width: 100%;
+}
+
+.mobile-navbar .nav-link {
+  display: block;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 8px;
+  color: #334155;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.mobile-navbar .nav-link:hover,
+.mobile-navbar .nav-link:focus {
+  color: #ff3291;
+  background: #fff0f6;
+}
+
+.mobile-navbar .btn-primary {
+  width: 100%;
+}
+
+/* =========================
+   LOGIN ROLE MODAL
+========================= */
+
+.login-modal-dialog {
+  max-width: 350px;
+}
+
+.login-modal-content {
+  border: none;
+  border-radius: 14px;
+  padding: 10px 18px 19px;
+  background: #ffffff;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.login-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.login-modal-header h2 {
+  margin: 0;
+  color: #111111;
+  font-family: "Montserrat", sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.login-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  width: 28px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  color: #111111;
+  font-size: 35px;
+  font-weight: 300;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.login-close:hover {
+  color: #ff338c;
+}
+
+.login-role-options {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  padding: 0 37px;
+}
+
+.role-button {
+  width: 100%;
+  min-height: 32px;
+  border: none;
+  border-radius: 13px;
+  font-family: "Montserrat", sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    filter 0.2s ease;
+}
+
+.role-button:hover {
+  filter: brightness(0.96);
+  transform: translateY(-1px);
+}
+
+.role-student {
+  background: #ff65ad;
+  color: #ffffff;
+}
+
+.role-faculty {
+  background: #5296ff;
+  color: #ffffff;
+}
+
+.role-admin {
+  background: #f4cfe0;
+  color: #111111;
+}
+
+/* Darkened background */
+#loginModal.modal {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+#loginModal .modal-backdrop {
+  background: transparent;
+}
+
+@media (max-width: 400px) {
+  .login-modal-dialog {
+    max-width: calc(100% - 32px);
+    margin: auto;
+  }
+
+  .login-role-options {
+    padding: 0 25px;
+  }
+}
+
+/* =========================================
+   SPECADVISOR - STUDENT LOGIN MODAL
+   ========================================= */
+
+/* Sign Up navbar button */
+.signup-nav-button {
+  background-color: #ff6fae;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 9px 22px;
+  font-weight: 700;
+  transition: 0.2s ease;
+}
+
+.signup-nav-button:hover {
+  background-color: #ff529c;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+/* Sign Up modal */
+.signup-modal-content {
+  border: none;
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 18px 60px rgba(16, 55, 119, 0.18);
+}
+
+.signup-modal-content .modal-header {
+  padding: 28px 32px 16px;
+}
+
+.signup-modal-content .modal-title {
+  color: #103777;
+}
+
+.signup-modal-content .form-label {
+  color: #103777;
+  font-weight: 600;
+}
+
+.signup-modal-content .form-control {
+  min-height: 48px;
+  border: 1px solid #e4eaf5;
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.signup-modal-content .form-control:focus {
+  border-color: #5296ff;
+  box-shadow: 0 0 0 3px rgba(82, 150, 255, 0.15);
+}
+
+.signup-submit-button {
+  min-height: 48px;
+  background-color: #ff6fae;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  transition: 0.2s ease;
+}
+
+.signup-submit-button:hover {
+  background-color: #ff529c;
+  color: #ffffff;
+}
+
+@media (max-width: 576px) {
+  .signup-modal-content .modal-header {
+    padding: 22px 20px 12px;
+  }
+
+  .signup-modal-content .modal-body {
+    padding: 16px 20px 24px !important;
+  }
+}
+
+/* Modal positioning */
+.student-modal-dialog {
+  width: 100%;
+  max-width: 370px;
+  margin: 1.75rem auto;
+}
+
+/* Main modal card */
+.student-modal-content {
+  padding: 25px;
+  background: #ffffff;
+  border: 2px solid #ffe4f0;
+  border-radius: 24px;
+  box-shadow: 0 18px 50px rgba(255, 111, 174, 0.22);
+  overflow: hidden;
+}
+
+/* Modal header */
+.student-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 25px;
+}
+
+.student-modal-header h2 {
+  margin: 0;
+  color: #252535;
+  font-family: "Montserrat", sans-serif;
+  font-size: 23px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+/* Close button */
+.student-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: #ffe4f0;
+  color: #252535;
+  font-size: 25px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.student-close:hover {
+  background: #ff6fae;
+  color: #ffffff;
+  transform: rotate(90deg);
+}
+
+/* Form layout */
+.student-modal-body {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Input labels */
+.student-modal-body label {
+  margin-bottom: 8px;
+  color: #343447;
+  font-family: "Montserrat", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* Fix password field and forgot-password spacing */
+.student-modal-body .password-field {
+  width: 100%;
+  margin: 0;
+}
+
+.student-modal-body .password-field .student-input {
+  width: 100%;
+  height: 46px;
+  margin: 0;
+  padding: 0 52px 0 18px;
+}
+
+.student-modal-body .password-field .password-eye {
+  top: 0 !important;
+  right: 8px !important;
+  height: 46px;
+}
+
+.student-modal-body .student-forgot {
+  width: 100%;
+  margin: 10px 0 22px;
+  text-align: right;
+  line-height: 1.5;
+}
+
+.student-modal-body #studentLoginMessage {
+  margin: 0 0 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.student-modal-body .student-login-btn {
+  margin-bottom: 12px;
+}
+
+.student-modal-body .student-back-btn {
+  margin-top: 0;
+}
+
+/* Clear disabled-button feedback */
+.student-modal-body .student-login-btn:disabled {
+  opacity: 0.65;
+  cursor: wait;
+  transform: none;
+}
+
+/* Student ID and password fields */
+.student-input {
+  width: 100%;
+  height: 46px;
+  margin-bottom: 19px;
+  padding: 12px 14px;
+  border: 1.5px solid #e8e8ef;
+  border-radius: 12px;
+  outline: none;
+  background: #ffffff;
+  color: #252535;
+  font-family: "Poppins", sans-serif;
+  font-size: 13px;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    background 0.25s ease;
+}
+
+/* Password input and eye icon alignment */
+.password-field {
+  position: relative;
+  display: block;
+  width: 100%;
+  margin: 0;
+}
+
+.password-field input.student-input {
+  display: block;
+  width: 100%;
+  height: 56px;
+  box-sizing: border-box;
+  padding: 0 52px 0 18px;
+  margin: 0;
+}
+
+.password-field button.password-eye {
+  position: absolute !important;
+  top: 0 !important;
+  right: 8px !important;
+  bottom: 0 !important;
+
+  width: 36px;
+  height: 56px;
+  padding: 0 !important;
+  margin: 0 !important;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transform: none !important;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #5296ff;
+  cursor: pointer;
+  z-index: 5;
+}
+
+.password-field button.password-eye:hover {
+  background: #dceaff;
+}
+
+.password-field button.password-eye svg {
+  display: block;
+  width: 21px;
+  height: 21px;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+.password-field button.password-eye svg[hidden] {
+  display: none !important;
+}
+
+.student-input::placeholder {
+  color: #a5a5b5;
+}
+
+.student-input:hover {
+  border-color: #ffb5d2;
+}
+
+.student-input:focus {
+  border-color: #5296ff;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(82, 150, 255, 0.14);
+}
+
+/* Forgot password link */
+.student-forgot {
+  margin-top: -8px;
+  margin-bottom: 21px;
+  text-align: right;
+  font-family: "Poppins", sans-serif;
+  font-size: 12px;
+}
+
+.student-forgot a {
+  color: #5296ff;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.student-forgot a:hover {
+  color: #ff6fae;
+  text-decoration: underline;
+}
+
+/* Shared button styles */
+.student-login-btn,
+.student-back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 44px;
+  margin-bottom: 12px;
+  padding: 11px 16px;
+  border: none;
+  border-radius: 25px;
+  color: #ffffff;
+  font-family: "Montserrat", sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    background 0.25s ease;
+}
+
+/* Pink Login button */
+.student-login-btn {
+  background: linear-gradient(135deg, #ff6fae, #ff4f98);
+  box-shadow: 0 6px 15px rgba(255, 111, 174, 0.25);
+}
+
+.student-login-btn:hover {
+  background: linear-gradient(135deg, #f9579d, #e83d85);
+  box-shadow: 0 9px 20px rgba(255, 111, 174, 0.32);
+  transform: translateY(-2px);
+}
+
+/* Blue Go Back button */
+.student-back-btn {
+  margin-bottom: 0;
+  background: linear-gradient(135deg, #5296ff, #3982f5);
+  box-shadow: 0 6px 15px rgba(82, 150, 255, 0.2);
+}
+
+.student-back-btn:hover {
+  background: linear-gradient(135deg, #3982f5, #2870e5);
+  box-shadow: 0 9px 20px rgba(82, 150, 255, 0.28);
+  transform: translateY(-2px);
+}
+
+/* Button click effect */
+.student-login-btn:active,
+.student-back-btn:active {
+  transform: scale(0.98);
+}
+
+/* Keyboard focus accessibility */
+.student-login-btn:focus-visible,
+.student-back-btn:focus-visible,
+.student-close:focus-visible {
+  outline: 3px solid #5296ff;
+  outline-offset: 3px;
+}
+
+/* Login feedback and error messages */
+#studentLoginMessage {
+  margin: 12px 0 0;
+  color: #d93672;
+  font-family: "Poppins", sans-serif;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+/* Modal backdrop */
+body:has(#studentLoginModal.show) .modal-backdrop.show {
+  opacity: 0.55;
+}
+
+/* =========================================
+   MOBILE RESPONSIVENESS
+   ========================================= */
+
+@media (max-width: 400px) {
+  .student-modal-dialog {
+    max-width: none;
+    margin: 12px;
+  }
+
+  .student-modal-content {
+    padding: 21px;
+    border-radius: 20px;
+  }
+
+  .student-modal-header {
+    margin-bottom: 21px;
+  }
+
+  .student-modal-header h2 {
+    font-size: 21px;
+  }
+
+  .student-input {
+    height: 44px;
+  }
+}
+
+/* Smooth modal entrance */
+#studentLoginModal .modal-dialog {
+  transition: transform 0.3s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .student-modal-content *,
+  #studentLoginModal .modal-dialog {
+    transition: none !important;
+  }
+}
+
+/* =========================
+   HERO BANNER
+========================= */
+
+.hero {
+  position: relative;
+  width: 100%;
+  height: 357px;
+  min-height: 0;
+  margin: 0;
+  background-image: url("../images/meneses-campus-image.jpg");
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.43);
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: 0 4.2%;
+  width: 100%;
+}
+
+.school-seal {
+  display: block;
+  width: 200px;
+  height: 200px;
+  object-fit: contain;
+  flex-shrink: 0;
+  margin-left: -55px;
+  margin-right: 0;
+}
+
+.hero-text {
+  max-width: 450px;
+}
+
+.hero-text h1 {
+  font-family: "Montserrat", sans-serif;
+  margin: 0 0 8px;
+  font-size: 50px;
+  font-weight: 800;
+  line-height: 1.3;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+.hero-text p {
+  font-family: "Poppins", sans-serif;
+  max-width: 390px;
+  font-weight: large;
+  margin: 0;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.hero-text h1,
+.hero-text p,
+.school-seal {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  padding-left: 2%;
+}
+
+/* =========================
+   MAIN CONTENT
+========================= */
+/* =========================
+MAIN CONTENT
+========================= */
+
+.features {
+  width: 100%;
+  min-height: 650px;
+  margin: 0;
+  padding: 60px 24px 90px;
+  background: #ffffff;
+}
+
+.main-logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 100px;
+  margin-bottom: 50px;
+}
+
+.main-logo img {
+  display: block;
+  width: 500px;
+  height: 300px;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+/* Feature cards grid */
+
+#about {
+  scroll-margin-top: -55px;
+}
+.feature-grid {
+  width: 100%;
+  max-width: 1500px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.feature {
+  text-align: center;
+}
+
+.feature-icon {
+  width: 140px;
+  height: 140px;
+  margin: 0 auto 18px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  background: #dedede;
+  overflow: hidden;
+}
+
+.feature:first-child .feature-icon {
+  background: #ffffff;
+}
+
+.feature-icon img {
+  display: block;
+  width: 90%;
+  height: 90%;
+  object-fit: contain;
+}
+
+.feature h2 {
+  font-family: "Montserrat", sans-serif;
+  margin: 0 0 12px;
+  color: #103777;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.feature p {
+  font-family: "Poppins", sans-serif;
+  max-width: 330px;
+  margin: 0 auto;
+  color: #103777;
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+/* =========================
+   FOOTER
+========================= */
+
+.footer {
+  width: 100%;
+  min-height: 150px;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #5296ff;
+  color: #ffffff;
+}
+
+.footer p {
+  margin: 0;
+  font-size: 22px;
+}
+
+/* =========================
+   TABLET AND MOBILE
+========================= */
+
+@media (max-width: 420px) {
+  .navbar {
+    padding: 10px 14px !important;
+  }
+
+  .navbar .navbar-brand {
+    gap: 8px;
+  }
+
+  .navbar .navbar-brand img {
+    width: 34px;
+    height: 34px;
+  }
+
+  .navbar .navbar-brand span {
+    font-size: 21px;
+  }
+
+  .navbar .navbar-toggler {
+    width: 43px;
+    height: 42px;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .navbar {
+    padding: 10px 18px !important;
+  }
+
+  .navbar .navbar-collapse {
+    padding-top: 12px;
+  }
+
+  .navbar .navbar-nav {
+    align-items: stretch !important;
+    gap: 4px;
+  }
+
+  .navbar .navbar-nav .nav-link {
+    padding: 10px 12px;
+  }
+
+  .hero {
+    height: 300px;
+  }
+
+  .school-seal {
+    width: 110px;
+    height: 110px;
+  }
+
+  .hero-text h1 {
+    font-size: 26px;
+  }
+
+  .feature-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 36px 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    min-height: 62px;
+    padding: 8px 14px !important;
+  }
+
+  .navbar .navbar-brand {
+    gap: 8px;
+  }
+
+  .navbar .navbar-brand img {
+    width: 38px;
+    height: 38px;
+  }
+
+  .navbar .navbar-brand span {
+    font-size: 23px;
+    letter-spacing: 0;
+  }
+
+  .hero {
+    height: 260px;
+  }
+
+  .hero-content {
+    gap: 14px;
+    padding: 0 18px;
+  }
+
+  .school-seal {
+    width: 80px;
+    height: 80px;
+  }
+
+  .hero-text h1 {
+    font-size: 21px;
+  }
+
+  .hero-text p {
+    font-size: 12px;
+  }
+
+  .features {
+    padding: 30px 16px 45px;
+  }
+
+  .main-logo img {
+    width: 300px;
+    height: 180px;
+  }
+
+  .feature-icon {
+    width: 95px;
+    height: 95px;
+  }
+
+  .feature h2 {
+    font-size: 14px;
+  }
+
+  .feature p {
+    font-size: 12px;
+  }
+
+  .footer {
+    min-height: 120px;
+  }
+
+  .footer p {
+    font-size: 18px;
+  }
+}
+/*Reignier@2026*/
+@media (max-width: 420px) {
+  .navbar .navbar-brand span {
+    font-size: 19px;
+  }
+
+  .navbar .navbar-brand img {
+    width: 32px;
+    height: 32px;
+  }
+
+  .hero {
+    height: 250px;
+  }
+
+  .hero-content {
+    gap: 10px;
+    padding: 0 12px;
+  }
+
+  .school-seal {
+    width: 65px;
+    height: 65px;
+  }
+
+  .hero-text h1 {
+    font-size: 17px;
+  }
+
+  .hero-text p {
+    font-size: 11px;
+  }
+
+  .feature-grid {
+    grid-template-columns: 1fr;
+  }
+}

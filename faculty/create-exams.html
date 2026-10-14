@@ -1,484 +1,257 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
-
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
 
     <title>Faculty - Create Exams</title>
 
     <link
-        rel="icon"
-        type="image/png"
-        href="../images/SpecAdvisor-logofavicon.png?v=2"
-    >
+      rel="icon"
+      type="image/png"
+      href="../images/SpecAdvisor-logofavicon.png?v=2"
+    />
 
-    <link
-        rel="stylesheet"
-        href="../css/styles.css"
-    >
+    <link rel="stylesheet" href="../css/styles.css" />
 
     <script src="../js/pdf.js"></script>
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </head>
 
-</head>
-
-
-<body>
-
-
-<div class="dashboard">
-
-
-    <!-- =====================================================
+  <body>
+    <div class="dashboard">
+      <!-- =====================================================
          SIDEBAR
     ====================================================== -->
 
-    <div
-        class="sidebar"
-        id="sidebar"
-    >
-
+      <div class="sidebar" id="sidebar">
         <div class="sidebar-logo">
-
-            <img
-                src="../images/SpecAdvisor-Logo.png"
-                alt="SpecAdvisor Logo"
-            >
-
+          <img src="../images/SpecAdvisor-Logo.png" alt="SpecAdvisor Logo" />
         </div>
-
 
         <!-- DASHBOARD -->
 
         <button
-            class="sidebar-item"
-            onclick="goPage('../faculty/faculty-dashboard.html')"
+          class="sidebar-item"
+          onclick="goPage('../faculty/faculty-dashboard.html')"
         >
+          <span class="sidebar-icon">
+            <svg viewBox="0 0 24 24">
+              <path d="M3 11.5L12 4l9 7.5"></path>
 
-            <span class="sidebar-icon">
+              <path d="M5 10v10h14V10"></path>
 
-                <svg viewBox="0 0 24 24">
+              <path d="M9 20v-6h6v6"></path>
+            </svg>
+          </span>
 
-                    <path d="M3 11.5L12 4l9 7.5"></path>
-
-                    <path d="M5 10v10h14V10"></path>
-
-                    <path d="M9 20v-6h6v6"></path>
-
-                </svg>
-
-            </span>
-
-            <span>
-                Dashboard
-            </span>
-
+          <span> Dashboard </span>
         </button>
-
 
         <!-- CREATE EXAM -->
 
-        <button
-            class="sidebar-item active"
-        >
+        <button class="sidebar-item active">
+          <span class="sidebar-icon">
+            <svg viewBox="0 0 24 24">
+              <rect x="5" y="3" width="14" height="18" rx="2"></rect>
 
-            <span class="sidebar-icon">
+              <path d="M8 7h8"></path>
 
-                <svg viewBox="0 0 24 24">
+              <path d="M8 11h8"></path>
 
-                    <rect
-                        x="5"
-                        y="3"
-                        width="14"
-                        height="18"
-                        rx="2"
-                    ></rect>
+              <path d="M8 15h5"></path>
+            </svg>
+          </span>
 
-                    <path d="M8 7h8"></path>
-
-                    <path d="M8 11h8"></path>
-
-                    <path d="M8 15h5"></path>
-
-                </svg>
-
-            </span>
-
-            <span>
-                Create Exam
-            </span>
-
+          <span> Create Exam </span>
         </button>
-
 
         <!-- EXAM RESULTS -->
 
         <button
-            class="sidebar-item"
-            onclick="goPage('../faculty/exam-results.html')"
+          class="sidebar-item"
+          onclick="goPage('../faculty/exam-results.html')"
         >
+          <span class="sidebar-icon">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 19V5"></path>
 
-            <span class="sidebar-icon">
+              <path d="M4 19h16"></path>
 
-                <svg viewBox="0 0 24 24">
+              <path d="M7 16l4-5 3 2 5-7"></path>
+            </svg>
+          </span>
 
-                    <path d="M4 19V5"></path>
-
-                    <path d="M4 19h16"></path>
-
-                    <path d="M7 16l4-5 3 2 5-7"></path>
-
-                </svg>
-
-            </span>
-
-            <span>
-                Exam Results
-            </span>
-
+          <span> Exam Results </span>
         </button>
-
 
         <!-- SPECIALIZATION REPORTS -->
 
         <button
-            class="sidebar-item"
-            onclick="goPage('../faculty/view-reports.html')"
+          class="sidebar-item"
+          onclick="goPage('../faculty/view-reports.html')"
         >
+          <span class="sidebar-icon">
+            <svg viewBox="0 0 24 24">
+              <path d="M5 4h14v16H5z"></path>
 
-            <span class="sidebar-icon">
+              <path d="M8 8h8"></path>
 
-                <svg viewBox="0 0 24 24">
+              <path d="M8 12h8"></path>
 
-                    <path d="M5 4h14v16H5z"></path>
+              <path d="M8 16h5"></path>
+            </svg>
+          </span>
 
-                    <path d="M8 8h8"></path>
-
-                    <path d="M8 12h8"></path>
-
-                    <path d="M8 16h5"></path>
-
-                </svg>
-
-            </span>
-
-            <span>
-                Specialization Reports
-            </span>
-
+          <span> Specialization Reports </span>
         </button>
 
+        <div class="sidebar-credit">©SpecAdvisor 2026</div>
+      </div>
 
-        <div class="sidebar-credit">
-
-            ©SpecAdvisor 2026
-
-        </div>
-
-    </div>
-
-
-
-    <!-- =====================================================
+      <!-- =====================================================
          MAIN
     ====================================================== -->
 
-    <div class="main">
-
-
+      <div class="main">
         <!-- =================================================
              TOPBAR
         ================================================== -->
 
         <div class="topbar">
+          <button class="menu-btn" onclick="toggleSidebar()">☰</button>
 
+          <span class="title"> Create Exams </span>
 
-            <button
-                class="menu-btn"
-                onclick="toggleSidebar()"
-            >
-
-                ☰
-
-            </button>
-
-
-            <span class="title">
-
-                Create Exams
-
-            </span>
-
-
-            <!-- =================================================
+          <!-- =================================================
                  FACULTY PROFILE
             ================================================== -->
 
-            <div class="profile-wrapper">
+          <div class="profile-wrapper">
+            <button
+              class="profile-btn"
+              onclick="toggleProfileMenu()"
+              title="Account"
+            >
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="8" r="4"></circle>
 
+                <path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"></path>
+              </svg>
+            </button>
 
-                <button
-                    class="profile-btn"
-                    onclick="toggleProfileMenu()"
-                    title="Account"
-                >
+            <div class="profile-menu" id="profile-menu">
+              <!-- PROFILE -->
 
-                    <svg viewBox="0 0 24 24">
+              <button type="button" onclick="openProfile()">
+                <svg viewBox="0 0 24 24">
+                  <circle cx="12" cy="8" r="4"></circle>
 
-                        <circle
-                            cx="12"
-                            cy="8"
-                            r="4"
-                        ></circle>
+                  <path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"></path>
+                </svg>
 
-                        <path
-                            d="M4 21c0-4 3.5-7 8-7s8 3 8 7"
-                        ></path>
+                <span> Profile </span>
+              </button>
 
-                    </svg>
+              <!-- LOG OUT -->
 
-                </button>
+              <button type="button" onclick="logout()">
+                <svg viewBox="0 0 24 24">
+                  <path d="M10 17l5-5-5-5"></path>
 
+                  <path d="M15 12H3"></path>
 
-                <div
-                    class="profile-menu"
-                    id="profile-menu"
-                >
+                  <path d="M21 19V5a2 2 0 0 0-2-2h-5"></path>
+                </svg>
 
-
-                    <!-- PROFILE -->
-
-                    <button
-                        type="button"
-                        onclick="openProfile()"
-                    >
-
-                        <svg viewBox="0 0 24 24">
-
-                            <circle
-                                cx="12"
-                                cy="8"
-                                r="4"
-                            ></circle>
-
-                            <path
-                                d="M4 21c0-4 3.5-7 8-7s8 3 8 7"
-                            ></path>
-
-                        </svg>
-
-                        <span>
-                            Profile
-                        </span>
-
-                    </button>
-
-
-                    <!-- LOG OUT -->
-
-                    <button
-                        type="button"
-                        onclick="logout()"
-                    >
-
-                        <svg viewBox="0 0 24 24">
-
-                            <path d="M10 17l5-5-5-5"></path>
-
-                            <path d="M15 12H3"></path>
-
-                            <path
-                                d="M21 19V5a2 2 0 0 0-2-2h-5"
-                            ></path>
-
-                        </svg>
-
-                        <span>
-                            Log out
-                        </span>
-
-                    </button>
-
-
-                </div>
-
+                <span> Log out </span>
+              </button>
             </div>
-
+          </div>
         </div>
-
-
 
         <!-- =====================================================
              FACULTY PROFILE MODAL
         ====================================================== -->
 
         <div
-            class="profile-overlay"
-            id="profile-overlay"
-            onclick="closeProfileOutside(event)"
+          class="profile-overlay"
+          id="profile-overlay"
+          onclick="closeProfileOutside(event)"
         >
+          <div class="profile-modal" onclick="event.stopPropagation()">
+            <div class="profile-header">
+              <h2>My Profile</h2>
 
-
-            <div
-                class="profile-modal"
-                onclick="event.stopPropagation()"
-            >
-
-
-                <div class="profile-header">
-
-                    <h2>
-                        My Profile
-                    </h2>
-
-                    <button
-                        type="button"
-                        class="close-profile"
-                        onclick="closeProfile()"
-                    >
-
-                        ×
-
-                    </button>
-
-                </div>
-
-
-                <div
-                    class="profile-avatar"
-                    id="profile-avatar"
-                >
-
-                    ?
-
-                </div>
-
-
-                <div class="profile-info">
-
-
-                    <div class="profile-field">
-
-                        <label>
-                            Full Name
-                        </label>
-
-                        <input
-                            type="text"
-                            id="profile-fullname"
-                            disabled
-                        >
-
-                    </div>
-
-
-                    <div class="profile-field">
-
-                        <label>
-                            Email
-                        </label>
-
-                        <input
-                            type="email"
-                            id="profile-email"
-                            disabled
-                        >
-
-                    </div>
-
-
-                    <div class="profile-field">
-
-                        <label>
-                            Academic Year
-                        </label>
-
-                        <input
-                            type="text"
-                            id="profile-academic-year"
-                            disabled
-                        >
-
-                    </div>
-
-
-                    <div class="profile-field">
-
-                        <label>
-                            Role
-                        </label>
-
-                        <input
-                            type="text"
-                            id="profile-role"
-                            disabled
-                        >
-
-                    </div>
-
-
-
-                </div>
-
-
-                <div
-                    class="profile-message"
-                    id="profile-message"
-                ></div>
-
-
-                <div class="profile-actions">
-
-
-                    <button
-                        type="button"
-                        class="edit-profile-btn"
-                        id="edit-profile-btn"
-                        onclick="enableProfileEdit()"
-                    >
-
-                        Edit Profile
-
-                    </button>
-
-
-                    <button
-                        type="button"
-                        class="cancel-profile-btn"
-                        id="cancel-profile-btn"
-                        onclick="cancelProfileEdit()"
-                    >
-
-                        Cancel
-
-                    </button>
-
-
-                    <button
-                        type="button"
-                        class="save-profile-btn"
-                        id="save-profile-btn"
-                        onclick="saveProfile()"
-                    >
-
-                        Save Changes
-
-                    </button>
-
-
-                </div>
-
-
+              <button
+                type="button"
+                class="close-profile"
+                onclick="closeProfile()"
+              >
+                ×
+              </button>
             </div>
 
+            <div class="profile-avatar" id="profile-avatar">?</div>
+
+            <div class="profile-info">
+              <div class="profile-field">
+                <label> Full Name </label>
+
+                <input type="text" id="profile-fullname" disabled />
+              </div>
+
+              <div class="profile-field">
+                <label> Email </label>
+
+                <input type="email" id="profile-email" disabled />
+              </div>
+
+              <div class="profile-field">
+                <label> Academic Year </label>
+
+                <input type="text" id="profile-academic-year" disabled />
+              </div>
+
+              <div class="profile-field">
+                <label> Role </label>
+
+                <input type="text" id="profile-role" disabled />
+              </div>
+            </div>
+
+            <div class="profile-message" id="profile-message"></div>
+
+            <div class="profile-actions">
+              <button
+                type="button"
+                class="edit-profile-btn"
+                id="edit-profile-btn"
+                onclick="enableProfileEdit()"
+              >
+                Edit Profile
+              </button>
+
+              <button
+                type="button"
+                class="cancel-profile-btn"
+                id="cancel-profile-btn"
+                onclick="cancelProfileEdit()"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                class="save-profile-btn"
+                id="save-profile-btn"
+                onclick="saveProfile()"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
         </div>
-
-
 
         <!-- =====================================================
              LOGOUT MODAL
@@ -488,502 +261,275 @@
         ====================================================== -->
 
         <div
-            class="logout-overlay"
-            id="logout-overlay"
-            onclick="closeLogoutOutside(event)"
+          class="logout-overlay"
+          id="logout-overlay"
+          onclick="closeLogoutOutside(event)"
         >
-
-            <div
-                class="logout-modal-box"
-                onclick="event.stopPropagation()"
+          <div class="logout-modal-box" onclick="event.stopPropagation()">
+            <button
+              type="button"
+              class="logout-close-btn"
+              onclick="closeLogoutModal()"
             >
+              ×
+            </button>
 
-                <button
-                    type="button"
-                    class="logout-close-btn"
-                    onclick="closeLogoutModal()"
-                >
+            <h2>Log Out?</h2>
 
-                    ×
+            <p>Are you sure you want to log out?</p>
 
-                </button>
+            <div class="logout-actions">
+              <button
+                type="button"
+                class="logout-cancel-btn"
+                onclick="closeLogoutModal()"
+              >
+                Cancel
+              </button>
 
-
-                <h2>
-                    Log Out?
-                </h2>
-
-
-                <p>
-                    Are you sure you want to log out?
-                </p>
-
-
-                <div class="logout-actions">
-
-
-                    <button
-                        type="button"
-                        class="logout-cancel-btn"
-                        onclick="closeLogoutModal()"
-                    >
-
-                        Cancel
-
-                    </button>
-
-
-                    <button
-                        type="button"
-                        class="logout-confirm-btn"
-                        onclick="performLogout()"
-                    >
-
-                        Log Out
-
-                    </button>
-
-
-                </div>
-
+              <button
+                type="button"
+                class="logout-confirm-btn"
+                onclick="performLogout()"
+              >
+                Log Out
+              </button>
             </div>
-
+          </div>
         </div>
-
-
 
         <!-- =====================================================
              CONTENT
         ====================================================== -->
 
         <div class="content">
+          <br />
 
+          <div class="data-box">
+            <h2>Create Specialization Exam</h2>
 
-            <br>
+            <br />
 
+            <!-- UNIVERSAL UI NOTIFICATION -->
 
-            <div class="data-box">
+            <div
+              id="uiNotification"
+              class="alert-box"
+              style="display: none"
+            ></div>
 
-
-                <h2>
-                    Create Specialization Exam
-                </h2>
-
-
-                <br>
-
-
-                <!-- UNIVERSAL UI NOTIFICATION -->
-
-                <div
-                    id="uiNotification"
-                    class="alert-box"
-                    style="display: none;"
-                ></div>
-
-
-
-                <!-- =================================================
+            <!-- =================================================
                      EXAM TITLE
                 ================================================== -->
 
-                <label for="examTitle">
-                    Exam Title:
-                </label>
+            <label for="examTitle"> Exam Title: </label>
 
-                <input
-                    type="text"
-                    id="examTitle"
-                    placeholder="Enter Exam Title"
-                >
+            <input type="text" id="examTitle" placeholder="Enter Exam Title" />
 
+            <br />
+            <br />
 
-                <br>
-                <br>
-
-
-
-                <!-- =================================================
+            <!-- =================================================
                      SPECIALIZATION
                 ================================================== -->
 
-                <label for="specializationSelect">
-                    Select Specialization:
-                </label>
+            <label for="specializationSelect"> Select Specialization: </label>
 
-                <select
-                    id="specializationSelect"
-                >
+            <select id="specializationSelect">
+              <option value="">Select Specialization</option>
+            </select>
 
-                    <option value="">
-                        Select Specialization
-                    </option>
+            <br />
+            <br />
 
-                </select>
+            <hr />
 
+            <br />
 
-                <br>
-                <br>
-
-                <hr>
-
-                <br>
-
-
-
-                <!-- =================================================
+            <!-- =================================================
                      EXAM CREATION SECTION
 
                      HIDDEN UNTIL SPECIALIZATION IS SELECTED
                 ================================================== -->
 
-                <div
-                    id="examCreationSection"
-                    style="display: none;"
-                >
-
-
-
-                    <!-- =================================================
+            <div id="examCreationSection" style="display: none">
+              <!-- =================================================
                          MANUAL QUESTION ENTRY
                     ================================================== -->
 
-                    <h3>
-                        Manual Question Entry
-                    </h3>
+              <h3>Manual Question Entry</h3>
 
+              <br />
 
-                    <br>
+              <div class="manual-entry-container">
+                <input
+                  type="text"
+                  id="manualQuestion"
+                  placeholder="Enter Question"
+                />
 
+                <br />
+                <br />
 
-                    <div class="manual-entry-container">
+                <input type="text" id="choiceA" placeholder="Choice A" />
 
+                <input type="text" id="choiceB" placeholder="Choice B" />
 
-                        <input
-                            type="text"
-                            id="manualQuestion"
-                            placeholder="Enter Question"
-                        >
+                <input type="text" id="choiceC" placeholder="Choice C" />
 
+                <input type="text" id="choiceD" placeholder="Choice D" />
 
-                        <br>
-                        <br>
+                <br />
+                <br />
 
+                <select id="correctAnswer">
+                  <option value="">Select Correct Answer</option>
 
-                        <input
-                            type="text"
-                            id="choiceA"
-                            placeholder="Choice A"
-                        >
+                  <option value="A">Choice A</option>
 
-                        <input
-                            type="text"
-                            id="choiceB"
-                            placeholder="Choice B"
-                        >
+                  <option value="B">Choice B</option>
 
-                        <input
-                            type="text"
-                            id="choiceC"
-                            placeholder="Choice C"
-                        >
+                  <option value="C">Choice C</option>
 
-                        <input
-                            type="text"
-                            id="choiceD"
-                            placeholder="Choice D"
-                        >
+                  <option value="D">Choice D</option>
+                </select>
 
+                <br />
+                <br />
 
-                        <br>
-                        <br>
+                <button
+                  class="submit-btn"
+                  type="button"
+                  id="addManualBtn"
+                  onclick="addManualQuestion()"
+                >
+                  Add Manual Question
+                </button>
+              </div>
 
+              <br />
+              <br />
 
-                        <select
-                            id="correctAnswer"
-                        >
-
-                            <option value="">
-                                Select Correct Answer
-                            </option>
-
-                            <option value="A">
-                                Choice A
-                            </option>
-
-                            <option value="B">
-                                Choice B
-                            </option>
-
-                            <option value="C">
-                                Choice C
-                            </option>
-
-                            <option value="D">
-                                Choice D
-                            </option>
-
-                        </select>
-
-
-                        <br>
-                        <br>
-
-
-                        <button
-                            class="submit-btn"
-                            type="button"
-                            id="addManualBtn"
-                            onclick="addManualQuestion()"
-                        >
-
-                            Add Manual Question
-
-                        </button>
-
-
-                    </div>
-
-
-                    <br>
-                    <br>
-
-
-                    <!-- =================================================
+              <!-- =================================================
                          ADDED MANUAL QUESTIONS
                     ================================================== -->
 
-                    <h4>
+              <h4>Added Manual Questions (<span id="manualCount">0</span>)</h4>
 
-                        Added Manual Questions
-                        (<span id="manualCount">0</span>)
+              <ul id="manualQuestionsList"></ul>
 
-                    </h4>
+              <button
+                class="submit-btn"
+                type="button"
+                id="saveManualExamBtn"
+                style="display: none"
+                onclick="saveManualExam()"
+              >
+                Save All Manual Questions
+              </button>
 
+              <br />
+              <br />
 
-                    <ul
-                        id="manualQuestionsList"
-                    ></ul>
+              <hr />
 
+              <br />
 
-                    <button
-                        class="submit-btn"
-                        type="button"
-                        id="saveManualExamBtn"
-                        style="display: none;"
-                        onclick="saveManualExam()"
-                    >
-
-                        Save All Manual Questions
-
-                    </button>
-
-
-
-                    <br>
-                    <br>
-
-                    <hr>
-
-                    <br>
-
-
-
-                    <!-- =================================================
+              <!-- =================================================
                          PDF EXAM UPLOAD
                     ================================================== -->
 
-                    <h3>
-                        Upload Exam PDF
-                    </h3>
+              <h3>Upload Exam PDF</h3>
 
+              <br />
 
-                    <br>
+              <div class="drop-area" id="dropArea">
+                <h3>Drag & Drop Exam PDF Here</h3>
 
+                <br />
 
-                    <div
-                        class="drop-area"
-                        id="dropArea"
-                    >
+                <p>or Click to Upload</p>
 
-                        <h3>
-                            Drag & Drop Exam PDF Here
-                        </h3>
+                <input type="file" id="fileInput" accept=".pdf" hidden />
+              </div>
 
+              <div class="upload-status" id="uploadStatus">
+                No exam file uploaded yet
+              </div>
 
-                        <br>
+              <br />
+              <br />
 
-
-                        <p>
-                            or Click to Upload
-                        </p>
-
-
-                        <input
-                            type="file"
-                            id="fileInput"
-                            accept=".pdf"
-                            hidden
-                        >
-
-                    </div>
-
-
-                    <div
-                        class="upload-status"
-                        id="uploadStatus"
-                    >
-
-                        No exam file uploaded yet
-
-                    </div>
-
-
-                    <br>
-                    <br>
-
-
-
-                    <!-- =================================================
+              <!-- =================================================
                          ANSWER KEY
                     ================================================== -->
 
-                    <h3>
-                        Upload Answer Key PDF
-                    </h3>
+              <h3>Upload Answer Key PDF</h3>
 
+              <br />
 
-                    <br>
+              <div class="drop-area" id="answerDropArea">
+                <h3>Drag & Drop Answer Key PDF Here</h3>
 
+                <br />
 
-                    <div
-                        class="drop-area"
-                        id="answerDropArea"
-                    >
+                <p>or Click to Upload</p>
 
-                        <h3>
-                            Drag & Drop Answer Key PDF Here
-                        </h3>
+                <input type="file" id="answerFileInput" accept=".pdf" hidden />
+              </div>
 
+              <div class="upload-status" id="answerStatus">
+                No answer key uploaded yet
+              </div>
 
-                        <br>
+              <br />
+              <br />
 
-
-                        <p>
-                            or Click to Upload
-                        </p>
-
-
-                        <input
-                            type="file"
-                            id="answerFileInput"
-                            accept=".pdf"
-                            hidden
-                        >
-
-                    </div>
-
-
-                    <div
-                        class="upload-status"
-                        id="answerStatus"
-                    >
-
-                        No answer key uploaded yet
-
-                    </div>
-
-
-                    <br>
-                    <br>
-
-
-
-                    <!-- =================================================
+              <!-- =================================================
                          SUBMIT PDF
                     ================================================== -->
 
-                    <button
-                        class="submit-btn"
-                        type="button"
-                        id="submitPdfBtn"
-                        onclick="submitQuestions()"
-                    >
+              <button
+                class="submit-btn"
+                type="button"
+                id="submitPdfBtn"
+                onclick="submitQuestions()"
+              >
+                Submit PDF Questions
+              </button>
+            </div>
 
-                        Submit PDF Questions
+            <!-- END EXAM CREATION SECTION -->
 
-                    </button>
+            <br />
+            <br />
 
+            <hr />
 
-                </div>
+            <br />
 
-
-                <!-- END EXAM CREATION SECTION -->
-
-
-                <br>
-                <br>
-
-                <hr>
-
-                <br>
-
-
-
-                <!-- =================================================
+            <!-- =================================================
                      EXISTING EXAMS
                 ================================================== -->
 
-                <h3>
-                    Existing Exams
-                </h3>
+            <h3>Existing Exams</h3>
 
-
-                <div
-                    id="existingExams"
-                >
-
-                    <p>
-                        No exams created yet.
-                    </p>
-
-                </div>
-
-
+            <div id="existingExams">
+              <p>No exams created yet.</p>
             </div>
-
-
+          </div>
         </div>
-
-
+      </div>
     </div>
 
-
-</div>
-
-
-
-<!-- =====================================================
+    <!-- =====================================================
      JAVASCRIPT
 ====================================================== -->
 
-<script
-    type="module"
-    src="../js/create-exams.js"
-></script>
+    <script type="module" src="../js/create-exams.js"></script>
 
+    <script type="module" src="../js/faculty-profile.js"></script>
 
-<script
-    type="module"
-    src="../js/faculty-profile.js"
-></script>
-
-
-<script
-    src="../js/script.js"
-></script>
-
-
-</body>
-
+    <script src="../js/script.js"></script>
+  </body>
 </html>

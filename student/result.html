@@ -1,711 +1,424 @@
-<!DOCTYPE html>
+<!doctype html>
 
 <html>
-
-<head>
-
-<title>Result</title>
-
-<link
-rel="icon"
-type="image/png"
-href="../images/SpecAdvisor-logofavicon.png?v=2"
->
-
-<meta
-name="viewport"
-content="width=device-width, initial-scale=1.0"
->
-
-<link
-rel="stylesheet"
-href="../css/styles.css"
->
-
-
-<style>
-
-/* EXAM COMPLETION REMINDER */
-
-.exam-reminder {
-    margin-bottom: 20px;
-    padding: 20px;
-    border-radius: 14px;
-    display: flex;
-    align-items: flex-start;
-    gap: 15px;
-    box-sizing: border-box;
-}
-
-.exam-reminder.warning {
-    background: #fff4f7;
-    border: 1px solid #f3a6bd;
-}
-
-.exam-reminder.success {
-    background: #f1fff5;
-    border: 1px solid #9ad7aa;
-}
-
-.reminder-icon {
-    font-size: 32px;
-    line-height: 1;
-    flex-shrink: 0;
-}
-
-.reminder-content {
-    flex: 1;
-}
-
-.reminder-content h3 {
-    margin: 0 0 8px;
-    color: #2f2fa2;
-    font-size: 18px;
-}
-
-.reminder-content p {
-    margin: 0 0 12px;
-    color: #555;
-    line-height: 1.6;
-}
-
-.reminder-content ul {
-    margin: 10px 0 15px;
-    padding-left: 22px;
-    color: #555;
-}
-
-.reminder-content li {
-    margin-bottom: 6px;
-}
-
-.reminder-btn {
-    border: none;
-    background: #e98bb5;
-    color: white;
-    padding: 10px 16px;
-    border-radius: 7px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 14px;
-}
-
-.reminder-btn:hover {
-    opacity: 0.9;
-}
-
-
-/* MOBILE */
-
-@media(max-width:600px){
-
-    .exam-reminder {
-        padding: 15px;
-        gap: 10px;
-    }
-
-    .reminder-icon {
-        font-size: 26px;
-    }
-
-    .reminder-content h3 {
-        font-size: 16px;
-    }
-
-    .reminder-content p,
-    .reminder-content li {
-        font-size: 13px;
-    }
-
-    .reminder-btn {
-        width: 100%;
-    }
-
-}
-
-</style>
-
-</head>
-
-
-<body>
-
-<div class="dashboard">
-
-
-<!-- SIDEBAR -->
-
-<div class="sidebar" id="sidebar">
-
-    <div class="sidebar-logo">
-
-        <img src="../images/SpecAdvisor-Logo.png">
-
-    </div>
-
-
-    <button
-        class="sidebar-item"
-        onclick="goPage('../student/dashboard.html')"
-    >
-
-        <span class="sidebar-icon">
-
-            <svg viewBox="0 0 24 24">
-
-                <path d="M3 11.5L12 4l9 7.5"></path>
-
-                <path d="M5 10v10h14V10"></path>
-
-                <path d="M9 20v-6h6v6"></path>
-
-            </svg>
-
-        </span>
-
-        <span>Dashboard</span>
-
-    </button>
-
-
-    <button
-        class="sidebar-item"
-        onclick="goPage('../student/take-exam.html')"
-    >
-
-        <span class="sidebar-icon">
-
-            <svg viewBox="0 0 24 24">
-
-                <rect
-                    x="5"
-                    y="3"
-                    width="14"
-                    height="18"
-                    rx="2"
-                ></rect>
-
-                <path d="M8 7h8"></path>
-
-                <path d="M8 11h8"></path>
-
-                <path d="M8 15h5"></path>
-
-            </svg>
-
-        </span>
-
-        <span>Take Exam</span>
-
-    </button>
-
-
-    <button
-        class="sidebar-item"
-        onclick="goPage('../student/recommendation.html')"
-    >
-
-        <span class="sidebar-icon">
-
-            <svg viewBox="0 0 24 24">
-
-                <path d="M12 3l2.2 5.1L20 10l-5.8 1.9L12 17l-2.2-5.1L4 10l5.8-1.9L12 3z"></path>
-
-                <path d="M19 16l.8 1.8L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8L19 16z"></path>
-
-            </svg>
-
-        </span>
-
-        <span>Specialization Recommendation</span>
-
-    </button>
-
-
-    <button
-        class="sidebar-item"
-        onclick="goPage('../student/specialization-selection.html')"
-    >
-
-        <span class="sidebar-icon">
-
-            <svg viewBox="0 0 24 24">
-
-                <path d="M5 4h14v16H5z"></path>
-
-                <path d="M8 8h8"></path>
-
-                <path d="M8 12h8"></path>
-
-                <path d="M8 16h5"></path>
-
-            </svg>
-
-        </span>
-
-        <span>Specialization Selection</span>
-
-    </button>
-
-
-    <div class="sidebar-credit">
-
-        ©SpecAdvisor 2026
-
-    </div>
-
-</div>
-
-
-<!-- MAIN -->
-
-<div class="main">
-
-
-<!-- TOPBAR -->
-
-<div class="topbar">
-
-    <button
-        class="menu-btn"
-        onclick="toggleSidebar()"
-    >
-
-        ☰
-
-    </button>
-
-
-    <span class="title">
-
-        Exam Result
-
-    </span>
-
-
-    <!-- PROFILE -->
-
-    <div class="profile-wrapper">
+  <head>
+    <title>Result</title>
+
+    <link
+      rel="icon"
+      type="image/png"
+      href="../images/SpecAdvisor-logofavicon.png?v=2"
+    />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="stylesheet" href="../css/styles.css" />
+
+    <style>
+      /* EXAM COMPLETION REMINDER */
+
+      .exam-reminder {
+        margin-bottom: 20px;
+        padding: 20px;
+        border-radius: 14px;
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+        box-sizing: border-box;
+      }
+
+      .exam-reminder.warning {
+        background: #fff4f7;
+        border: 1px solid #f3a6bd;
+      }
+
+      .exam-reminder.success {
+        background: #f1fff5;
+        border: 1px solid #9ad7aa;
+      }
+
+      .reminder-icon {
+        font-size: 32px;
+        line-height: 1;
+        flex-shrink: 0;
+      }
+
+      .reminder-content {
+        flex: 1;
+      }
+
+      .reminder-content h3 {
+        margin: 0 0 8px;
+        color: #2f2fa2;
+        font-size: 18px;
+      }
+
+      .reminder-content p {
+        margin: 0 0 12px;
+        color: #555;
+        line-height: 1.6;
+      }
+
+      .reminder-content ul {
+        margin: 10px 0 15px;
+        padding-left: 22px;
+        color: #555;
+      }
+
+      .reminder-content li {
+        margin-bottom: 6px;
+      }
+
+      .reminder-btn {
+        border: none;
+        background: #e98bb5;
+        color: white;
+        padding: 10px 16px;
+        border-radius: 7px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 14px;
+      }
+
+      .reminder-btn:hover {
+        opacity: 0.9;
+      }
+
+      /* MOBILE */
+
+      @media (max-width: 600px) {
+        .exam-reminder {
+          padding: 15px;
+          gap: 10px;
+        }
+
+        .reminder-icon {
+          font-size: 26px;
+        }
+
+        .reminder-content h3 {
+          font-size: 16px;
+        }
+
+        .reminder-content p,
+        .reminder-content li {
+          font-size: 13px;
+        }
+
+        .reminder-btn {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="dashboard">
+      <!-- SIDEBAR -->
+
+      <div class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+          <img src="../images/SpecAdvisor-Logo.png" />
+        </div>
 
         <button
-            class="profile-btn"
-            onclick="toggleProfileMenu()"
-            title="Account"
+          class="sidebar-item"
+          onclick="goPage('../student/dashboard.html')"
         >
-
+          <span class="sidebar-icon">
             <svg viewBox="0 0 24 24">
+              <path d="M3 11.5L12 4l9 7.5"></path>
 
-                <circle
-                    cx="12"
-                    cy="8"
-                    r="4"
-                ></circle>
+              <path d="M5 10v10h14V10"></path>
 
-                <path
-                    d="M4 21c0-4 3.5-7 8-7s8 3 8 7"
-                ></path>
-
+              <path d="M9 20v-6h6v6"></path>
             </svg>
+          </span>
 
+          <span>Dashboard</span>
         </button>
 
-
-        <div
-            class="profile-menu"
-            id="profile-menu"
+        <button
+          class="sidebar-item"
+          onclick="goPage('../student/take-exam.html')"
         >
+          <span class="sidebar-icon">
+            <svg viewBox="0 0 24 24">
+              <rect x="5" y="3" width="14" height="18" rx="2"></rect>
 
-            <button onclick="openProfile()">
+              <path d="M8 7h8"></path>
 
+              <path d="M8 11h8"></path>
+
+              <path d="M8 15h5"></path>
+            </svg>
+          </span>
+
+          <span>Take Exam</span>
+        </button>
+
+        <button
+          class="sidebar-item"
+          onclick="goPage('../student/recommendation.html')"
+        >
+          <span class="sidebar-icon">
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M12 3l2.2 5.1L20 10l-5.8 1.9L12 17l-2.2-5.1L4 10l5.8-1.9L12 3z"
+              ></path>
+
+              <path
+                d="M19 16l.8 1.8L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8L19 16z"
+              ></path>
+            </svg>
+          </span>
+
+          <span>Specialization Recommendation</span>
+        </button>
+
+        <button
+          class="sidebar-item"
+          onclick="goPage('../student/specialization-selection.html')"
+        >
+          <span class="sidebar-icon">
+            <svg viewBox="0 0 24 24">
+              <path d="M5 4h14v16H5z"></path>
+
+              <path d="M8 8h8"></path>
+
+              <path d="M8 12h8"></path>
+
+              <path d="M8 16h5"></path>
+            </svg>
+          </span>
+
+          <span>Specialization Selection</span>
+        </button>
+
+        <div class="sidebar-credit">©SpecAdvisor 2026</div>
+      </div>
+
+      <!-- MAIN -->
+
+      <div class="main">
+        <!-- TOPBAR -->
+
+        <div class="topbar">
+          <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+
+          <span class="title"> Exam Result </span>
+
+          <!-- PROFILE -->
+
+          <div class="profile-wrapper">
+            <button
+              class="profile-btn"
+              onclick="toggleProfileMenu()"
+              title="Account"
+            >
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="8" r="4"></circle>
+
+                <path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"></path>
+              </svg>
+            </button>
+
+            <div class="profile-menu" id="profile-menu">
+              <button onclick="openProfile()">
                 <svg viewBox="0 0 24 24">
+                  <circle cx="12" cy="8" r="4"></circle>
 
-                    <circle
-                        cx="12"
-                        cy="8"
-                        r="4"
-                    ></circle>
-
-                    <path
-                        d="M4 21c0-4 3.5-7 8-7s8 3 8 7"
-                    ></path>
-
+                  <path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"></path>
                 </svg>
 
                 <span>Profile</span>
+              </button>
 
-            </button>
-
-
-            <button onclick="logout()">
-
+              <button onclick="logout()">
                 <svg viewBox="0 0 24 24">
+                  <path d="M10 17l5-5-5-5"></path>
 
-                    <path d="M10 17l5-5-5-5"></path>
+                  <path d="M15 12H3"></path>
 
-                    <path d="M15 12H3"></path>
-
-                    <path d="M21 19V5a2 2 0 0 0-2-2h-5"></path>
-
+                  <path d="M21 19V5a2 2 0 0 0-2-2h-5"></path>
                 </svg>
 
                 <span>Log out</span>
-
-            </button>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-<!-- CONTENT -->
-
-<div class="content">
-
-
-    <div class="result-panel">
-
-
-        <!-- EXAM COMPLETION REMINDER -->
-
-        <div id="examReminder"></div>
-
-
-        <!-- RESULTS TABLE -->
-
-        <div class="result-table">
-
-            <div class="table-responsive">
-
-                <table>
-
-                    <thead>
-
-                        <tr>
-
-                            <th>
-                                Specialization
-                            </th>
-
-                            <th>
-                                Total Items
-                            </th>
-
-                            <th>
-                                Score
-                            </th>
-
-                            <th>
-                                Percentage
-                            </th>
-
-                            <th>
-                                Remarks
-                            </th>
-
-                        </tr>
-
-                    </thead>
-
-
-                    <tbody id="resultBody">
-
-                        <tr class="no-result">
-
-                            <td colspan="5">
-
-                                No exam result yet.
-                                Results will appear here
-                                after you complete an exam.
-
-                            </td>
-
-                        </tr>
-
-                    </tbody>
-
-                </table>
-
+              </button>
             </div>
-
+          </div>
         </div>
 
+        <!-- CONTENT -->
 
+        <div class="content">
+          <div class="result-panel">
+            <!-- EXAM COMPLETION REMINDER -->
+
+            <div id="examReminder"></div>
+
+            <!-- RESULTS TABLE -->
+
+            <div class="result-table">
+              <div class="table-responsive">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Specialization</th>
+
+                      <th>Total Items</th>
+
+                      <th>Score</th>
+
+                      <th>Percentage</th>
+
+                      <th>Remarks</th>
+                    </tr>
+                  </thead>
+
+                  <tbody id="resultBody">
+                    <tr class="no-result">
+                      <td colspan="5">
+                        No exam result yet. Results will appear here after you
+                        complete an exam.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-</div>
-
-
-</div>
-
-</div>
-
-
-<!-- PROFILE MODAL -->
-
-<div
-    class="profile-overlay"
-    id="profile-overlay"
-    onclick="closeProfileOutside(event)"
->
+    <!-- PROFILE MODAL -->
 
     <div
-        class="profile-modal"
-        onclick="event.stopPropagation()"
+      class="profile-overlay"
+      id="profile-overlay"
+      onclick="closeProfileOutside(event)"
     >
-
+      <div class="profile-modal" onclick="event.stopPropagation()">
         <div class="profile-header">
+          <h2>My Profile</h2>
 
-            <h2>
-                My Profile
-            </h2>
-
-
-            <button
-                class="close-profile"
-                onclick="closeProfile()"
-            >
-
-                ×
-
-            </button>
-
+          <button class="close-profile" onclick="closeProfile()">×</button>
         </div>
 
-
-        <div
-            class="profile-avatar"
-            id="profile-avatar"
-        >
-
-            ?
-
-        </div>
-
+        <div class="profile-avatar" id="profile-avatar">?</div>
 
         <div class="profile-info">
+          <div class="profile-field">
+            <label> Full Name </label>
 
+            <input type="text" id="profile-fullname" disabled />
+          </div>
 
-            <div class="profile-field">
+          <div class="profile-field">
+            <label> Email </label>
 
-                <label>
-                    Full Name
-                </label>
+            <input type="email" id="profile-email" disabled />
+          </div>
 
-                <input
-                    type="text"
-                    id="profile-fullname"
-                    disabled
-                >
+          <div class="profile-field">
+            <label> Student ID </label>
 
-            </div>
+            <input type="text" id="profile-student-id" disabled />
+          </div>
 
+          <div class="profile-field">
+            <label> Section </label>
 
-            <div class="profile-field">
+            <input type="text" id="profile-section" disabled />
+          </div>
 
-                <label>
-                    Email
-                </label>
+          <div class="profile-field">
+            <label> Academic Year </label>
 
-                <input
-                    type="email"
-                    id="profile-email"
-                    disabled
-                >
+            <input type="text" id="profile-academic-year" disabled />
+          </div>
 
-            </div>
+          <div class="profile-field">
+            <label> Role </label>
 
-
-            <div class="profile-field">
-
-                <label>
-                    Student ID
-                </label>
-
-                <input
-                    type="text"
-                    id="profile-student-id"
-                    disabled
-                >
-
-            </div>
-
-
-            <div class="profile-field">
-
-                <label>
-                    Section
-                </label>
-
-                <input
-                    type="text"
-                    id="profile-section"
-                    disabled
-                >
-
-            </div>
-
-
-            <div class="profile-field">
-
-                <label>
-                    Academic Year
-                </label>
-
-                <input
-                    type="text"
-                    id="profile-academic-year"
-                    disabled
-                >
-
-            </div>
-
-
-            <div class="profile-field">
-
-                <label>
-                    Role
-                </label>
-
-                <input
-                    type="text"
-                    id="profile-role"
-                    disabled
-                >
-
-            </div>
-
+            <input type="text" id="profile-role" disabled />
+          </div>
         </div>
 
-
-        <div
-            class="profile-message"
-            id="profile-message"
-        ></div>
-
+        <div class="profile-message" id="profile-message"></div>
 
         <div class="profile-actions">
+          <button
+            class="edit-profile-btn"
+            id="edit-profile-btn"
+            onclick="enableProfileEdit()"
+          >
+            Edit Profile
+          </button>
 
-            <button
-                class="edit-profile-btn"
-                id="edit-profile-btn"
-                onclick="enableProfileEdit()"
-            >
+          <button
+            class="cancel-profile-btn"
+            id="cancel-profile-btn"
+            onclick="cancelProfileEdit()"
+          >
+            Cancel
+          </button>
 
-                Edit Profile
-
-            </button>
-
-
-            <button
-                class="cancel-profile-btn"
-                id="cancel-profile-btn"
-                onclick="cancelProfileEdit()"
-            >
-
-                Cancel
-
-            </button>
-
-
-            <button
-                class="save-profile-btn"
-                id="save-profile-btn"
-                onclick="saveProfile()"
-            >
-
-                Save Changes
-
-            </button>
-
+          <button
+            class="save-profile-btn"
+            id="save-profile-btn"
+            onclick="saveProfile()"
+          >
+            Save Changes
+          </button>
         </div>
-
+      </div>
     </div>
 
-</div>
+    <!-- ===================================================== -->
+    <!-- LOGOUT MODAL -->
+    <!-- ===================================================== -->
 
-
-<!-- ===================================================== -->
-<!-- LOGOUT MODAL -->
-<!-- ===================================================== -->
-
-<div
-    id="logout-overlay"
-    onclick="closeLogoutOutside(event)"
->
-
-    <div
-        class="logout-modal-box"
-        onclick="event.stopPropagation()"
-    >
-
+    <div id="logout-overlay" onclick="closeLogoutOutside(event)">
+      <div class="logout-modal-box" onclick="event.stopPropagation()">
         <button
-            type="button"
-            class="logout-close-btn"
-            onclick="closeLogoutModal()"
-            aria-label="Close"
+          type="button"
+          class="logout-close-btn"
+          onclick="closeLogoutModal()"
+          aria-label="Close"
         >
-
-            ×
-
+          ×
         </button>
 
+        <h2>Log Out?</h2>
 
-        <h2>
-            Log Out?
-        </h2>
-
-
-        <p>
-            Are you sure you want to log out?
-        </p>
-
+        <p>Are you sure you want to log out?</p>
 
         <div class="logout-actions">
+          <button
+            type="button"
+            class="logout-cancel-btn"
+            onclick="closeLogoutModal()"
+          >
+            Cancel
+          </button>
 
-            <button
-                type="button"
-                class="logout-cancel-btn"
-                onclick="closeLogoutModal()"
-            >
-
-                Cancel
-
-            </button>
-
-
-            <button
-                type="button"
-                class="logout-confirm-btn"
-                onclick="performLogout()"
-            >
-
-                Log Out
-
-            </button>
-
+          <button
+            type="button"
+            class="logout-confirm-btn"
+            onclick="performLogout()"
+          >
+            Log Out
+          </button>
         </div>
-
+      </div>
     </div>
 
-</div>
+    <!-- JAVASCRIPT -->
 
+    <script type="module" src="../js/result.js"></script>
 
-<!-- JAVASCRIPT -->
-
-<script
-    type="module"
-    src="../js/result.js"
-></script>
-
-
-<script
-    type="module"
-    src="../js/student-profile.js"
-></script>
-
-
-</body>
-
+    <script type="module" src="../js/student-profile.js"></script>
+  </body>
 </html>

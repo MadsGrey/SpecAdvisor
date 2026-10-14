@@ -1,33 +1,201 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Page Not Found</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <style media="screen">
-      body { background: #ECEFF1; color: rgba(0,0,0,0.87); font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
-      #message { background: white; max-width: 360px; margin: 100px auto 16px; padding: 32px 24px 16px; border-radius: 3px; }
-      #message h3 { color: #888; font-weight: normal; font-size: 16px; margin: 16px 0 12px; }
-      #message h2 { color: #ffa100; font-weight: bold; font-size: 16px; margin: 0 0 8px; }
-      #message h1 { font-size: 22px; font-weight: 300; color: rgba(0,0,0,0.6); margin: 0 0 16px;}
-      #message p { line-height: 140%; margin: 16px 0 24px; font-size: 14px; }
-      #message a { display: block; text-align: center; background: #039be5; text-transform: uppercase; text-decoration: none; color: white; padding: 16px; border-radius: 4px; }
-      #message, #message a { box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); }
-      #load { color: rgba(0,0,0,0.4); text-align: center; font-size: 13px; }
-      @media (max-width: 600px) {
-        body, #message { margin-top: 0; background: white; box-shadow: none; }
-        body { border-top: 16px solid #ffa100; }
+    <title>404 - Page Not Found</title>
+
+    <style>
+      :root {
+        --pink: #ff6fae;
+        --pink-light: #ffe4f0;
+        --blue: #5296ff;
+        --blue-light: #e4f0ff;
+        --white: #ffffff;
+        --text: #29354d;
+        --muted: #78859b;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        font-family: Arial, Helvetica, sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(
+            circle at 15% 20%,
+            var(--pink-light),
+            transparent 38%
+          ),
+          radial-gradient(
+            circle at 85% 80%,
+            var(--blue-light),
+            transparent 40%
+          ),
+          var(--white);
+        overflow: hidden;
+      }
+
+      .error-container {
+        width: 100%;
+        max-width: 540px;
+        padding: 48px 32px;
+        text-align: center;
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid #f0f2fa;
+        border-radius: 28px;
+        box-shadow: 0 20px 60px rgba(82, 150, 255, 0.12);
+        animation: appear 0.6s ease-out;
+      }
+
+      .error-code {
+        font-size: clamp(100px, 25vw, 170px);
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -8px;
+        background: linear-gradient(135deg, var(--pink), var(--blue));
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 22px;
+      }
+
+      .error-label {
+        display: inline-block;
+        padding: 8px 16px;
+        margin-bottom: 20px;
+        color: #e94e94;
+        background: var(--pink-light);
+        border-radius: 50px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        font-size: clamp(25px, 5vw, 34px);
+        margin-bottom: 14px;
+        color: var(--text);
+      }
+
+      .description {
+        max-width: 380px;
+        margin: 0 auto 30px;
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.8;
+      }
+
+      .home-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        min-height: 50px;
+        padding: 15px 28px;
+        border-radius: 14px;
+        background: linear-gradient(110deg, var(--pink), var(--blue));
+        color: var(--white);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 700;
+        box-shadow: 0 8px 20px rgba(82, 150, 255, 0.22);
+        transition:
+          transform 0.25s ease,
+          box-shadow 0.25s ease;
+      }
+
+      .home-button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 26px rgba(82, 150, 255, 0.3);
+      }
+
+      .home-button:focus-visible {
+        outline: 3px solid var(--blue);
+        outline-offset: 5px;
+      }
+
+      .home-icon {
+        font-size: 18px;
+      }
+
+      .footer {
+        margin-top: 36px;
+        color: #a0aabd;
+        font-size: 12px;
+      }
+
+      .footer span {
+        color: var(--pink);
+      }
+
+      @keyframes appear {
+        from {
+          opacity: 0;
+          transform: translateY(18px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (max-width: 480px) {
+        .error-container {
+          padding: 38px 22px;
+          border-radius: 22px;
+        }
+
+        .error-code {
+          letter-spacing: -5px;
+        }
+
+        .description {
+          font-size: 14px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation: none !important;
+          transition: none !important;
+          scroll-behavior: auto !important;
+        }
       }
     </style>
   </head>
+
   <body>
-    <div id="message">
-      <h2>404</h2>
-      <h1>Page Not Found</h1>
-      <p>The specified file was not found on this website. Please check the URL for mistakes and try again.</p>
-      <h3>Why am I seeing this?</h3>
-      <p>This page was generated by the Firebase Command-Line Interface. To modify it, edit the <code>404.html</code> file in your project's configured <code>public</code> directory.</p>
-    </div>
+    <main class="error-container">
+      <div class="error-label">Error 404</div>
+
+      <div class="error-code" aria-hidden="true">404</div>
+
+      <h1>Oops! Page Not Found</h1>
+
+      <p class="description">
+        The page you're looking for doesn't exist or may have been moved.
+      </p>
+
+      <a href="login.html" class="home-button">
+        <span class="home-icon" aria-hidden="true">←</span>
+        Go Back to Login
+      </a>
+
+      <div class="footer">Advisor <span></span> 2026.</div>
+    </main>
   </body>
 </html>

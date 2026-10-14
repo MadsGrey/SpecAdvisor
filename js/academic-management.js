@@ -1,16 +1,12 @@
-import {
-    db,
-    auth
-}
-from "./firebase-config.js";
+import { db, auth } from "./firebase-config.js";
 
 import {
-    signOut,
-    onAuthStateChanged
-}
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  signOut,
+  onAuthStateChanged,
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 import {
+<<<<<<< HEAD
     collection,
     addDoc,
     getDocs,
@@ -28,121 +24,116 @@ import {
 
 import { INTEREST_AREAS } from "./interest-config.js";
 
+=======
+  collection,
+  addDoc,
+  getDocs,
+  deleteDoc,
+  updateDoc,
+  doc,
+  writeBatch,
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
 /* AUTHENTICATION */
 
 onAuthStateChanged(auth, (user) => {
-
-    if (!user) {
-
-        window.location.replace("../login.html");
-
-    }
-
+  if (!user) {
+    window.location.replace("../login.html");
+  }
 });
-
 
 /* BACK BUTTON PROTECTION */
 
 window.addEventListener("pageshow", (event) => {
-
-    if (event.persisted) {
-
-        window.location.reload();
-
-    }
-
+  if (event.persisted) {
+    window.location.reload();
+  }
 });
-
 
 /* SIDEBAR */
 
-function toggleSidebar(){
+function toggleSidebar() {
+  const sidebar = document.getElementById("sidebar");
 
-    const sidebar =
-        document.getElementById("sidebar");
-
-    if(sidebar){
-
-        sidebar.classList.toggle("active");
-
-    }
-
+  if (sidebar) {
+    sidebar.classList.toggle("active");
+  }
 }
-
 
 /* NAVIGATION */
 
-function goPage(url){
-
-    window.location.href = url;
-
+function goPage(url) {
+  window.location.href = url;
 }
-
 
 /* =========================================================
    LOGOUT MODAL (unchanged)
 ========================================================= */
 
-function hideLogoutModal(){
+function hideLogoutModal() {
+  const overlay = document.getElementById("logout-overlay");
 
-    const overlay =
-        document.getElementById("logout-overlay");
+  if (!overlay) {
+    return;
+  }
 
-    if(!overlay){
-        return;
-    }
+  overlay.classList.remove("active");
 
-    overlay.classList.remove("active");
+  overlay.style.display = "none";
 
-    overlay.style.display = "none";
-
-    document.body.style.overflow = "";
-
+  document.body.style.overflow = "";
 }
 
+<<<<<<< HEAD
 
 function logout(){
+=======
+/* =========================================================
+   OPEN LOGOUT MODAL
+========================================================= */
 
-    const overlay =
-        document.getElementById("logout-overlay");
+function logout() {
+  const overlay = document.getElementById("logout-overlay");
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
-    if(!overlay){
+  if (!overlay) {
+    console.error("Logout modal not found.");
 
-        console.error(
-            "Logout modal not found."
-        );
+    return;
+  }
 
-        return;
+  overlay.classList.add("active");
 
-    }
+  overlay.style.display = "flex";
 
-    overlay.classList.add("active");
-
-    overlay.style.display = "flex";
-
-    document.body.style.overflow = "hidden";
-
+  document.body.style.overflow = "hidden";
 }
 
+<<<<<<< HEAD
 
 function closeLogoutModal(){
+=======
+/* =========================================================
+   CLOSE LOGOUT MODAL
+========================================================= */
 
-    const overlay =
-        document.getElementById("logout-overlay");
+function closeLogoutModal() {
+  const overlay = document.getElementById("logout-overlay");
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
-    if(!overlay){
-        return;
-    }
+  if (!overlay) {
+    return;
+  }
 
-    overlay.classList.remove("active");
+  overlay.classList.remove("active");
 
-    overlay.style.display = "none";
+  overlay.style.display = "none";
 
-    document.body.style.overflow = "";
-
+  document.body.style.overflow = "";
 }
 
+<<<<<<< HEAD
 
 function closeLogoutOutside(event){
 
@@ -160,16 +151,35 @@ function closeLogoutOutside(event){
 
 
 async function confirmLogout(){
+=======
+/* =========================================================
+   CLOSE LOGOUT MODAL OUTSIDE
+========================================================= */
 
-    const confirmButton =
-        document.querySelector(
-            ".logout-confirm-btn"
-        );
+function closeLogoutOutside(event) {
+  if (event && event.target && event.target.id === "logout-overlay") {
+    closeLogoutModal();
+  }
+}
 
-    if(confirmButton){
+/* =========================================================
+   CONFIRM LOGOUT
+========================================================= */
 
-        confirmButton.disabled = true;
+async function confirmLogout() {
+  const confirmButton = document.querySelector(".logout-confirm-btn");
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
+  if (confirmButton) {
+    confirmButton.disabled = true;
+
+    confirmButton.textContent = "Logging out...";
+  }
+
+  try {
+    await signOut(auth);
+
+<<<<<<< HEAD
         confirmButton.textContent =
             "Logging out...";
 
@@ -210,14 +220,27 @@ async function confirmLogout(){
             "Unable to log out. Please try again.",
             { type: "error" }
         );
+=======
+    localStorage.clear();
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
+    window.location.replace("../login.html");
+  } catch (error) {
+    console.error("Logout error:", error);
+
+    if (confirmButton) {
+      confirmButton.disabled = false;
+
+      confirmButton.textContent = "Log Out";
     }
 
+    alert("Unable to log out. Please try again.");
+  }
 }
-
 
 /* LOAD EVERYTHING */
 
+<<<<<<< HEAD
 async function loadAll(){
 
     await Promise.all([
@@ -229,31 +252,52 @@ async function loadAll(){
         loadAcademicYears()
 
     ]);
+=======
+async function loadAll() {
+  /*
+   * These collections are independent,
+   * so load them at the same time.
+   */
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
+  await Promise.all([loadSpecs(), loadSections(), loadAcademicYears()]);
 }
 
+<<<<<<< HEAD
 
 /* =========================================================
    SPECIALIZATIONS
 ========================================================= */
+=======
+/* SPECIALIZATIONS */
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
-async function addSpec(){
+async function addSpec() {
+  const input = document.getElementById("specInput");
 
-    const input =
-        document.getElementById("specInput");
+  const value = input.value.trim();
 
-    const value =
-        input.value.trim();
+  if (value === "") {
+    alert("Enter specialization");
 
-    if(value === ""){
+    return;
+  }
 
+<<<<<<< HEAD
         await appAlert(
             "Please enter a specialization.",
             { type: "warning" }
         );
+=======
+  try {
+    await addDoc(collection(db, "specializations"), {
+      name: value,
+    });
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
-        return;
+    input.value = "";
 
+<<<<<<< HEAD
     }
 
     try{
@@ -287,9 +331,17 @@ async function addSpec(){
         );
 
     }
+=======
+    await loadSpecs();
+  } catch (error) {
+    console.error("Error adding specialization:", error);
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
+    alert(error.message);
+  }
 }
 
+<<<<<<< HEAD
 
 /*
    Interest-area tick boxes for one specialization.
@@ -425,47 +477,41 @@ function buildInterestTagRow(specId, selectedAreas){
 }
 
 
+=======
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 /* LOAD SPECIALIZATIONS */
 
-async function loadSpecs(){
+async function loadSpecs() {
+  const list = document.getElementById("specList");
 
-    const list =
-        document.getElementById("specList");
+  const dropdown = document.getElementById("specDropdown");
 
-    const dropdown =
-        document.getElementById("specDropdown");
+  if (list) {
+    list.innerHTML = "";
+  }
 
-    if(list){
-
-        list.innerHTML = "";
-
-    }
-
-    if(dropdown){
-
-        dropdown.innerHTML = `
+  if (dropdown) {
+    dropdown.innerHTML = `
             <option value="">
                 Select Specialization
             </option>
         `;
+  }
 
-    }
+  try {
+    const snapshot = await getDocs(collection(db, "specializations"));
 
-    try{
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
 
-        const snapshot =
-            await getDocs(
-                collection(
-                    db,
-                    "specializations"
-                )
-            );
+      const name = data.name || "";
 
-        snapshot.forEach((docSnap) => {
+      if (list) {
+        const item = document.createElement("div");
 
-            const data =
-                docSnap.data();
+        item.className = "manage-item";
 
+<<<<<<< HEAD
             const name =
                 data.name || "";
 
@@ -525,44 +571,44 @@ async function loadSpecs(){
                         areas
                     )
                 );
+=======
+        item.innerHTML = `
+                    <span></span>
+                    <button
+                        onclick="deleteSpec('${docSnap.id}')">
+                        Delete
+                    </button>
+                `;
 
-                list.appendChild(item);
+        item.querySelector("span").textContent = name;
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
-            }
+        list.appendChild(item);
+      }
 
+      if (dropdown) {
+        const option = document.createElement("option");
 
-            if(dropdown){
+        option.value = name;
 
-                const option =
-                    document.createElement("option");
+        option.textContent = name;
 
-                option.value = name;
-
-                option.textContent = name;
-
-                dropdown.appendChild(option);
-
-            }
-
-        });
-
-    }
-    catch(error){
-
-        console.error(
-            "Error loading specializations:",
-            error
-        );
-
-    }
-
+        dropdown.appendChild(option);
+      }
+    });
+  } catch (error) {
+    console.error("Error loading specializations:", error);
+  }
 }
-
 
 /* DELETE SPECIALIZATION */
 
-async function deleteSpec(id){
+async function deleteSpec(id) {
+  if (!confirm("Delete specialization?")) {
+    return;
+  }
 
+<<<<<<< HEAD
     const confirmed =
         await appConfirm(
             "Delete this specialization?",
@@ -606,31 +652,54 @@ async function deleteSpec(id){
         );
 
     }
+=======
+  try {
+    await deleteDoc(doc(db, "specializations", id));
 
+    await loadSpecs();
+  } catch (error) {
+    console.error("Error deleting specialization:", error);
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
+
+    alert(error.message);
+  }
 }
 
+<<<<<<< HEAD
 
 /* =========================================================
    SECTIONS
 ========================================================= */
+=======
+/* SECTIONS */
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
-async function addSec(){
+async function addSec() {
+  const input = document.getElementById("secInput");
 
-    const input =
-        document.getElementById("secInput");
+  const value = input.value.trim();
 
-    const value =
-        input.value.trim();
+  if (value === "") {
+    alert("Enter section");
 
-    if(value === ""){
+    return;
+  }
 
+<<<<<<< HEAD
         await appAlert(
             "Please enter a section.",
             { type: "warning" }
         );
+=======
+  try {
+    await addDoc(collection(db, "sections"), {
+      name: value,
+    });
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
-        return;
+    input.value = "";
 
+<<<<<<< HEAD
     }
 
     try{
@@ -663,53 +732,45 @@ async function addSec(){
         );
 
     }
+=======
+    await loadSections();
+  } catch (error) {
+    console.error("Error adding section:", error);
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
+    alert(error.message);
+  }
 }
-
 
 /* LOAD SECTIONS */
 
-async function loadSections(){
+async function loadSections() {
+  const list = document.getElementById("secList");
 
-    const list =
-        document.getElementById("secList");
+  if (!list) {
+    return;
+  }
 
-    if(!list){
+  list.innerHTML = "";
 
-        return;
+  try {
+    const snapshot = await getDocs(collection(db, "sections"));
 
-    }
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
 
-    list.innerHTML = "";
+      const item = document.createElement("div");
 
-    try{
+      item.className = "manage-item";
 
-        const snapshot =
-            await getDocs(
-                collection(
-                    db,
-                    "sections"
-                )
-            );
-
-        snapshot.forEach((docSnap) => {
-
-            const data =
-                docSnap.data();
-
-            const item =
-                document.createElement("div");
-
-            item.className =
-                "manage-item";
-
-            item.innerHTML = `
+      item.innerHTML = `
                 <span></span>
                 <button>
                     Delete
                 </button>
             `;
 
+<<<<<<< HEAD
             item.querySelector("span")
                 .textContent =
                     data.name || "";
@@ -733,14 +794,25 @@ async function loadSections(){
         );
 
     }
+=======
+      item.querySelector("span").textContent = data.name || "";
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
+      list.appendChild(item);
+    });
+  } catch (error) {
+    console.error("Error loading sections:", error);
+  }
 }
-
 
 /* DELETE SECTION */
 
-async function deleteSec(id){
+async function deleteSec(id) {
+  if (!confirm("Delete section?")) {
+    return;
+  }
 
+<<<<<<< HEAD
     const confirmed =
         await appConfirm(
             "Delete this section?",
@@ -784,43 +856,67 @@ async function deleteSec(id){
         );
 
     }
+=======
+  try {
+    await deleteDoc(doc(db, "sections", id));
 
+    await loadSections();
+  } catch (error) {
+    console.error("Error deleting section:", error);
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
+
+    alert(error.message);
+  }
 }
 
+<<<<<<< HEAD
 
 /* =========================================================
    ACADEMIC YEARS
 ========================================================= */
+=======
+/* ACADEMIC YEARS */
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
-async function addAcademicYear(){
+async function addAcademicYear() {
+  const input = document.getElementById("yearInput");
 
-    const input =
-        document.getElementById("yearInput");
+  const value = input.value.trim();
 
-    const value =
-        input.value.trim();
+  if (value === "") {
+    alert("Enter academic year");
 
-    if(value === ""){
+    return;
+  }
 
+<<<<<<< HEAD
         await appAlert(
             "Please enter an academic year.",
             { type: "warning" }
         );
+=======
+  try {
+    const snapshot = await getDocs(collection(db, "academicYears"));
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
-        return;
+    const exists = snapshot.docs.some(
+      (docSnap) => docSnap.data().year === value,
+    );
 
+    if (exists) {
+      alert("Academic Year already exists.");
+
+      return;
     }
 
-    try{
+    await addDoc(collection(db, "academicYears"), {
+      year: value,
+      active: false,
+    });
 
-        const snapshot =
-            await getDocs(
-                collection(
-                    db,
-                    "academicYears"
-                )
-            );
+    input.value = "";
 
+<<<<<<< HEAD
         const exists =
             snapshot.docs.some(
                 (docSnap) =>
@@ -868,143 +964,97 @@ async function addAcademicYear(){
         );
 
     }
+=======
+    await loadAcademicYears();
+  } catch (error) {
+    console.error("Error adding academic year:", error);
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
+    alert(error.message);
+  }
 }
-
 
 /* LOAD ACADEMIC YEARS */
 
-async function loadAcademicYears(){
+async function loadAcademicYears() {
+  const list = document.getElementById("yearList");
 
-    const list =
-        document.getElementById(
-            "yearList"
-        );
+  if (!list) {
+    return;
+  }
 
-    if(!list){
+  list.innerHTML = "";
 
-        return;
+  try {
+    const snapshot = await getDocs(collection(db, "academicYears"));
 
-    }
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
 
-    list.innerHTML = "";
+      const item = document.createElement("div");
 
-    try{
+      item.className = "manage-item";
 
-        const snapshot =
-            await getDocs(
-                collection(
-                    db,
-                    "academicYears"
-                )
-            );
+      const name = document.createElement("b");
 
-        snapshot.forEach((docSnap) => {
+      name.textContent = data.year || "";
 
-            const data =
-                docSnap.data();
+      item.appendChild(name);
 
-            const item =
-                document.createElement("div");
+      if (data.active) {
+        item.appendChild(document.createTextNode(" (Active)"));
+      }
 
-            item.className =
-                "manage-item";
+      const buttons = document.createElement("div");
 
+      const activeButton = document.createElement("button");
 
-            const name =
-                document.createElement("b");
+      activeButton.textContent = "Set Active";
 
-            name.textContent =
-                data.year || "";
+      activeButton.onclick = () => setActiveYear(docSnap.id);
 
-            item.appendChild(name);
+      const deleteButton = document.createElement("button");
 
+      deleteButton.textContent = "Delete";
 
-            if(data.active){
+      deleteButton.onclick = () => deleteAcademicYear(docSnap.id);
 
-                item.appendChild(
-                    document.createTextNode(
-                        " (Active)"
-                    )
-                );
+      buttons.appendChild(activeButton);
 
-            }
+      buttons.appendChild(deleteButton);
 
+      item.appendChild(buttons);
 
-            const buttons =
-                document.createElement("div");
-
-
-            const activeButton =
-                document.createElement("button");
-
-            activeButton.textContent =
-                "Set Active";
-
-            activeButton.onclick = () =>
-                setActiveYear(docSnap.id);
-
-
-            const deleteButton =
-                document.createElement("button");
-
-            deleteButton.textContent =
-                "Delete";
-
-            deleteButton.onclick = () =>
-                deleteAcademicYear(
-                    docSnap.id
-                );
-
-
-            buttons.appendChild(
-                activeButton
-            );
-
-            buttons.appendChild(
-                deleteButton
-            );
-
-            item.appendChild(buttons);
-
-            list.appendChild(item);
-
-        });
-
-    }
-    catch(error){
-
-        console.error(
-            "Error loading academic years:",
-            error
-        );
-
-    }
-
+      list.appendChild(item);
+    });
+  } catch (error) {
+    console.error("Error loading academic years:", error);
+  }
 }
-
 
 /* SET ACTIVE ACADEMIC YEAR */
 
-async function setActiveYear(id){
+async function setActiveYear(id) {
+  try {
+    const snapshot = await getDocs(collection(db, "academicYears"));
 
-    try{
+    let batch = writeBatch(db);
 
-        const snapshot =
-            await getDocs(
-                collection(
-                    db,
-                    "academicYears"
-                )
-            );
+    let operationCount = 0;
 
+    for (const yearDoc of snapshot.docs) {
+      const yearRef = doc(db, "academicYears", yearDoc.id);
 
-        let batch =
-            writeBatch(db);
+      batch.update(yearRef, {
+        active: yearDoc.id === id,
+      });
 
-        let operationCount = 0;
+      operationCount++;
 
+      if (operationCount === 450) {
+        await batch.commit();
 
+<<<<<<< HEAD
         for(
             const yearDoc
             of snapshot.docs
@@ -1064,16 +1114,34 @@ async function setActiveYear(id){
             error.message,
             { type: "error" }
         );
+=======
+        batch = writeBatch(db);
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
+        operationCount = 0;
+      }
     }
 
-}
+    if (operationCount > 0) {
+      await batch.commit();
+    }
 
+    await loadAcademicYears();
+  } catch (error) {
+    console.error("Error setting active academic year:", error);
+
+    alert(error.message);
+  }
+}
 
 /* DELETE ACADEMIC YEAR */
 
-async function deleteAcademicYear(id){
+async function deleteAcademicYear(id) {
+  if (!confirm("Delete Academic Year?")) {
+    return;
+  }
 
+<<<<<<< HEAD
     const confirmed =
         await appConfirm(
             "Delete this academic year?",
@@ -1117,70 +1185,62 @@ async function deleteAcademicYear(id){
         );
 
     }
+=======
+  try {
+    await deleteDoc(doc(db, "academicYears", id));
 
+    await loadAcademicYears();
+  } catch (error) {
+    console.error("Error deleting academic year:", error);
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
+
+    alert(error.message);
+  }
 }
-
 
 /* PAGE LOAD */
 
-document.addEventListener(
-    "DOMContentLoaded",
-    async () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  hideLogoutModal();
 
-        hideLogoutModal();
-
-        await loadAll();
-
-    }
-);
-
+  await loadAll();
+});
 
 /* EXPORTS */
 
-window.toggleSidebar =
-    toggleSidebar;
+window.toggleSidebar = toggleSidebar;
 
-window.goPage =
-    goPage;
+window.goPage = goPage;
 
-window.logout =
-    logout;
+window.logout = logout;
 
-window.closeLogoutModal =
-    closeLogoutModal;
+window.closeLogoutModal = closeLogoutModal;
 
-window.closeLogoutOutside =
-    closeLogoutOutside;
+window.closeLogoutOutside = closeLogoutOutside;
 
-window.confirmLogout =
-    confirmLogout;
-
+window.confirmLogout = confirmLogout;
 
 /* SPECIALIZATIONS */
 
-window.addSpec =
-    addSpec;
+window.addSpec = addSpec;
 
-window.deleteSpec =
-    deleteSpec;
-
+window.deleteSpec = deleteSpec;
 
 /* SECTIONS */
 
-window.addSec =
-    addSec;
+window.addSec = addSec;
 
-window.deleteSec =
-    deleteSec;
-
+window.deleteSec = deleteSec;
 
 /* ACADEMIC YEARS */
 
-window.addAcademicYear =
-    addAcademicYear;
+window.addAcademicYear = addAcademicYear;
 
-window.setActiveYear =
-    setActiveYear;
+window.setActiveYear = setActiveYear;
 
+<<<<<<< HEAD
 window.deleteAcademicYear =
     deleteAcademicYear;
+=======
+window.deleteAcademicYear = deleteAcademicYear;
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)

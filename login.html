@@ -1,281 +1,831 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
-
-    <meta charset="UTF-8">
-
-    <title>SpecAdvisor Login</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SpecAdvisor</title>
 
     <link
-        rel="icon"
-        type="image/png"
-        href="/images/SpecAdvisor-logofavicon.png?v=2"
-    >
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+      rel="icon"
+      type="image/png"
+      href="./images/SpecAdvisor-logofavicon.png"
+    />
 
     <link
-        rel="stylesheet"
-        href="./css/auth.css"
-    >
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
 
-</head>
+    <link rel="stylesheet" href="./css/login.css" />
 
+    <style>
+      /* Sign Up navbar button */
+      .signup-nav-button {
+        background-color: #ff6fae;
+        color: #ffffff;
+        border: none;
+        border-radius: 10px;
+        padding: 9px 22px;
+        font-weight: 700;
+        transition: 0.2s ease;
+      }
 
-<body class="login-page">
+      .signup-nav-button:hover,
+      .signup-nav-button:focus {
+        background-color: #ff529c;
+        color: #ffffff;
+      }
 
+      /* Sign Up modal */
+      .signup-modal-content {
+        border: none;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 15px 45px rgba(16, 55, 119, 0.18);
+      }
 
-<!-- =========================
-     LEFT LOGIN PANEL
-========================== -->
+      .signup-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 15px;
+        padding: 25px 25px 10px;
+      }
 
-<div class="left">
+      .signup-modal-header h2 {
+        color: #103777;
+        font-size: 25px;
+        font-weight: 800;
+        margin: 0 0 7px;
+      }
 
+      .signup-modal-header p {
+        color: #777777;
+        font-size: 14px;
+        margin: 0;
+      }
 
-    <!-- EMAIL -->
+      .signup-modal-body {
+        padding: 15px 25px 25px;
+      }
 
-    <input
-        type="text"
-        id="username"
-        placeholder="Email"
-        autocomplete="username"
-    >
+      .signup-modal-body label {
+        display: block;
+        margin: 12px 0 7px;
+        color: #103777;
+        font-weight: 600;
+      }
 
+      .signup-modal-body .student-input {
+        width: 100%;
+        box-sizing: border-box;
+        margin-bottom: 8px;
+      }
 
+      .signup-modal-body #facultySignupMessage {
+        margin: 8px 0;
+        overflow-wrap: anywhere;
+      }
 
-    <!-- PASSWORD -->
+      .signup-modal-body .student-login-btn,
+      .signup-modal-body .student-back-btn {
+        width: 100%;
+      }
 
-    <div class="password-field">
+      @media (max-width: 575.98px) {
+        .signup-modal-header {
+          padding: 22px 20px 10px;
+        }
 
-        <input
-            type="password"
-            id="password"
-            placeholder="Password"
-            autocomplete="current-password"
-        >
+        .signup-modal-body {
+          padding: 12px 20px 22px;
+        }
+      }
+    </style>
+  </head>
 
-
-        <span
-            class="password-eye"
-            onclick="togglePassword('password', this)"
-        >
-
-            <!-- OPEN EYE -->
-
-            <svg
-                class="eye-open"
-                viewBox="0 0 24 24"
-                width="20"
-                height="20"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-            >
-
-                <path
-                    d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
-                ></path>
-
-                <circle
-                    cx="12"
-                    cy="12"
-                    r="3"
-                ></circle>
-
-            </svg>
-
-
-            <!-- CLOSED EYE -->
-
-            <svg
-                class="eye-closed hidden"
-                viewBox="0 0 24 24"
-                width="20"
-                height="20"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-            >
-
-                <path
-                    d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.5 18.5 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
-                ></path>
-
-                <line
-                    x1="1"
-                    y1="1"
-                    x2="23"
-                    y2="23"
-                ></line>
-
-            </svg>
-
-        </span>
-
+  <body>
+    <!-- TOP BAR -->
+    <div class="top-bar">
+      <a href="#loginModal" data-bs-toggle="modal" data-bs-target="#loginModal">
+        Login
+      </a>
     </div>
 
-
-
-    <!-- LOGIN BUTTON -->
-
-    <button
-        id="loginBtn"
-        onclick="login()"
-    >
-        Log In
-    </button>
-
-
-
-    <!-- FORGOT PASSWORD -->
-
-    <p
-    onclick="window.location.href='forgot-password.html?role=student'"
-    style="
-        color:#3d7a84;
-        cursor:pointer;
-        margin-top:10px;
-        text-align:center;
-    "
->
-    Forgot Password?
-</p>
-
-
-    <!-- =========================
-         OTHER LOGIN PAGES
-    ========================== -->
-
-    <div class="other-login-links">
-
-        <a href="./faculty/faculty-login.html">
-            Faculty Login
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg bg-white shadow-sm">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="Login.html">
+          <img
+            src="./images/SpecAdvisor-logofavicon.png"
+            alt="SpecAdvisor Logo"
+          />
+          <span>SpecAdvisor</span>
         </a>
 
+        <!-- DESKTOP NAVIGATION -->
+        <div class="desktop-navigation d-none d-lg-flex ms-auto">
+          <ul class="navbar-nav flex-row align-items-center gap-3">
+            <li class="nav-item">
+              <a class="nav-link" href="#about">About</a>
+            </li>
 
-        <span>|</span>
+            <li class="nav-item">
+              <button
+                type="button"
+                class="btn signup-nav-button"
+                data-bs-toggle="modal"
+                data-bs-target="#facultySignupModal"
+              >
+                Sign Up
+              </button>
+            </li>
 
+            <li class="nav-item">
+              <button
+                type="button"
+                class="btn btn-primary"
+                data-bs-toggle="modal"
+                data-bs-target="#loginModal"
+              >
+                Login
+              </button>
+            </li>
+          </ul>
+        </div>
 
-        <a href="./admin/admin-login.html">
-            Admin Login
-        </a>
+        <!-- MOBILE MENU BUTTON -->
+        <button
+          class="navbar-toggler d-lg-none"
+          type="button"
+          data-bs-toggle="offcanvas"
+          data-bs-target="#mobileNavbar"
+          aria-controls="mobileNavbar"
+          aria-label="Open navigation menu"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+      </div>
+    </nav>
 
-    </div>
-
-
-
-</div>
-
-
-
-<!-- =========================
-     RIGHT SIDE
-========================== -->
-
-<div class="right">
-
-    <img
-        src="./images/SpecAdvisor-Logo.png"
-        alt="SpecAdvisor Logo"
+    <!-- MOBILE OFFCANVAS MENU -->
+    <div
+      class="offcanvas offcanvas-end mobile-navbar d-lg-none"
+      tabindex="-1"
+      id="mobileNavbar"
+      aria-labelledby="mobileNavbarTitle"
     >
+      <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="mobileNavbarTitle">
+          <img
+            src="./images/SpecAdvisor-logofavicon.png"
+            alt=""
+            width="32"
+            height="32"
+          />
+          SpecAdvisor
+        </h5>
 
-</div>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="offcanvas"
+          aria-label="Close menu"
+        ></button>
+      </div>
 
+      <div class="offcanvas-body">
+        <ul class="navbar-nav gap-2">
+          <li class="nav-item">
+            <a class="nav-link" href="#about" data-bs-dismiss="offcanvas">
+              About
+            </a>
+          </li>
 
+          <li class="nav-item">
+            <button
+              type="button"
+              class="btn signup-nav-button w-100"
+              data-bs-toggle="modal"
+              data-bs-target="#facultySignupModal"
+              data-bs-dismiss="offcanvas"
+            >
+              Sign Up
+            </button>
+          </li>
 
-<!-- =========================
-     PROCESSING POPUP
-========================== -->
-
-<div
-    class="auth-processing-overlay"
-    id="auth-processing-overlay"
->
-
-    <div class="auth-processing-box">
-
-        <div class="auth-spinner"></div>
-
-
-        <h3 id="auth-processing-title">
-            Logging you in...
-        </h3>
-
-
-        <p id="auth-processing-message">
-            Please wait while we take you to your dashboard.
-        </p>
-
+          <li class="nav-item">
+            <button
+              type="button"
+              class="btn btn-primary w-100"
+              data-bs-toggle="modal"
+              data-bs-target="#loginModal"
+              data-bs-dismiss="offcanvas"
+            >
+              Login
+            </button>
+          </li>
+        </ul>
+      </div>
     </div>
 
-</div>
+    <!-- ROLE SELECTION MODAL -->
+    <div
+      class="modal fade"
+      id="loginModal"
+      tabindex="-1"
+      aria-labelledby="loginModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered login-modal-dialog">
+        <div class="modal-content login-modal-content">
+          <div class="login-modal-header">
+            <h2 id="loginModalLabel">Login</h2>
 
+            <button
+              type="button"
+              class="login-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            >
+              &times;
+            </button>
+          </div>
 
+          <div class="login-role-options">
+            <button
+              type="button"
+              class="role-button role-student"
+              id="openStudentLogin"
+            >
+              Student
+            </button>
 
-<!-- =========================
-     LOGIN SCRIPT
-========================== -->
+            <button
+              type="button"
+              class="role-button role-faculty"
+              id="openFacultyLogin"
+            >
+              Faculty
+            </button>
 
-<script
-    type="module"
-    src="./js/login.js"
-></script>
+            <button
+              type="button"
+              class="role-button role-admin"
+              id="openAdminLogin"
+            >
+              Admin
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
+    <!-- STUDENT LOGIN MODAL -->
+    <div
+      class="modal fade"
+      id="studentLoginModal"
+      tabindex="-1"
+      aria-labelledby="studentLoginTitle"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered student-modal-dialog">
+        <div class="modal-content student-modal-content">
+          <div class="student-modal-header">
+            <h2 id="studentLoginTitle">Student Login</h2>
 
+            <button
+              type="button"
+              class="student-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            >
+              &times;
+            </button>
+          </div>
 
-<!-- =========================
-     PASSWORD VISIBILITY
-========================== -->
+          <form id="studentLoginForm">
+            <div class="student-modal-body">
+              <label for="username">Student Email</label>
+              <input
+                type="email"
+                id="username"
+                name="username"
+                class="student-input"
+                placeholder="Enter your registered email"
+                autocomplete="username"
+                required
+              />
 
-<script>
+              <label for="password">Password</label>
 
-function togglePassword(inputId, iconSpan){
+              <div class="password-field">
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  class="student-input"
+                  placeholder="Enter your password"
+                  autocomplete="current-password"
+                  required
+                />
 
-    const input =
-        document.getElementById(inputId);
+                <button
+                  type="button"
+                  class="password-eye"
+                  id="togglePasswordBtn"
+                  aria-label="Show password"
+                  aria-pressed="false"
+                >
+                  <svg
+                    class="eye-open"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="21"
+                    height="21"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"
+                    />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
 
+                  <svg
+                    class="eye-closed"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="21"
+                    height="21"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                    hidden
+                  >
+                    <path d="M3 3 21 21" />
+                    <path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" />
+                    <path
+                      d="M9.9 5.2A11 11 0 0 1 12 5c6.4 0 10 7 10 7a15 15 0 0 1-3 3.8"
+                    />
+                    <path
+                      d="M6.2 6.2C3.5 8 2 12 2 12s3.6 7 10 7a10 10 0 0 0 4-.8"
+                    />
+                  </svg>
+                </button>
+              </div>
 
-    const openEye =
-        iconSpan.querySelector(".eye-open");
+              <p
+                id="studentLoginMessage"
+                role="alert"
+                aria-live="polite"
+                style="padding-right: 150px; white-space: nowrap"
+              ></p>
 
+              <div class="student-forgot">
+                <a href="#" id="studentForgotPassword">Forgot Password?</a>
+              </div>
 
-    const closedEye =
-        iconSpan.querySelector(".eye-closed");
+              <button type="submit" id="loginBtn" class="student-login-btn">
+                Login
+              </button>
 
+              <button
+                type="button"
+                class="student-back-btn"
+                id="studentBackBtn"
+              >
+                Go Back
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
 
-    if(input.type === "password"){
+    <!-- FACULTY LOGIN MODAL -->
+    <div
+      class="modal fade"
+      id="facultyLoginModal"
+      tabindex="-1"
+      aria-labelledby="facultyLoginTitle"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered student-modal-dialog">
+        <div class="modal-content student-modal-content">
+          <div class="student-modal-header">
+            <h2 id="facultyLoginTitle">Faculty Login</h2>
 
-        input.type = "text";
+            <button
+              type="button"
+              class="student-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            >
+              &times;
+            </button>
+          </div>
 
-        openEye.classList.add("hidden");
+          <form id="facultyLoginForm">
+            <div class="student-modal-body">
+              <label for="facultyUsername">Faculty Email</label>
+              <input
+                type="email"
+                id="facultyUsername"
+                name="email"
+                class="student-input"
+                placeholder="Enter your faculty email"
+                autocomplete="username"
+                required
+              />
 
-        closedEye.classList.remove("hidden");
+              <label for="facultyPassword">Password</label>
 
-    }
+              <div class="password-field">
+                <input
+                  type="password"
+                  id="facultyPassword"
+                  name="password"
+                  class="student-input"
+                  placeholder="Enter your password"
+                  autocomplete="current-password"
+                  required
+                />
 
-    else{
+                <button
+                  type="button"
+                  class="password-eye"
+                  id="toggleFacultyPasswordBtn"
+                  aria-label="Show password"
+                  aria-pressed="false"
+                >
+                  <svg
+                    class="eye-open"
+                    width="21"
+                    height="21"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"
+                    />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
 
-        input.type = "password";
+                  <svg
+                    class="eye-closed"
+                    width="21"
+                    height="21"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                    hidden
+                  >
+                    <path d="M3 3 21 21" />
+                    <path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" />
+                    <path
+                      d="M9.9 5.2A11 11 0 0 1 12 5c6.4 0 10 7 10 7a15 15 0 0 1-3 3.8"
+                    />
+                    <path
+                      d="M6.2 6.2C3.5 8 2 12 2 12s3.6 7 10 7a10 10 0 0 0 4-.8"
+                    />
+                  </svg>
+                </button>
+              </div>
 
-        openEye.classList.remove("hidden");
+              <p id="facultyLoginMessage" role="alert" aria-live="polite"></p>
 
-        closedEye.classList.add("hidden");
+              <div class="student-forgot">
+                <a href="#" id="facultyForgotPassword">Forgot Password?</a>
+              </div>
 
-    }
+              <button
+                type="submit"
+                id="facultyLoginBtn"
+                class="student-login-btn"
+              >
+                Login
+              </button>
 
-}
+              <button
+                type="button"
+                id="facultyBackBtn"
+                class="student-back-btn"
+              >
+                Go Back
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
 
-</script>
+    <!-- ADMIN LOGIN MODAL -->
+    <div
+      class="modal fade"
+      id="adminLoginModal"
+      tabindex="-1"
+      aria-labelledby="adminLoginTitle"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered student-modal-dialog">
+        <div class="modal-content student-modal-content">
+          <div class="student-modal-header">
+            <h2 id="adminLoginTitle">Admin Login</h2>
 
+            <button
+              type="button"
+              class="student-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            >
+              &times;
+            </button>
+          </div>
 
-</body>
+          <form id="adminLoginForm">
+            <div class="student-modal-body">
+              <label for="adminUsername">Admin Email</label>
+              <input
+                type="email"
+                id="adminUsername"
+                name="email"
+                class="student-input"
+                placeholder="Enter your admin email"
+                autocomplete="username"
+                required
+              />
 
+              <label for="adminPassword">Password</label>
+
+              <div class="password-field">
+                <input
+                  type="password"
+                  id="adminPassword"
+                  name="password"
+                  class="student-input"
+                  placeholder="Enter your password"
+                  autocomplete="current-password"
+                  required
+                />
+
+                <button
+                  type="button"
+                  class="password-eye"
+                  id="toggleAdminPasswordBtn"
+                  aria-label="Show password"
+                  aria-pressed="false"
+                >
+                  <svg
+                    class="eye-open"
+                    width="21"
+                    height="21"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"
+                    />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+
+                  <svg
+                    class="eye-closed"
+                    width="21"
+                    height="21"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                    hidden
+                  >
+                    <path d="M3 3 21 21" />
+                    <path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" />
+                    <path
+                      d="M9.9 5.2A11 11 0 0 1 12 5c6.4 0 10 7 10 7a15 15 0 0 1-3 3.8"
+                    />
+                    <path
+                      d="M6.2 6.2C3.5 8 2 12 2 12s3.6 7 10 7a10 10 0 0 0 4-.8"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              <p id="adminLoginMessage" role="alert" aria-live="polite"></p>
+
+              <div class="student-forgot">
+                <a href="#" id="adminForgotPassword">Forgot Password?</a>
+              </div>
+
+              <button
+                type="submit"
+                id="adminLoginBtn"
+                class="student-login-btn"
+              >
+                Login
+              </button>
+
+              <button type="button" id="adminBackBtn" class="student-back-btn">
+                Go Back
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- FACULTY SIGN UP MODAL -->
+    <div
+      class="modal fade"
+      id="facultySignupModal"
+      tabindex="-1"
+      aria-labelledby="facultySignupTitle"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content signup-modal-content">
+          <div class="signup-modal-header">
+            <div>
+              <h2 id="facultySignupTitle">Faculty Sign Up</h2>
+              <p>Create your SpecAdvisor faculty account.</p>
+            </div>
+
+            <button
+              type="button"
+              class="student-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            >
+              &times;
+            </button>
+          </div>
+
+          <form id="facultySignupForm">
+            <div class="signup-modal-body">
+              <label for="facultyFullname">Full Name</label>
+              <input
+                type="text"
+                id="facultyFullname"
+                name="fullname"
+                class="student-input"
+                placeholder="Enter your full name"
+                autocomplete="name"
+                required
+              />
+
+              <label for="facultyEmail">Faculty Email</label>
+              <input
+                type="email"
+                id="facultyEmail"
+                name="email"
+                class="student-input"
+                placeholder="Enter your faculty email"
+                autocomplete="email"
+                required
+              />
+
+              <label for="facultyPassword">Password</label>
+              <input
+                type="password"
+                id="facultyPassword"
+                name="password"
+                class="student-input"
+                placeholder="Create a password"
+                autocomplete="new-password"
+                minlength="6"
+                required
+              />
+
+              <p id="facultySignupMessage" role="alert" aria-live="polite"></p>
+
+              <button type="submit" id="signupBtn" class="student-login-btn">
+                Create Account
+              </button>
+
+              <button
+                type="button"
+                class="student-back-btn"
+                data-bs-dismiss="modal"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- HERO BANNER -->
+    <section class="hero">
+      <div class="hero-overlay"></div>
+
+      <div class="hero-content">
+        <img
+          class="school-seal"
+          src="./images/meneseslogo.png"
+          alt="School seal"
+        />
+
+        <div class="hero-text">
+          <h1>Learn Connect Achieve</h1>
+          <p>
+            Your digital learning space for accessing course materials,<br />
+            managing academic activities, and <br />
+            connecting with instructors.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURES -->
+    <main class="features" id="about">
+      <div class="main-logo">
+        <img
+          src="./images/SpecAdvisor-MainLogo.png"
+          alt="SpecAdvisor BSIT Specialization System"
+        />
+      </div>
+
+      <div class="feature-grid">
+        <article class="feature">
+          <div class="feature-icon">
+            <img src="./images/ICON 5.png" alt="" />
+          </div>
+          <h2>Student Dashboard</h2>
+          <p>
+            View your academic progress, updates, and personalized learning
+            activities in one place.
+          </p>
+        </article>
+
+        <article class="feature">
+          <div class="feature-icon">
+            <img src="./images/ICON 6.png" alt="" />
+          </div>
+          <h2>Take Exam</h2>
+          <p>
+            Take assessments to evaluate your knowledge, skills, and readiness
+            for your chosen specialization.
+          </p>
+        </article>
+
+        <article class="feature">
+          <div class="feature-icon">
+            <img src="./images/ICON 7.png" alt="" />
+          </div>
+          <h2>Specialization Recommendation</h2>
+          <p>
+            Discover the IT specialization that best matches your skills,
+            interests, and assessment results.
+          </p>
+        </article>
+
+        <article class="feature">
+          <div class="feature-icon">
+            <img src="./images/ICON 8.png" alt="" />
+          </div>
+          <h2>Specialization Selection</h2>
+          <p>
+            Choose your preferred IT specialization based on your interests,
+            strengths, and career goals.
+          </p>
+        </article>
+      </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <p>SpecAdvisor 2026</p>
+    </footer>
+
+    <!-- BOOTSTRAP JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- EXISTING FIREBASE LOGIN -->
+    <script type="module" src="./js/login.js"></script>
+  </body>
 </html>

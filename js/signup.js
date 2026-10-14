@@ -1,50 +1,33 @@
-import {
-    auth,
-    db
-} from "./firebase-config.js";
+import { auth, db } from "./firebase-config.js";
 
 import {
-    createUserWithEmailAndPassword,
-    sendEmailVerification,
-    signOut
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+  signOut,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 import {
-    doc,
-    setDoc,
-    collection,
-    getDocs
+  doc,
+  setDoc,
+  collection,
+  getDocs,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-
 let isSigningUp = false;
-
 
 // =========================
 // PROCESSING POPUP
 // =========================
 
-function showLoading(){
+function showLoading() {
+  const overlay = document.getElementById("auth-processing-overlay");
 
-    const overlay =
-        document.getElementById(
-            "auth-processing-overlay"
-        );
+  const box = overlay?.querySelector(".auth-processing-box");
 
-    const box =
-        overlay?.querySelector(
-            ".auth-processing-box"
-        );
+  const button = document.getElementById("signupBtn");
 
-    const button =
-        document.getElementById(
-            "signupBtn"
-        );
-
-
-    if(box){
-
-        box.innerHTML = `
+  if (box) {
+    box.innerHTML = `
 
             <div class="auth-spinner"></div>
 
@@ -58,110 +41,62 @@ function showLoading(){
             </p>
 
         `;
+  }
 
-    }
+  if (overlay) {
+    overlay.classList.add("active");
 
+    overlay.classList.remove("hidden");
+  }
 
-    if(overlay){
+  if (button) {
+    button.disabled = true;
 
-        overlay.classList.add(
-            "active"
-        );
-
-        overlay.classList.remove(
-            "hidden"
-        );
-
-    }
-
-
-    if(button){
-
-        button.disabled = true;
-
-        button.innerText =
-            "Creating Account...";
-
-    }
-
+    button.innerText = "Creating Account...";
+  }
 }
 
+function hideLoading() {
+  const overlay = document.getElementById("auth-processing-overlay");
 
-function hideLoading(){
+  const button = document.getElementById("signupBtn");
 
-    const overlay =
-        document.getElementById(
-            "auth-processing-overlay"
-        );
+  if (overlay) {
+    overlay.classList.remove("active");
 
-    const button =
-        document.getElementById(
-            "signupBtn"
-        );
+    overlay.classList.add("hidden");
+  }
 
+  if (button) {
+    button.disabled = false;
 
-    if(overlay){
-
-        overlay.classList.remove(
-            "active"
-        );
-
-        overlay.classList.add(
-            "hidden"
-        );
-
-    }
-
-
-    if(button){
-
-        button.disabled = false;
-
-        button.innerText =
-            "Create Account";
-
-    }
-
+    button.innerText = "Create Account";
+  }
 }
-
 
 // =========================
 // VERIFICATION POPUP
 // =========================
 
-function showVerificationMessage(){
+function showVerificationMessage() {
+  const overlay = document.getElementById("auth-processing-overlay");
 
-    const overlay =
-        document.getElementById(
-            "auth-processing-overlay"
-        );
+  const box = overlay?.querySelector(".auth-processing-box");
 
-    const box =
-        overlay?.querySelector(
-            ".auth-processing-box"
-        );
+  if (!overlay || !box) {
+    alert("Account created. Please check your email for verification.");
 
+    return;
+  }
 
-    if(!overlay || !box){
-
-        alert(
-            "Account created. Please check your email for verification."
-        );
-
-        return;
-
-    }
-
-
-    const message = `
+  const message = `
         Your Faculty account has been created successfully.
         A verification link has been sent to your email.
         Please verify your email, then wait for an administrator
         to approve your account before logging in.
     `;
 
-
-    box.innerHTML = `
+  box.innerHTML = `
 
         <div
             style="
@@ -211,359 +146,175 @@ function showVerificationMessage(){
 
     `;
 
+  overlay.classList.add("active");
 
-    overlay.classList.add(
-        "active"
-    );
+  overlay.classList.remove("hidden");
 
-    overlay.classList.remove(
-        "hidden"
-    );
+  const okButton = document.getElementById("verificationOkBtn");
 
+  if (okButton) {
+    okButton.onclick = () => {
+      overlay.classList.remove("active");
 
-    const okButton =
-        document.getElementById(
-            "verificationOkBtn"
-        );
+      overlay.classList.add("hidden");
 
-
-    if(okButton){
-
-        okButton.onclick = () => {
-
-            overlay.classList.remove(
-                "active"
-            );
-
-            overlay.classList.add(
-                "hidden"
-            );
-
-
-            window.location.replace(
-                "./faculty/faculty-login.html"
-            );
-
-        };
-
-    }
-
+      window.location.replace("./faculty/faculty-login.html");
+    };
+  }
 }
-
 
 // =========================
 // PASSWORD VALIDATION
 // =========================
 
-function validatePassword(password){
+function validatePassword(password) {
+  if (password.length < 8) {
+    alert("Password must be at least 8 characters long.");
 
-    if(password.length < 8){
+    return false;
+  }
 
-        alert(
-            "Password must be at least 8 characters long."
-        );
-
-        return false;
-
-    }
-
-    return true;
-
+  return true;
 }
-
 
 // =========================
 // PASSWORD EYE
 // =========================
 
-function togglePassword(
-    inputId,
-    iconSpan
-){
+function togglePassword(inputId, iconSpan) {
+  const input = document.getElementById(inputId);
 
-    const input =
-        document.getElementById(
-            inputId
-        );
+  const openEye = iconSpan.querySelector(".eye-open");
 
-    const openEye =
-        iconSpan.querySelector(
-            ".eye-open"
-        );
+  const closedEye = iconSpan.querySelector(".eye-closed");
 
-    const closedEye =
-        iconSpan.querySelector(
-            ".eye-closed"
-        );
+  if (input.type === "password") {
+    input.type = "text";
 
+    openEye.classList.add("hidden");
 
-    if(input.type === "password"){
+    closedEye.classList.remove("hidden");
+  } else {
+    input.type = "password";
 
-        input.type = "text";
+    openEye.classList.remove("hidden");
 
-        openEye.classList.add(
-            "hidden"
-        );
-
-        closedEye.classList.remove(
-            "hidden"
-        );
-
-    }
-
-    else{
-
-        input.type = "password";
-
-        openEye.classList.remove(
-            "hidden"
-        );
-
-        closedEye.classList.add(
-            "hidden"
-        );
-
-    }
-
+    closedEye.classList.add("hidden");
+  }
 }
-
 
 // =========================
 // GET ACTIVE ACADEMIC YEAR
 // =========================
 
-async function getActiveAcademicYear(){
+async function getActiveAcademicYear() {
+  const snapshot = await getDocs(collection(db, "academicYears"));
 
-    const snapshot =
-        await getDocs(
-            collection(
-                db,
-                "academicYears"
-            )
-        );
+  let year = "";
 
+  snapshot.forEach((docData) => {
+    const data = docData.data();
 
-    let year = "";
+    if (data.active) {
+      year = data.year;
+    }
+  });
 
-
-    snapshot.forEach(
-        (docData) => {
-
-            const data =
-                docData.data();
-
-
-            if(data.active){
-
-                year = data.year;
-
-            }
-
-        }
-    );
-
-
-    return year;
-
+  return year;
 }
-
 
 // =========================
 // SIGN UP (FACULTY ONLY)
 // =========================
 
-async function signup(){
+async function signup() {
+  if (isSigningUp) {
+    return false;
+  }
 
-    if(isSigningUp){
+  isSigningUp = true;
 
-        return false;
+  showLoading();
 
+  try {
+    const fullname = document.getElementById("facultyFullname").value.trim();
+
+    const email = document.getElementById("facultyEmail").value.trim();
+
+    const password = document.getElementById("facultyPassword").value.trim();
+
+    if (fullname === "" || email === "" || password === "") {
+      alert("Please fill all fields.");
+
+      hideLoading();
+
+      isSigningUp = false;
+
+      return false;
     }
 
+    if (!validatePassword(password)) {
+      hideLoading();
 
-    isSigningUp = true;
+      isSigningUp = false;
 
-    showLoading();
-
-
-    try{
-
-        const fullname =
-            document.getElementById(
-                "facultyFullname"
-            ).value.trim();
-
-
-        const email =
-            document.getElementById(
-                "facultyEmail"
-            ).value.trim();
-
-
-        const password =
-            document.getElementById(
-                "facultyPassword"
-            ).value.trim();
-
-
-        if(
-            fullname === "" ||
-            email === "" ||
-            password === ""
-        ){
-
-            alert(
-                "Please fill all fields."
-            );
-
-            hideLoading();
-
-            isSigningUp = false;
-
-            return false;
-
-        }
-
-
-        if(!validatePassword(password)){
-
-            hideLoading();
-
-            isSigningUp = false;
-
-            return false;
-
-        }
-
-
-        const userCredential =
-            await createUserWithEmailAndPassword(
-                auth,
-                email,
-                password
-            );
-
-
-        const user =
-            userCredential.user;
-
-
-        await sendEmailVerification(
-            user
-        );
-
-
-        const activeYear =
-            await getActiveAcademicYear();
-
-
-        await setDoc(
-            doc(
-                db,
-                "users",
-                user.uid
-            ),
-            {
-
-                fullname:
-                    fullname,
-
-                email:
-                    email,
-
-                role:
-                    "Faculty",
-
-                active:
-                    false, // Needs Admin approval
-
-                activeAcademicYear:
-                    activeYear,
-
-                emailVerified:
-                    false
-
-            }
-        );
-
-
-        // SIGN OUT AFTER SIGNUP
-        await signOut(
-            auth
-        );
-
-
-        isSigningUp = false;
-
-
-        showVerificationMessage();
-
-
-        return true;
-
+      return false;
     }
 
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password,
+    );
 
-    catch(error){
+    const user = userCredential.user;
 
-        console.error(
-            error
-        );
+    await sendEmailVerification(user);
 
+    const activeYear = await getActiveAcademicYear();
 
-        hideLoading();
+    await setDoc(doc(db, "users", user.uid), {
+      fullname: fullname,
 
-        isSigningUp = false;
+      email: email,
 
+      role: "Faculty",
 
-        if(
-            error.code ===
-            "auth/email-already-in-use"
-        ){
+      active: false, // Needs Admin approval
 
-            alert(
-                "This email is already registered."
-            );
+      activeAcademicYear: activeYear,
 
-        }
+      emailVerified: false,
+    });
 
-        else if(
-            error.code ===
-            "auth/invalid-email"
-        ){
+    // SIGN OUT AFTER SIGNUP
+    await signOut(auth);
 
-            alert(
-                "Please enter a valid email address."
-            );
+    isSigningUp = false;
 
-        }
+    showVerificationMessage();
 
-        else if(
-            error.code ===
-            "auth/weak-password"
-        ){
+    return true;
+  } catch (error) {
+    console.error(error);
 
-            alert(
-                "Password must be at least 8 characters long."
-            );
+    hideLoading();
 
-        }
+    isSigningUp = false;
 
-        else{
-
-            alert(
-                error.message
-            );
-
-        }
-
-
-        return false;
-
+    if (error.code === "auth/email-already-in-use") {
+      alert("This email is already registered.");
+    } else if (error.code === "auth/invalid-email") {
+      alert("Please enter a valid email address.");
+    } else if (error.code === "auth/weak-password") {
+      alert("Password must be at least 8 characters long.");
+    } else {
+      alert(error.message);
     }
 
+    return false;
+  }
 }
-
 
 // =========================
 // EXPORT & GLOBAL BINDINGS
@@ -572,15 +323,14 @@ async function signup(){
 window.signup = signup;
 window.togglePassword = togglePassword;
 
-
 // =========================
 // EVENT LISTENERS
 // =========================
 
-document.addEventListener(
-    "DOMContentLoaded",
-    () => {
+document.addEventListener("DOMContentLoaded", () => {
+  const signupBtn = document.getElementById("signupBtn");
 
+<<<<<<< HEAD
         const signupBtn =
             document.getElementById(
                 "signupBtn"
@@ -602,3 +352,11 @@ document.addEventListener(
 
     }
 );
+=======
+  if (signupBtn) {
+    signupBtn.addEventListener("click", async () => {
+      await signup();
+    });
+  }
+});
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)

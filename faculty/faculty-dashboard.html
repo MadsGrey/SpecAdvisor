@@ -1,903 +1,518 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-
-<head>
-
-<title>Faculty - Dashboard</title>
-
-<link
-    rel="icon"
-    type="image/png"
-    href="../images/SpecAdvisor-logofavicon.png?v=2"
->
-
-<link
-    rel="stylesheet"
-    href="../css/styles.css"
->
-
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
-
-</head>
-<style>
-/* FACULTY PROFILE MODAL ONLY */
-#profile-overlay {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-
-    width: 100vw !important;
-    height: 100vh !important;
-
-    display: none;
-    align-items: center !important;
-    justify-content: center !important;
-
-    z-index: 99999 !important;
-}
-
-#profile-overlay.active {
-    display: flex !important;
-}
-
-#profile-overlay .profile-modal {
-    position: relative !important;
-    top: auto !important;
-    left: auto !important;
-    right: auto !important;
-    bottom: auto !important;
-
-    margin: 0 !important;
-    transform: none !important;
-
-    max-height: 90vh;
-    overflow-y: auto;
-}
-</style>
-
-<body>
-
-<div class="dashboard">
-
-
-<!-- ========================================================= -->
-<!-- SIDEBAR -->
-<!-- ========================================================= -->
-
-<div
-    class="sidebar"
-    id="sidebar"
->
-
-    <div class="sidebar-logo">
-
-        <img
-            src="../images/SpecAdvisor-Logo.png"
-        >
-
-    </div>
-
-
-    <!-- DASHBOARD -->
-
-    <button
-        class="sidebar-item active"
-    >
-
-        <span class="sidebar-icon">
-
-            <svg viewBox="0 0 24 24">
-
-                <path d="M3 11.5L12 4l9 7.5"></path>
-
-                <path d="M5 10v10h14V10"></path>
-
-                <path d="M9 20v-6h6v6"></path>
-
-            </svg>
-
-        </span>
-
-        <span>
-            Dashboard
-        </span>
-
-    </button>
-
-
-    <!-- CREATE EXAM -->
-
-    <button
-        class="sidebar-item"
-        onclick="goPage('../faculty/create-exams.html')"
-    >
-
-        <span class="sidebar-icon">
-
-            <svg viewBox="0 0 24 24">
-
-                <rect
-                    x="5"
-                    y="3"
-                    width="14"
-                    height="18"
-                    rx="2"
-                ></rect>
-
-                <path d="M8 7h8"></path>
-
-                <path d="M8 11h8"></path>
-
-                <path d="M8 15h5"></path>
-
-            </svg>
-
-        </span>
-
-        <span>
-            Create Exam
-        </span>
-
-    </button>
-
-
-    <!-- EXAM RESULTS -->
-
-    <button
-        class="sidebar-item"
-        onclick="goPage('../faculty/exam-results.html')"
-    >
-
-        <span class="sidebar-icon">
-
-            <svg viewBox="0 0 24 24">
-
-                <path d="M4 19V5"></path>
-
-                <path d="M4 19h16"></path>
-
-                <path d="M7 16l4-5 3 2 5-7"></path>
-
-            </svg>
-
-        </span>
-
-        <span>
-            Exam Results
-        </span>
-
-    </button>
-
-
-    <!-- SPECIALIZATION REPORTS -->
-
-    <button
-        class="sidebar-item"
-        onclick="goPage('../faculty/view-reports.html')"
-    >
-
-        <span class="sidebar-icon">
-
-            <svg viewBox="0 0 24 24">
-
-                <path d="M5 4h14v16H5z"></path>
-
-                <path d="M8 8h8"></path>
-
-                <path d="M8 12h8"></path>
-
-                <path d="M8 16h5"></path>
-
-            </svg>
-
-        </span>
-
-        <span>
-            Specialization Reports
-        </span>
-
-    </button>
-
-
-    <!-- SIDEBAR CREDIT -->
-
-    <div class="sidebar-credit">
-
-        ©SpecAdvisor 2026
-
-    </div>
-
-</div>
-
-
-
-<!-- ========================================================= -->
-<!-- MAIN -->
-<!-- ========================================================= -->
-
-<div class="main">
-
-
-<!-- ========================================================= -->
-<!-- TOPBAR -->
-<!-- ========================================================= -->
-
-<div class="topbar">
-
-
-    <!-- MOBILE MENU -->
-
-    <button
-        class="menu-btn"
-        onclick="toggleSidebar()"
-    >
-        ☰
-    </button>
-
-
-    <!-- TITLE -->
-
-    <span class="title">
-
-        Faculty Dashboard
-
-    </span>
-
-
-    <!-- FACULTY PROFILE -->
-
-    <div class="profile-wrapper">
-
-
-        <button
-            class="profile-btn"
-            onclick="toggleProfileMenu()"
-            title="Account"
-        >
-
-            <svg viewBox="0 0 24 24">
-
-                <circle
-                    cx="12"
-                    cy="8"
-                    r="4"
-                ></circle>
-
-                <path
-                    d="M4 21c0-4 3.5-7 8-7s8 3 8 7"
-                ></path>
-
-            </svg>
-
-        </button>
-
-
-        <div
-            class="profile-menu"
-            id="profile-menu"
-        >
-
-
-            <!-- PROFILE -->
-
-            <button
-                type="button"
-                onclick="openProfile()"
-            >
-
-                <svg viewBox="0 0 24 24">
-
-                    <circle
-                        cx="12"
-                        cy="8"
-                        r="4"
-                    ></circle>
-
-                    <path
-                        d="M4 21c0-4 3.5-7 8-7s8 3 8 7"
-                    ></path>
-
-                </svg>
-
-                <span>
-                    Profile
-                </span>
-
-            </button>
-
-
-            <!-- LOGOUT -->
-
-            <button
-                type="button"
-                onclick="logout()"
-            >
-
-                <svg viewBox="0 0 24 24">
-
-                    <path
-                        d="M10 17l5-5-5-5"
-                    ></path>
-
-                    <path
-                        d="M15 12H3"
-                    ></path>
-
-                    <path
-                        d="M21 19V5a2 2 0 0 0-2-2h-5"
-                    ></path>
-
-                </svg>
-
-                <span>
-                    Log out
-                </span>
-
-            </button>
-
-
+  <head>
+    <title>Faculty - Dashboard</title>
+
+    <link
+      rel="icon"
+      type="image/png"
+      href="../images/SpecAdvisor-logofavicon.png?v=2"
+    />
+
+    <link rel="stylesheet" href="../css/styles.css" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </head>
+  <style>
+    /* FACULTY PROFILE MODAL ONLY */
+    #profile-overlay {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+
+      width: 100vw !important;
+      height: 100vh !important;
+
+      display: none;
+      align-items: center !important;
+      justify-content: center !important;
+
+      z-index: 99999 !important;
+    }
+
+    #profile-overlay.active {
+      display: flex !important;
+    }
+
+    #profile-overlay .profile-modal {
+      position: relative !important;
+      top: auto !important;
+      left: auto !important;
+      right: auto !important;
+      bottom: auto !important;
+
+      margin: 0 !important;
+      transform: none !important;
+
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+  </style>
+
+  <body>
+    <div class="dashboard">
+      <!-- ========================================================= -->
+      <!-- SIDEBAR -->
+      <!-- ========================================================= -->
+
+      <div class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+          <img src="../images/SpecAdvisor-Logo.png" />
         </div>
 
-    </div>
+        <!-- DASHBOARD -->
 
-</div>
+        <button class="sidebar-item active">
+          <span class="sidebar-icon">
+            <svg viewBox="0 0 24 24">
+              <path d="M3 11.5L12 4l9 7.5"></path>
 
+              <path d="M5 10v10h14V10"></path>
 
+              <path d="M9 20v-6h6v6"></path>
+            </svg>
+          </span>
 
-<!-- ========================================================= -->
-<!-- FACULTY PROFILE MODAL -->
-<!-- ========================================================= -->
+          <span> Dashboard </span>
+        </button>
 
-<div
-    class="profile-overlay"
-    id="profile-overlay"
-    onclick="closeProfileOutside(event)"
->
+        <!-- CREATE EXAM -->
 
-    <div
-        class="profile-modal"
-        onclick="event.stopPropagation()"
-    >
+        <button
+          class="sidebar-item"
+          onclick="goPage('../faculty/create-exams.html')"
+        >
+          <span class="sidebar-icon">
+            <svg viewBox="0 0 24 24">
+              <rect x="5" y="3" width="14" height="18" rx="2"></rect>
 
+              <path d="M8 7h8"></path>
 
-        <!-- PROFILE HEADER -->
+              <path d="M8 11h8"></path>
 
-        <div class="profile-header">
+              <path d="M8 15h5"></path>
+            </svg>
+          </span>
 
-            <h2>
-                My Profile
-            </h2>
+          <span> Create Exam </span>
+        </button>
 
+        <!-- EXAM RESULTS -->
+
+        <button
+          class="sidebar-item"
+          onclick="goPage('../faculty/exam-results.html')"
+        >
+          <span class="sidebar-icon">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 19V5"></path>
+
+              <path d="M4 19h16"></path>
+
+              <path d="M7 16l4-5 3 2 5-7"></path>
+            </svg>
+          </span>
+
+          <span> Exam Results </span>
+        </button>
+
+        <!-- SPECIALIZATION REPORTS -->
+
+        <button
+          class="sidebar-item"
+          onclick="goPage('../faculty/view-reports.html')"
+        >
+          <span class="sidebar-icon">
+            <svg viewBox="0 0 24 24">
+              <path d="M5 4h14v16H5z"></path>
+
+              <path d="M8 8h8"></path>
+
+              <path d="M8 12h8"></path>
+
+              <path d="M8 16h5"></path>
+            </svg>
+          </span>
+
+          <span> Specialization Reports </span>
+        </button>
+
+        <!-- SIDEBAR CREDIT -->
+
+        <div class="sidebar-credit">©SpecAdvisor 2026</div>
+      </div>
+
+      <!-- ========================================================= -->
+      <!-- MAIN -->
+      <!-- ========================================================= -->
+
+      <div class="main">
+        <!-- ========================================================= -->
+        <!-- TOPBAR -->
+        <!-- ========================================================= -->
+
+        <div class="topbar">
+          <!-- MOBILE MENU -->
+
+          <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+
+          <!-- TITLE -->
+
+          <span class="title"> Faculty Dashboard </span>
+
+          <!-- FACULTY PROFILE -->
+
+          <div class="profile-wrapper">
             <button
+              class="profile-btn"
+              onclick="toggleProfileMenu()"
+              title="Account"
+            >
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="8" r="4"></circle>
+
+                <path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"></path>
+              </svg>
+            </button>
+
+            <div class="profile-menu" id="profile-menu">
+              <!-- PROFILE -->
+
+              <button type="button" onclick="openProfile()">
+                <svg viewBox="0 0 24 24">
+                  <circle cx="12" cy="8" r="4"></circle>
+
+                  <path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"></path>
+                </svg>
+
+                <span> Profile </span>
+              </button>
+
+              <!-- LOGOUT -->
+
+              <button type="button" onclick="logout()">
+                <svg viewBox="0 0 24 24">
+                  <path d="M10 17l5-5-5-5"></path>
+
+                  <path d="M15 12H3"></path>
+
+                  <path d="M21 19V5a2 2 0 0 0-2-2h-5"></path>
+                </svg>
+
+                <span> Log out </span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- FACULTY PROFILE MODAL -->
+        <!-- ========================================================= -->
+
+        <div
+          class="profile-overlay"
+          id="profile-overlay"
+          onclick="closeProfileOutside(event)"
+        >
+          <div class="profile-modal" onclick="event.stopPropagation()">
+            <!-- PROFILE HEADER -->
+
+            <div class="profile-header">
+              <h2>My Profile</h2>
+
+              <button
                 type="button"
                 class="close-profile"
                 onclick="closeProfile()"
-            >
+              >
                 ×
-            </button>
-
-        </div>
-
-
-        <!-- PROFILE AVATAR -->
-
-        <div
-            class="profile-avatar"
-            id="profile-avatar"
-        >
-            ?
-        </div>
-
-
-        <div class="profile-info">
-
-
-            <!-- FULL NAME -->
-
-            <div class="profile-field">
-
-                <label>
-                    Full Name
-                </label>
-
-                <input
-                    type="text"
-                    id="profile-fullname"
-                    disabled
-                >
-
+              </button>
             </div>
 
+            <!-- PROFILE AVATAR -->
 
-            <!-- EMAIL -->
+            <div class="profile-avatar" id="profile-avatar">?</div>
 
-            <div class="profile-field">
+            <div class="profile-info">
+              <!-- FULL NAME -->
 
-                <label>
-                    Email
-                </label>
+              <div class="profile-field">
+                <label> Full Name </label>
 
-                <input
-                    type="email"
-                    id="profile-email"
-                    disabled
-                >
+                <input type="text" id="profile-fullname" disabled />
+              </div>
 
+              <!-- EMAIL -->
+
+              <div class="profile-field">
+                <label> Email </label>
+
+                <input type="email" id="profile-email" disabled />
+              </div>
+
+              <!-- ACADEMIC YEAR -->
+
+              <div class="profile-field">
+                <label> Academic Year </label>
+
+                <input type="text" id="profile-academic-year" disabled />
+              </div>
+
+              <!-- ROLE -->
+
+              <div class="profile-field">
+                <label> Role </label>
+
+                <input type="text" id="profile-role" disabled />
+              </div>
             </div>
 
+            <!-- PROFILE MESSAGE -->
 
-            <!-- ACADEMIC YEAR -->
+            <div class="profile-message" id="profile-message"></div>
 
-            <div class="profile-field">
+            <!-- PROFILE ACTIONS -->
 
-                <label>
-                    Academic Year
-                </label>
-
-                <input
-                    type="text"
-                    id="profile-academic-year"
-                    disabled
-                >
-
-            </div>
-
-
-            <!-- ROLE -->
-
-            <div class="profile-field">
-
-                <label>
-                    Role
-                </label>
-
-                <input
-                    type="text"
-                    id="profile-role"
-                    disabled
-                >
-
-            </div>
-
-
-        </div>
-
-
-        <!-- PROFILE MESSAGE -->
-
-        <div
-            class="profile-message"
-            id="profile-message"
-        ></div>
-
-
-        <!-- PROFILE ACTIONS -->
-
-        <div class="profile-actions">
-
-
-            <button
+            <div class="profile-actions">
+              <button
                 type="button"
                 class="edit-profile-btn"
                 id="edit-profile-btn"
                 onclick="enableProfileEdit()"
-            >
+              >
                 Edit Profile
-            </button>
+              </button>
 
-
-            <button
+              <button
                 type="button"
                 class="cancel-profile-btn"
                 id="cancel-profile-btn"
                 onclick="cancelProfileEdit()"
-            >
+              >
                 Cancel
-            </button>
+              </button>
 
-
-            <button
+              <button
                 type="button"
                 class="save-profile-btn"
                 id="save-profile-btn"
                 onclick="saveProfile()"
-            >
+              >
                 Save Changes
-            </button>
-
-
+              </button>
+            </div>
+          </div>
         </div>
 
+        <!-- ========================================================= -->
+        <!-- LOGOUT MODAL -->
+        <!-- IMPORTANT: OUTSIDE PROFILE OVERLAY -->
+        <!-- ========================================================= -->
 
-    </div>
-
-</div>
-
-
-
-<!-- ========================================================= -->
-<!-- LOGOUT MODAL -->
-<!-- IMPORTANT: OUTSIDE PROFILE OVERLAY -->
-<!-- ========================================================= -->
-
-<div
-    id="logout-overlay"
-    class="logout-overlay"
-    onclick="closeLogoutOutside(event)"
->
-
-    <div
-        class="logout-modal-box"
-        onclick="event.stopPropagation()"
-    >
-
-
-        <button
-            type="button"
-            class="logout-close-btn"
-            onclick="closeLogoutModal()"
+        <div
+          id="logout-overlay"
+          class="logout-overlay"
+          onclick="closeLogoutOutside(event)"
         >
-            ×
-        </button>
-
-
-        <h2>
-            Log Out?
-        </h2>
-
-
-        <p>
-            Are you sure you want to log out?
-        </p>
-
-
-        <div class="logout-actions">
-
-
+          <div class="logout-modal-box" onclick="event.stopPropagation()">
             <button
+              type="button"
+              class="logout-close-btn"
+              onclick="closeLogoutModal()"
+            >
+              ×
+            </button>
+
+            <h2>Log Out?</h2>
+
+            <p>Are you sure you want to log out?</p>
+
+            <div class="logout-actions">
+              <button
                 type="button"
                 class="logout-cancel-btn"
                 onclick="closeLogoutModal()"
-            >
+              >
                 Cancel
-            </button>
+              </button>
 
-
-            <button
+              <button
                 type="button"
                 class="logout-confirm-btn"
                 onclick="performLogout()"
-            >
+              >
                 Log Out
-            </button>
-
-
+              </button>
+            </div>
+          </div>
         </div>
 
+        <!-- ========================================================= -->
+        <!-- CONTENT -->
+        <!-- ========================================================= -->
 
-    </div>
+        <div class="content">
+          <!-- ========================================================= -->
+          <!-- WELCOME -->
+          <!-- ========================================================= -->
 
-</div>
+          <div class="welcome-box">
+            <div>
+              <h2>
+                Welcome,
+                <span id="faculty-welcome-name"> Faculty </span>!
+              </h2>
 
+              <p>
+                Manage specialization exams, student progress, and
+                specialization recommendations.
+              </p>
+            </div>
+          </div>
 
+          <br />
 
-<!-- ========================================================= -->
-<!-- CONTENT -->
-<!-- ========================================================= -->
+          <!-- ========================================================= -->
+          <!-- ACADEMIC YEAR -->
+          <!-- ========================================================= -->
 
-<div class="content">
-
-
-<!-- ========================================================= -->
-<!-- WELCOME -->
-<!-- ========================================================= -->
-
-<div class="welcome-box">
-
-    <div>
-
-        <h2>
-
-            Welcome,
-            <span id="faculty-welcome-name">
-                Faculty
-            </span>!
-
-        </h2>
-
-
-        <p>
-
-            Manage specialization exams,
-            student progress,
-            and specialization recommendations.
-
-        </p>
-
-    </div>
-
-</div>
-
-
-<br>
-
-
-
-<!-- ========================================================= -->
-<!-- ACADEMIC YEAR -->
-<!-- ========================================================= -->
-
-<div class="dashboard-year">
-
-    <h3>
-        Academic Year
-    </h3>
-
-
-    <select
-        id="academicYearSelect"
-    >
-
-        <option value="">
-            Loading...
-        </option>
-
-    </select>
-
-</div>
-
-
-
-<!-- ========================================================= -->
-<!-- DASHBOARD CARDS -->
-<!-- ========================================================= -->
-
-<div class="dashboard-cards">
-
-
-    <!-- TOTAL STUDENTS -->
-
-    <div class="stat-card">
-
-        <div class="stat-info">
-
-            <h3>
-                Total Students
-            </h3>
-
-            <p id="totalStudents">
-                0
-            </p>
-
-        </div>
-
-    </div>
-
-
-    <!-- COMPLETED -->
-
-    <div class="stat-card">
-
-        <div class="stat-info">
-
-            <h3>
-                Completed Exam
-            </h3>
-
-            <p id="completedStudents">
-                0
-            </p>
-
-        </div>
-
-    </div>
-
-
-    <!-- REMAINING -->
-
-    <div class="stat-card">
-
-        <div class="stat-info">
-
-            <h3>
-                Remaining Students
-            </h3>
-
-            <p id="remainingStudents">
-                0
-            </p>
-
-        </div>
-
-    </div>
-
-
-    <!-- SPECIALIZATIONS -->
-
-    <div class="stat-card">
-
-        <div class="stat-info">
-
-            <h3>
-                Total Specializations
-            </h3>
-
-            <p id="totalSpecializations">
-                0
-            </p>
-
-        </div>
-
-    </div>
-
-
-</div>
-
-
-<br>
-
-
-
-<!-- ========================================================= -->
-<!-- SECTION COMPLETION -->
-<!-- ========================================================= -->
-
-<div class="calendar completion-section">
-
-
-    <h3>
-        Exam Completion by Section
-    </h3>
-
-
-    <div class="completion-table-wrapper">
-
-
-        <table id="completionTable">
-
-
-            <thead>
-
-                <tr>
-
-                    <th>
-                        Students
-                    </th>
-
-                    <th>
-                        Section
-                    </th>
-
-                    <th>
-                        Year
-                    </th>
-
-                    <th>
-                        Status
-                    </th>
-
-                </tr>
-
-            </thead>
-
-
-            <tbody>
-
-
-                <tr>
-
-                    <td colspan="4">
-
-                        No student has taken the exam yet...
-
-                    </td>
-
-                </tr>
-
-
-            </tbody>
-
-
-        </table>
-
-
-    </div>
-
-
-</div>
-
-
-<br>
-
-
-
-<!-- ========================================================= -->
-<!-- QUICK ACTIONS -->
-<!-- ========================================================= -->
-
-<div class="cards">
-
-
-    <h3>
-        Quick Actions
-    </h3>
-
-
-    <div class="quick-grid">
-
-
-        <button
-            type="button"
-            class="card-title"
-            onclick="goPage('../faculty/create-exams.html')"
-        >
-
-            Create Exam
-
-        </button>
-
-
-        <button
-            type="button"
-            class="card-title"
-            onclick="goPage('../faculty/exam-results.html')"
-        >
-
-            Exam Results
-
-        </button>
-
-
-        <button
-            type="button"
-            class="card-title"
-            onclick="goPage('../faculty/view-reports.html')"
-        >
-
-            Specialization Reports
-
-        </button>
-
-
-    </div>
-
-
-</div>
-
-
-<br>
-
-
-
-<!-- ========================================================= -->
-<!-- CALENDAR -->
-<!-- ========================================================= -->
-
-<div class="calendar">
-
-
-    <h3 id="calendar-title">
-
-        CALENDAR
-
-    </h3>
-
-
-    <div class="table-responsive">
-
-
-        <table id="calendar-table">
-
-
-            <thead>
-
-                <tr>
-
+          <div class="dashboard-year">
+            <h3>Academic Year</h3>
+
+            <select id="academicYearSelect">
+              <option value="">Loading...</option>
+            </select>
+          </div>
+
+          <!-- ========================================================= -->
+          <!-- DASHBOARD CARDS -->
+          <!-- ========================================================= -->
+
+          <div class="dashboard-cards">
+            <!-- TOTAL STUDENTS -->
+
+            <div class="stat-card">
+              <div class="stat-info">
+                <h3>Total Students</h3>
+
+                <p id="totalStudents">0</p>
+              </div>
+            </div>
+
+            <!-- COMPLETED -->
+
+            <div class="stat-card">
+              <div class="stat-info">
+                <h3>Completed Exam</h3>
+
+                <p id="completedStudents">0</p>
+              </div>
+            </div>
+
+            <!-- REMAINING -->
+
+            <div class="stat-card">
+              <div class="stat-info">
+                <h3>Remaining Students</h3>
+
+                <p id="remainingStudents">0</p>
+              </div>
+            </div>
+
+            <!-- SPECIALIZATIONS -->
+
+            <div class="stat-card">
+              <div class="stat-info">
+                <h3>Total Specializations</h3>
+
+                <p id="totalSpecializations">0</p>
+              </div>
+            </div>
+          </div>
+
+          <br />
+
+          <!-- ========================================================= -->
+          <!-- SECTION COMPLETION -->
+          <!-- ========================================================= -->
+
+          <div class="calendar completion-section">
+            <h3>Exam Completion by Section</h3>
+
+            <div class="completion-table-wrapper">
+              <table id="completionTable">
+                <thead>
+                  <tr>
+                    <th>Students</th>
+
+                    <th>Section</th>
+
+                    <th>Year</th>
+
+                    <th>Status</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <tr>
+                    <td colspan="4">No student has taken the exam yet...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <br />
+
+          <!-- ========================================================= -->
+          <!-- QUICK ACTIONS -->
+          <!-- ========================================================= -->
+
+          <div class="cards">
+            <h3>Quick Actions</h3>
+
+            <div class="quick-grid">
+              <button
+                type="button"
+                class="card-title"
+                onclick="goPage('../faculty/create-exams.html')"
+              >
+                Create Exam
+              </button>
+
+              <button
+                type="button"
+                class="card-title"
+                onclick="goPage('../faculty/exam-results.html')"
+              >
+                Exam Results
+              </button>
+
+              <button
+                type="button"
+                class="card-title"
+                onclick="goPage('../faculty/view-reports.html')"
+              >
+                Specialization Reports
+              </button>
+            </div>
+          </div>
+
+          <br />
+
+          <!-- ========================================================= -->
+          <!-- CALENDAR -->
+          <!-- ========================================================= -->
+
+          <div class="calendar">
+            <h3 id="calendar-title">CALENDAR</h3>
+
+            <div class="table-responsive">
+              <table id="calendar-table">
+                <thead>
+                  <tr>
                     <th>SUN</th>
                     <th>MON</th>
                     <th>TUE</th>
@@ -905,62 +520,30 @@
                     <th>THU</th>
                     <th>FRI</th>
                     <th>SAT</th>
+                  </tr>
+                </thead>
 
-                </tr>
-
-            </thead>
-
-
-            <tbody id="calendar-body">
-
-                <!-- Generated by JavaScript -->
-
-            </tbody>
-
-
-        </table>
-
-
+                <tbody id="calendar-body">
+                  <!-- Generated by JavaScript -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <!-- END CONTENT -->
+      </div>
+      <!-- END MAIN -->
     </div>
+    <!-- END DASHBOARD -->
 
+    <!-- ========================================================= -->
+    <!-- JAVASCRIPT -->
+    <!-- ========================================================= -->
 
-</div>
+    <script type="module" src="../js/faculty-dashboard.js"></script>
 
+    <script type="module" src="../js/faculty-profile.js"></script>
 
-</div>
-<!-- END CONTENT -->
-
-
-</div>
-<!-- END MAIN -->
-
-
-</div>
-<!-- END DASHBOARD -->
-
-
-
-<!-- ========================================================= -->
-<!-- JAVASCRIPT -->
-<!-- ========================================================= -->
-
-<script
-    type="module"
-    src="../js/faculty-dashboard.js"
-></script>
-
-
-<script
-    type="module"
-    src="../js/faculty-profile.js"
-></script>
-
-
-<script
-    src="../js/script.js"
-></script>
-
-
-</body>
-
+    <script src="../js/script.js"></script>
+  </body>
 </html>

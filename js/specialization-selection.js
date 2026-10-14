@@ -1,23 +1,21 @@
-import {
-    auth,
-    db
-} from "./firebase-config.js";
+import { auth, db } from "./firebase-config.js";
 
 import {
-    onAuthStateChanged,
-    signOut
+  onAuthStateChanged,
+  signOut,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 import {
-    collection,
-    query,
-    where,
-    getDocs,
-    doc,
-    getDoc,
-    updateDoc
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  getDoc,
+  updateDoc,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+<<<<<<< HEAD
 import { appAlert, appConfirm } from "./ui-dialog.js";
 
 /*
@@ -33,138 +31,93 @@ import {
 } from "./recommendation.js";
 
 
+=======
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 /* =========================================================
    AUTHENTICATION
 ========================================================= */
 
 onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    window.location.replace("../login.html");
 
-    if (!user) {
+    return;
+  }
 
-        window.location.replace(
-            "../login.html"
-        );
-
-        return;
-
-    }
-
-    loadPage(user);
-
+  loadPage(user);
 });
-
 
 /* =========================================================
    PAGE CACHE FIX
 ========================================================= */
 
 window.addEventListener("pageshow", (event) => {
-
-    if (event.persisted) {
-
-        window.location.reload();
-
-    }
-
+  if (event.persisted) {
+    window.location.reload();
+  }
 });
-
 
 /* =========================================================
    SIDEBAR
 ========================================================= */
 
 function toggleSidebar() {
+  const sidebar = document.getElementById("sidebar");
 
-    const sidebar =
-        document.getElementById("sidebar");
-
-    if (sidebar) {
-
-        sidebar.classList.toggle("active");
-
-    }
-
+  if (sidebar) {
+    sidebar.classList.toggle("active");
+  }
 }
-
 
 /* =========================================================
    NAVIGATION
 ========================================================= */
 
 function goPage(url) {
+  document.body.style.opacity = "0";
 
-    document.body.style.opacity = "0";
-
-    setTimeout(() => {
-
-        window.location.href = url;
-
-    }, 300);
-
+  setTimeout(() => {
+    window.location.href = url;
+  }, 300);
 }
-
 
 /* =========================================================
    LOGOUT
 ========================================================= */
 
 function logout() {
+  const overlay = document.getElementById("logout-overlay");
 
-    const overlay =
-        document.getElementById(
-            "logout-overlay"
-        );
+  if (!overlay) {
+    console.error("Logout overlay not found.");
 
-    if (!overlay) {
+    return;
+  }
 
-        console.error(
-            "Logout overlay not found."
-        );
-
-        return;
-
-    }
-
-    overlay.classList.add("active");
-
+  overlay.classList.add("active");
 }
-
 
 function closeLogoutModal() {
+  const overlay = document.getElementById("logout-overlay");
 
-    const overlay =
-        document.getElementById(
-            "logout-overlay"
-        );
-
-    if (overlay) {
-
-        overlay.classList.remove("active");
-
-    }
-
+  if (overlay) {
+    overlay.classList.remove("active");
+  }
 }
-
 
 function closeLogoutOutside(event) {
-
-    if (
-        event.target &&
-        event.target.id ===
-            "logout-overlay"
-    ) {
-
-        closeLogoutModal();
-
-    }
-
+  if (event.target && event.target.id === "logout-overlay") {
+    closeLogoutModal();
+  }
 }
 
-
 async function performLogout() {
+  try {
+    await signOut(auth);
 
-    try {
+    localStorage.clear();
 
+<<<<<<< HEAD
         await signOut(auth);
 
         localStorage.clear();
@@ -187,46 +140,43 @@ async function performLogout() {
         );
 
     }
+=======
+    window.location.replace("../login.html");
+  } catch (error) {
+    console.error("Logout error:", error);
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
+    alert("Unable to log out.");
+  }
 }
-
 
 /* =========================================================
    ESCAPE HTML
 ========================================================= */
 
 function escapeHTML(value) {
-
-    return String(value ?? "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
-
 
 /* =========================================================
    GET ACTIVE ACADEMIC YEAR
 ========================================================= */
 
 async function getActiveAcademicYear() {
+  const q = query(collection(db, "academicYears"), where("active", "==", true));
 
-    const q =
-        query(
-            collection(
-                db,
-                "academicYears"
-            ),
-            where(
-                "active",
-                "==",
-                true
-            )
-        );
+  const snapshot = await getDocs(q);
 
+  if (snapshot.empty) {
+    return "";
+  }
 
+<<<<<<< HEAD
     const snapshot =
         await getDocs(q);
 
@@ -248,123 +198,164 @@ async function getActiveAcademicYear() {
         ""
     );
 
+=======
+  return snapshot.docs[0].data().year || "";
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 }
-
 
 /* =========================================================
    CHECK IF ADMIN HAS ADMINISTERED AN EXAM
 ========================================================= */
 
+<<<<<<< HEAD
 async function hasAdministeredExam(
     academicYear
 ) {
+=======
+async function getAdminApprovedSpecializations(academicYear) {
+  const q = query(
+    collection(db, "questionBank"),
+    where("academicYear", "==", academicYear),
+  );
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
-    const q =
-        query(
-            collection(
-                db,
-                "questionBank"
-            ),
-            where(
-                "academicYear",
-                "==",
-                academicYear
-            )
-        );
+  const snapshot = await getDocs(q);
 
+  const approved = new Set();
 
-    const snapshot =
-        await getDocs(q);
+  snapshot.forEach((docSnapshot) => {
+    const data = docSnapshot.data();
 
+    /*
+     * ONLY ADMIN-ADMINISTERED EXAMS
+     */
 
+<<<<<<< HEAD
     return snapshot.docs.some(
         docSnapshot =>
             docSnapshot.data().status ===
             "administered"
     );
+=======
+    if (data.status === "administered" && data.specialization) {
+      approved.add(String(data.specialization).trim());
+    }
+  });
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
+  return Array.from(approved).sort();
 }
-
 
 /* =========================================================
    GET STUDENT RESULTS
 ========================================================= */
 
-async function getStudentResults(
-    user,
-    academicYear
-) {
+async function getStudentResults(user, academicYear) {
+  const q = query(
+    collection(db, "results"),
+    where("studentUid", "==", user.uid),
+    where("academicYear", "==", academicYear),
+  );
 
-    const q =
-        query(
-            collection(
-                db,
-                "results"
-            ),
-            where(
-                "studentUid",
-                "==",
-                user.uid
-            ),
-            where(
-                "academicYear",
-                "==",
-                academicYear
-            )
-        );
+  const snapshot = await getDocs(q);
 
+  const results = [];
 
-    const snapshot =
-        await getDocs(q);
+  snapshot.forEach((docSnapshot) => {
+    results.push({
+      id: docSnapshot.id,
 
-
-    const results = [];
-
-
-    snapshot.forEach(docSnapshot => {
-
-        results.push({
-
-            id: docSnapshot.id,
-
-            ...docSnapshot.data()
-
-        });
-
+      ...docSnapshot.data(),
     });
+  });
 
-
-    return results;
-
+  return results;
 }
 
+/* =========================================================
+<<<<<<< HEAD
+=======
+   CALCULATE RECOMMENDATION
+========================================================= */
+
+function calculateRecommendation(approvedSpecializations, studentResults) {
+  const scores = {};
+
+  /*
+   * Calculate only from:
+   *
+   * 1. Current academic year
+   * 2. Completed results
+   * 3. Admin-approved specializations
+   */
+
+  studentResults.forEach((result) => {
+    if (result.status !== "Completed" || !result.specialization) {
+      return;
+    }
+
+    const specialization = String(result.specialization).trim();
+
+    if (!approvedSpecializations.includes(specialization)) {
+      return;
+    }
+
+    const score = Number(result.score || 0);
+
+    const totalItems = Number(result.totalItems || 0);
+
+    let percentage = score;
+
+    /*
+     * Normalize score to percentage.
+     */
+
+    if (totalItems > 0) {
+      percentage = (score / totalItems) * 100;
+    }
+
+    if (!scores[specialization]) {
+      scores[specialization] = 0;
+    }
+
+    scores[specialization] += percentage;
+  });
+
+  /*
+   * Make sure every Admin-approved
+   * specialization appears.
+   */
+
+  approvedSpecializations.forEach((specialization) => {
+    if (scores[specialization] === undefined) {
+      scores[specialization] = 0;
+    }
+  });
+
+  const rankings = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+
+  if (rankings.length === 0) {
+    return "";
+  }
+
+  return rankings[0][0];
+}
 
 /* =========================================================
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
    LOAD PAGE
 ========================================================= */
 
 async function loadPage(user) {
+  const selectionContainer = document.getElementById("selectionContainer");
 
-    const selectionContainer =
-        document.getElementById(
-            "selectionContainer"
-        );
+  const recommendationBox = document.getElementById("recommendationBox");
 
+  if (!selectionContainer) {
+    return;
+  }
 
-    const recommendationBox =
-        document.getElementById(
-            "recommendationBox"
-        );
-
-
-    if (!selectionContainer) {
-
-        return;
-
-    }
-
-
-    selectionContainer.innerHTML = `
+  selectionContainer.innerHTML = `
 
         <div class="selection">
 
@@ -380,29 +371,17 @@ async function loadPage(user) {
 
     `;
 
-
-    try {
-
-
-        /* =================================================
+  try {
+    /* =================================================
            GET USER
         ================================================= */
 
-        const userRef =
-            doc(
-                db,
-                "users",
-                user.uid
-            );
+    const userRef = doc(db, "users", user.uid);
 
+    const userSnap = await getDoc(userRef);
 
-        const userSnap =
-            await getDoc(userRef);
-
-
-        if (!userSnap.exists()) {
-
-            selectionContainer.innerHTML = `
+    if (!userSnap.exists()) {
+      selectionContainer.innerHTML = `
 
                 <div class="selection">
 
@@ -414,24 +393,17 @@ async function loadPage(user) {
 
             `;
 
-            return;
+      return;
+    }
 
-        }
+    const userData = userSnap.data();
 
-
-        const userData =
-            userSnap.data();
-
-
-        /* =================================================
+    /* =================================================
            IF ALREADY SELECTED
         ================================================= */
 
-        if (
-            userData.selectedSpecialization
-        ) {
-
-            selectionContainer.innerHTML = `
+    if (userData.selectedSpecialization) {
+      selectionContainer.innerHTML = `
 
                 <div class="selection">
 
@@ -443,9 +415,7 @@ async function loadPage(user) {
 
                     <h1 style="color:#ff4fa3;">
 
-                        ${escapeHTML(
-                            userData.selectedSpecialization
-                        )}
+                        ${escapeHTML(userData.selectedSpecialization)}
 
                     </h1>
 
@@ -473,10 +443,8 @@ async function loadPage(user) {
 
             `;
 
-
-            if (recommendationBox) {
-
-                recommendationBox.innerHTML = `
+      if (recommendationBox) {
+        recommendationBox.innerHTML = `
 
                     <div class="selection">
 
@@ -486,35 +454,26 @@ async function loadPage(user) {
 
                         <h1 style="color:#2f2fa2;">
 
-                            ${escapeHTML(
-                                userData.selectedSpecialization
-                            )}
+                            ${escapeHTML(userData.selectedSpecialization)}
 
                         </h1>
 
                     </div>
 
                 `;
+      }
 
-            }
+      return;
+    }
 
-
-            return;
-
-        }
-
-
-        /* =================================================
+    /* =================================================
            ACTIVE ACADEMIC YEAR
         ================================================= */
 
-        const activeAcademicYear =
-            await getActiveAcademicYear();
+    const activeAcademicYear = await getActiveAcademicYear();
 
-
-        if (!activeAcademicYear) {
-
-            selectionContainer.innerHTML = `
+    if (!activeAcademicYear) {
+      selectionContainer.innerHTML = `
 
                 <div class="selection">
 
@@ -526,21 +485,54 @@ async function loadPage(user) {
 
             `;
 
-            return;
+      return;
+    }
 
+<<<<<<< HEAD
         }
 
 
         /* =================================================
+=======
+    /* =================================================
+           GET ADMIN-APPROVED EXAMS
+        ================================================= */
+
+    const approvedSpecializations =
+      await getAdminApprovedSpecializations(activeAcademicYear);
+
+    if (approvedSpecializations.length === 0) {
+      selectionContainer.innerHTML = `
+
+                <div class="selection">
+
+                    <h2>
+                        Specialization Selection Unavailable
+                    </h2>
+
+                    <p>
+                        No specialization exams have been approved by the Admin yet.
+                    </p>
+
+                </div>
+
+            `;
+
+      if (recommendationBox) {
+        recommendationBox.innerHTML = "";
+      }
+
+      return;
+    }
+
+    /* =================================================
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
            GET STUDENT RESULTS
         ================================================= */
 
-        const studentResults =
-            await getStudentResults(
-                user,
-                activeAcademicYear
-            );
+    const studentResults = await getStudentResults(user, activeAcademicYear);
 
+<<<<<<< HEAD
 
         /* =================================================
            HAS THE STUDENT FINISHED THE COMPREHENSIVE EXAM?
@@ -554,8 +546,19 @@ async function loadPage(user) {
                 result =>
                     result.status === "Completed"
             );
+=======
+    /* =================================================
+           CHECK COMPLETED EXAMS
+        ================================================= */
 
+    const completedSpecializations = new Set();
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
+    studentResults.forEach((result) => {
+      if (result.status === "Completed" && result.specialization) {
+        const specialization = String(result.specialization).trim();
+
+<<<<<<< HEAD
         if (!hasCompleted) {
 
             /*
@@ -604,6 +607,40 @@ async function loadPage(user) {
 
 
             selectionContainer.innerHTML = `
+=======
+        if (approvedSpecializations.includes(specialization)) {
+          completedSpecializations.add(specialization);
+        }
+      }
+    });
+
+    /* =================================================
+           CHECK REMAINING EXAMS
+        ================================================= */
+
+    const incompleteSpecializations = approvedSpecializations.filter(
+      (specialization) => !completedSpecializations.has(specialization),
+    );
+
+    /*
+     * DO NOT ALLOW SELECTION YET.
+     */
+
+    if (incompleteSpecializations.length > 0) {
+      let listHTML = "";
+
+      incompleteSpecializations.forEach((specialization) => {
+        listHTML += `
+
+                        <li>
+                            ${escapeHTML(specialization)}
+                        </li>
+
+                    `;
+      });
+
+      selectionContainer.innerHTML = `
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
                 <div class="selection">
 
@@ -625,10 +662,8 @@ async function loadPage(user) {
 
             `;
 
-
-            if (recommendationBox) {
-
-                recommendationBox.innerHTML = `
+      if (recommendationBox) {
+        recommendationBox.innerHTML = `
 
                     <div class="selection">
 
@@ -647,9 +682,12 @@ async function loadPage(user) {
                     </div>
 
                 `;
+      }
 
-            }
+      return;
+    }
 
+<<<<<<< HEAD
 
             return;
 
@@ -669,6 +707,19 @@ async function loadPage(user) {
         const tagMap =
             await loadSpecializationTags();
 
+=======
+    /* =================================================
+           CALCULATE RECOMMENDATION
+        ================================================= */
+
+    const recommended = calculateRecommendation(
+      approvedSpecializations,
+      studentResults,
+    );
+
+    if (!recommended) {
+      selectionContainer.innerHTML = `
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
         const interest =
             getInterestProfile(
@@ -684,6 +735,7 @@ async function loadPage(user) {
             );
 
 
+<<<<<<< HEAD
         const recommended =
             evaluation.status === "recommended"
                 ? evaluation.primary.specialization
@@ -697,6 +749,17 @@ async function loadPage(user) {
         if (recommendationBox) {
 
             if (recommended) {
+=======
+      return;
+    }
+
+    /* =================================================
+           DISPLAY RECOMMENDATION
+        ================================================= */
+
+    if (recommendationBox) {
+      recommendationBox.innerHTML = `
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
                 recommendationBox.innerHTML = `
 
@@ -710,7 +773,11 @@ async function loadPage(user) {
                             }
                         </h2>
 
+<<<<<<< HEAD
                         <h1 style="color:#2f2fa2;">
+=======
+                        ${escapeHTML(recommended)}
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
                             ${escapeHTML(
                                 recommended
@@ -740,6 +807,7 @@ async function loadPage(user) {
 
                         </p>
 
+<<<<<<< HEAD
                         ${
                             evaluation.confidence === "Low"
                             ? `<p>
@@ -780,29 +848,24 @@ async function loadPage(user) {
                 `;
 
             }
+=======
+            `;
+    }
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
-        }
-
-
-        /* =================================================
+    /* =================================================
            LOAD SPECIALIZATIONS
         ================================================= */
 
-        const specSnap =
-            await getDocs(
-                collection(
-                    db,
-                    "specializations"
-                )
-            );
+    const specSnap = await getDocs(collection(db, "specializations"));
 
-
-        let html = `
+    let html = `
 
             <h2>
                 Choose Your Preferred Specialization
             </h2>
 
+<<<<<<< HEAD
             ${
                 recommended
                 ? `<p>
@@ -813,18 +876,35 @@ async function loadPage(user) {
                    </p>`
                 : ""
             }
+=======
+            <p>
+
+                Your recommended specialization is:
+                <strong style="color:#2f2fa2;">
+
+                    ${escapeHTML(recommended)}
+
+                </strong>
+
+            </p>
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
             <br>
 
         `;
 
+    specSnap.forEach((docSnapshot) => {
+      const data = docSnapshot.data();
 
-        specSnap.forEach(docSnapshot => {
+      const spec = data.name;
 
-            const data =
-                docSnapshot.data();
+      if (!spec) {
+        return;
+      }
 
+      const isRecommended = String(spec).trim() === String(recommended).trim();
 
+<<<<<<< HEAD
             const spec =
                 data.name;
 
@@ -843,6 +923,9 @@ async function loadPage(user) {
 
 
             html += `
+=======
+      html += `
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
                 <button
 
@@ -851,7 +934,7 @@ async function loadPage(user) {
                     style="
                         margin:10px;
                         ${
-                            isRecommended
+                          isRecommended
                             ? "border:3px solid #ff4fa3; box-shadow:0 0 10px rgba(255,79,163,0.35);"
                             : ""
                         }
@@ -863,33 +946,18 @@ async function loadPage(user) {
 
                     ${escapeHTML(spec)}
 
-                    ${
-                        isRecommended
-                        ? " ⭐ Recommended"
-                        : ""
-                    }
+                    ${isRecommended ? " ⭐ Recommended" : ""}
 
                 </button>
 
             `;
+    });
 
-        });
+    selectionContainer.innerHTML = html;
+  } catch (error) {
+    console.error("Selection page error:", error);
 
-
-        selectionContainer.innerHTML =
-            html;
-
-
-    }
-    catch (error) {
-
-        console.error(
-            "Selection page error:",
-            error
-        );
-
-
-        selectionContainer.innerHTML = `
+    selectionContainer.innerHTML = `
 
             <div class="selection">
 
@@ -900,19 +968,18 @@ async function loadPage(user) {
             </div>
 
         `;
-
-    }
-
+  }
 }
-
 
 /* =========================================================
    SAVE SPECIALIZATION
 ========================================================= */
 
-window.selectSpec =
-    async function(spec) {
+window.selectSpec = async function (spec) {
+  const confirmChoice = confirm(
+    `Are you sure you want to choose ${spec}?
 
+<<<<<<< HEAD
         const confirmChoice =
             await appConfirm(
 
@@ -924,10 +991,27 @@ window.selectSpec =
                     confirmText: "Yes, Choose",
                     type: "warning"
                 }
+=======
+You cannot change it after confirming.`,
+  );
 
-            );
+  if (!confirmChoice) {
+    return;
+  }
 
+  try {
+    await updateDoc(
+      doc(db, "users", auth.currentUser.uid),
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
+      {
+        selectedSpecialization: spec,
+      },
+    );
+
+    alert("Specialization successfully selected.");
+
+<<<<<<< HEAD
         if (!confirmChoice) {
 
             return;
@@ -982,23 +1066,31 @@ window.selectSpec =
         }
 
     };
+=======
+    location.reload();
+  } catch (error) {
+    console.error("Selection error:", error);
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
+    alert("Unable to save your specialization.");
+  }
+};
 
 /* =========================================================
    GLOBAL FUNCTIONS
 ========================================================= */
 
-window.toggleSidebar =
-    toggleSidebar;
+window.toggleSidebar = toggleSidebar;
 
+window.goPage = goPage;
 
-window.goPage =
-    goPage;
+window.logout = logout;
 
+window.closeLogoutModal = closeLogoutModal;
 
-window.logout =
-    logout;
+window.closeLogoutOutside = closeLogoutOutside;
 
+<<<<<<< HEAD
 
 window.closeLogoutModal =
     closeLogoutModal;
@@ -1010,3 +1102,6 @@ window.closeLogoutOutside =
 
 window.performLogout =
     performLogout;
+=======
+window.performLogout = performLogout;
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)

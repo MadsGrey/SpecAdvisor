@@ -1,19 +1,13 @@
-import {
-  auth,
-  db
-} from "./firebase-config.js";
+import { auth, db } from "./firebase-config.js";
 
-import {
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 import {
   collection,
   getDocs,
   query,
-  where
+  where,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
 
 /* =========================================================
    REPORT VARIABLES
@@ -28,471 +22,247 @@ let sections = [];
 let specializations = [];
 let studentChoiceSpecializations = [];
 
-
 /* =========================================================
    AUTH
 ========================================================= */
 
 onAuthStateChanged(auth, (user) => {
-
   if (!user) {
-
-    window.location.replace(
-      "../login.html"
-    );
-
+    window.location.replace("../login.html");
   }
-
 });
-
 
 /* =========================================================
    BACK BUTTON PROTECTION
 ========================================================= */
 
-window.addEventListener(
-  "pageshow",
-  (event) => {
-
-    if (event.persisted) {
-
-      window.location.reload();
-
-    }
-
+window.addEventListener("pageshow", (event) => {
+  if (event.persisted) {
+    window.location.reload();
   }
-);
-
+});
 
 /* =========================================================
    SIDEBAR
 ========================================================= */
 
 function toggleSidebar() {
-
-  const sidebar =
-    document.getElementById(
-      "sidebar"
-    );
+  const sidebar = document.getElementById("sidebar");
 
   if (!sidebar) return;
 
-  sidebar.classList.toggle(
-    "active"
-  );
-
+  sidebar.classList.toggle("active");
 }
-
 
 /* =========================================================
    NAVIGATION
 ========================================================= */
 
 function goPage(url) {
-
   window.location.href = url;
-
 }
-
 
 /* =========================================================
    UPDATE MAIN FILTERS
 ========================================================= */
 
 function updateFilters() {
-
-  const reportTypeElement =
-    document.getElementById(
-      "reportType"
-    );
+  const reportTypeElement = document.getElementById("reportType");
 
   if (!reportTypeElement) return;
 
+  const reportType = reportTypeElement.value;
 
-  const reportType =
-    reportTypeElement.value;
+  const roleGroup = document.getElementById("roleFilterGroup");
 
+  const studentSectionGroup = document.getElementById(
+    "studentSectionFilterGroup",
+  );
 
-  const roleGroup =
-    document.getElementById(
-      "roleFilterGroup"
-    );
+  const facultySpecializationGroup = document.getElementById(
+    "facultySpecializationFilterGroup",
+  );
 
-  const studentSectionGroup =
-    document.getElementById(
-      "studentSectionFilterGroup"
-    );
+  const sectionGroup = document.getElementById("sectionFilterGroup");
 
-  const facultySpecializationGroup =
-    document.getElementById(
-      "facultySpecializationFilterGroup"
-    );
+  const studentChoiceGroup = document.getElementById(
+    "studentChoiceSpecializationFilterGroup",
+  );
 
-  const sectionGroup =
-    document.getElementById(
-      "sectionFilterGroup"
-    );
+  const dateGroup = document.getElementById("dateFilterGroup");
 
-  const studentChoiceGroup =
-    document.getElementById(
-      "studentChoiceSpecializationFilterGroup"
-    );
-
-  const dateGroup =
-    document.getElementById(
-      "dateFilterGroup"
-    );
-
-  const timeGroup =
-    document.getElementById(
-      "activityTimeFilterGroup"
-    );
-
+  const timeGroup = document.getElementById("activityTimeFilterGroup");
 
   /* =====================================================
      HIDE EVERYTHING FIRST
   ===================================================== */
 
   if (roleGroup) {
-
-    roleGroup.style.display =
-      "none";
-
+    roleGroup.style.display = "none";
   }
-
 
   if (studentSectionGroup) {
-
-    studentSectionGroup.style.display =
-      "none";
-
+    studentSectionGroup.style.display = "none";
   }
-
 
   if (facultySpecializationGroup) {
-
-    facultySpecializationGroup.style.display =
-      "none";
-
+    facultySpecializationGroup.style.display = "none";
   }
-
 
   if (sectionGroup) {
-
-    sectionGroup.style.display =
-      "none";
-
+    sectionGroup.style.display = "none";
   }
-
 
   if (studentChoiceGroup) {
-
-    studentChoiceGroup.style.display =
-      "none";
-
+    studentChoiceGroup.style.display = "none";
   }
-
 
   if (dateGroup) {
-
-    dateGroup.style.display =
-      "none";
-
+    dateGroup.style.display = "none";
   }
-
 
   if (timeGroup) {
-
-    timeGroup.style.display =
-      "none";
-
+    timeGroup.style.display = "none";
   }
-
 
   /* =====================================================
      USER ACCOUNTS REPORT
   ===================================================== */
 
-  if (
-    reportType ===
-    "users"
-  ) {
-
+  if (reportType === "users") {
     if (roleGroup) {
-
-      roleGroup.style.display =
-        "flex";
-
+      roleGroup.style.display = "flex";
     }
 
-
     updateRoleDependentFilters();
-
-  }
-
+  } else if (reportType === "activity") {
 
   /* =====================================================
      ACTIVITY REPORT
   ===================================================== */
-
-  else if (
-    reportType ===
-    "activity"
-  ) {
-
     if (dateGroup) {
-
-      dateGroup.style.display =
-        "flex";
-
+      dateGroup.style.display = "flex";
     }
-
 
     if (timeGroup) {
-
-      timeGroup.style.display =
-        "flex";
-
+      timeGroup.style.display = "flex";
     }
-
-  }
-
+  } else if (reportType === "specialization") {
 
   /* =====================================================
      SPECIALIZATION REPORT
   ===================================================== */
-
-  else if (
-    reportType ===
-    "specialization"
-  ) {
-
     if (sectionGroup) {
-
-      sectionGroup.style.display =
-        "flex";
-
+      sectionGroup.style.display = "flex";
     }
-
 
     if (studentChoiceGroup) {
-
-      studentChoiceGroup.style.display =
-        "flex";
-
+      studentChoiceGroup.style.display = "flex";
     }
-
   }
-
 }
-
 
 /* =========================================================
    ROLE DEPENDENT FILTERS
 ========================================================= */
 
 function updateRoleDependentFilters() {
-
-  const roleElement =
-    document.getElementById(
-      "roleFilter"
-    );
+  const roleElement = document.getElementById("roleFilter");
 
   if (!roleElement) return;
 
+  const role = roleElement.value;
 
-  const role =
-    roleElement.value;
+  const studentSectionGroup = document.getElementById(
+    "studentSectionFilterGroup",
+  );
 
-
-  const studentSectionGroup =
-    document.getElementById(
-      "studentSectionFilterGroup"
-    );
-
-  const facultySpecializationGroup =
-    document.getElementById(
-      "facultySpecializationFilterGroup"
-    );
-
+  const facultySpecializationGroup = document.getElementById(
+    "facultySpecializationFilterGroup",
+  );
 
   /* =====================================================
      HIDE BOTH FIRST
   ===================================================== */
 
   if (studentSectionGroup) {
-
-    studentSectionGroup.style.display =
-      "none";
-
+    studentSectionGroup.style.display = "none";
   }
-
 
   if (facultySpecializationGroup) {
-
-    facultySpecializationGroup.style.display =
-      "none";
-
+    facultySpecializationGroup.style.display = "none";
   }
-
 
   /* =====================================================
      STUDENT
   ===================================================== */
 
-  if (
-    role.toLowerCase() ===
-    "student"
-  ) {
-
+  if (role.toLowerCase() === "student") {
     if (studentSectionGroup) {
-
-      studentSectionGroup.style.display =
-        "flex";
-
+      studentSectionGroup.style.display = "flex";
     }
-
-  }
-
+  } else if (role.toLowerCase() === "faculty") {
 
   /* =====================================================
      FACULTY
   ===================================================== */
-
-  else if (
-    role.toLowerCase() ===
-    "faculty"
-  ) {
-
     if (facultySpecializationGroup) {
-
-      facultySpecializationGroup.style.display =
-        "flex";
-
+      facultySpecializationGroup.style.display = "flex";
     }
-
   }
-
 }
-
 
 /* =========================================================
    LOAD ACADEMIC YEARS
 ========================================================= */
 
 async function loadAcademicYears() {
-
-  const select =
-    document.getElementById(
-      "academicYearFilter"
-    );
+  const select = document.getElementById("academicYearFilter");
 
   if (!select) return;
 
-
   try {
-
-    const snapshot =
-      await getDocs(
-        collection(
-          db,
-          "academicYears"
-        )
-      );
-
+    const snapshot = await getDocs(collection(db, "academicYears"));
 
     select.innerHTML = "";
 
-
-    const allOption =
-      document.createElement(
-        "option"
-      );
+    const allOption = document.createElement("option");
 
     allOption.value = "";
 
-    allOption.textContent =
-      "All Academic Years";
+    allOption.textContent = "All Academic Years";
 
-
-    select.appendChild(
-      allOption
-    );
-
+    select.appendChild(allOption);
 
     const years = [];
 
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
 
-    snapshot.forEach(
-      (docSnap) => {
+      if (!data.year) return;
 
-        const data =
-          docSnap.data();
+      const year = String(data.year);
 
-
-        if (!data.year) return;
-
-
-        const year =
-          String(
-            data.year
-          );
-
-
-        if (
-          !years.includes(
-            year
-          )
-        ) {
-
-          years.push(
-            year
-          );
-
-        }
-
+      if (!years.includes(year)) {
+        years.push(year);
       }
-    );
-
+    });
 
     years.sort();
 
+    years.forEach((year) => {
+      const option = document.createElement("option");
 
-    years.forEach(
-      (year) => {
+      option.value = year;
 
-        const option =
-          document.createElement(
-            "option"
-          );
+      option.textContent = year;
 
-        option.value =
-          year;
-
-        option.textContent =
-          year;
-
-
-        select.appendChild(
-          option
-        );
-
-      }
-    );
-
+      select.appendChild(option);
+    });
+  } catch (error) {
+    console.error("Unable to load academic years:", error);
   }
-
-  catch (error) {
-
-    console.error(
-      "Unable to load academic years:",
-      error
-    );
-
-  }
-
 }
-
 
 /* =========================================================
    LOAD SECTIONS
@@ -500,226 +270,108 @@ async function loadAcademicYears() {
 ========================================================= */
 
 async function loadSections() {
-
   try {
-
-    const sectionSet =
-      new Set();
-
+    const sectionSet = new Set();
 
     /* -----------------------------------------
        LOAD FROM SECTIONS COLLECTION
     ----------------------------------------- */
 
-    const sectionSnapshot =
-      await getDocs(
-        collection(
-          db,
-          "sections"
-        )
-      );
+    const sectionSnapshot = await getDocs(collection(db, "sections"));
 
+    sectionSnapshot.forEach((docSnap) => {
+      const data = docSnap.data();
 
-    sectionSnapshot.forEach(
-      (docSnap) => {
+      const section = data.name || data.section || data.title || "";
 
-        const data =
-          docSnap.data();
-
-
-        const section =
-          data.name ||
-          data.section ||
-          data.title ||
-          "";
-
-
-        if (section) {
-
-          sectionSet.add(
-            String(
-              section
-            )
-          );
-
-        }
-
+      if (section) {
+        sectionSet.add(String(section));
       }
-    );
-
+    });
 
     /* -----------------------------------------
        ALSO LOAD FROM USERS
     ----------------------------------------- */
 
-    const usersSnapshot =
-      await getDocs(
-        collection(
-          db,
-          "users"
-        )
-      );
+    const usersSnapshot = await getDocs(collection(db, "users"));
 
+    usersSnapshot.forEach((docSnap) => {
+      const user = docSnap.data();
 
-    usersSnapshot.forEach(
-      (docSnap) => {
+      const role = String(user.role || "").toLowerCase();
 
-        const user =
-          docSnap.data();
-
-
-        const role =
-          String(
-            user.role ||
-            ""
-          ).toLowerCase();
-
-
-        if (
-          role !==
-          "student"
-        ) {
-
-          return;
-
-        }
-
-
-        const section =
-          user.section ||
-          "";
-
-
-        if (section) {
-
-          sectionSet.add(
-            String(
-              section
-            )
-          );
-
-        }
-
+      if (role !== "student") {
+        return;
       }
-    );
 
+      const section = user.section || "";
 
-    sections =
-      Array.from(
-        sectionSet
-      ).sort();
+      if (section) {
+        sectionSet.add(String(section));
+      }
+    });
 
+    sections = Array.from(sectionSet).sort();
 
     populateSectionDropdowns();
-
+  } catch (error) {
+    console.error("Unable to load sections:", error);
   }
-
-  catch (error) {
-
-    console.error(
-      "Unable to load sections:",
-      error
-    );
-
-  }
-
 }
-
 
 /* =========================================================
    POPULATE SECTION DROPDOWNS
 ========================================================= */
 
 function populateSectionDropdowns() {
+  const studentSelect = document.getElementById("studentSectionFilter");
 
-  const studentSelect =
-    document.getElementById(
-      "studentSectionFilter"
-    );
-
-  const specializationSelect =
-    document.getElementById(
-      "sectionFilter"
-    );
-
+  const specializationSelect = document.getElementById("sectionFilter");
 
   /* -----------------------------------------
      STUDENT USER FILTER
   ----------------------------------------- */
 
   if (studentSelect) {
-
     studentSelect.innerHTML = `
       <option value="">
         All Sections
       </option>
     `;
 
+    sections.forEach((section) => {
+      const option = document.createElement("option");
 
-    sections.forEach(
-      (section) => {
+      option.value = section;
 
-        const option =
-          document.createElement(
-            "option"
-          );
+      option.textContent = section;
 
-        option.value =
-          section;
-
-        option.textContent =
-          section;
-
-
-        studentSelect.appendChild(
-          option
-        );
-
-      }
-    );
-
+      studentSelect.appendChild(option);
+    });
   }
-
 
   /* -----------------------------------------
      SPECIALIZATION REPORT SECTION FILTER
   ----------------------------------------- */
 
   if (specializationSelect) {
-
     specializationSelect.innerHTML = `
       <option value="">
         All Sections
       </option>
     `;
 
+    sections.forEach((section) => {
+      const option = document.createElement("option");
 
-    sections.forEach(
-      (section) => {
+      option.value = section;
 
-        const option =
-          document.createElement(
-            "option"
-          );
+      option.textContent = section;
 
-        option.value =
-          section;
-
-        option.textContent =
-          section;
-
-
-        specializationSelect.appendChild(
-          option
-        );
-
-      }
-    );
-
+      specializationSelect.appendChild(option);
+    });
   }
-
 }
-
 
 /* =========================================================
    LOAD SPECIALIZATIONS
@@ -727,145 +379,66 @@ function populateSectionDropdowns() {
 ========================================================= */
 
 async function loadSpecializations() {
-
   try {
-
-    const specializationSet =
-      new Set();
-
+    const specializationSet = new Set();
 
     /* -----------------------------------------
        SPECIALIZATIONS COLLECTION
     ----------------------------------------- */
 
-    const specializationSnapshot =
-      await getDocs(
-        collection(
-          db,
-          "specializations"
-        )
-      );
-
-
-    specializationSnapshot.forEach(
-      (docSnap) => {
-
-        const data =
-          docSnap.data();
-
-
-        const specialization =
-          data.name ||
-          data.specialization ||
-          data.title ||
-          "";
-
-
-        if (specialization) {
-
-          specializationSet.add(
-            String(
-              specialization
-            )
-          );
-
-        }
-
-      }
+    const specializationSnapshot = await getDocs(
+      collection(db, "specializations"),
     );
 
+    specializationSnapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+
+      const specialization =
+        data.name || data.specialization || data.title || "";
+
+      if (specialization) {
+        specializationSet.add(String(specialization));
+      }
+    });
 
     /* -----------------------------------------
        FACULTY USERS
     ----------------------------------------- */
 
-    const usersSnapshot =
-      await getDocs(
-        collection(
-          db,
-          "users"
-        )
-      );
+    const usersSnapshot = await getDocs(collection(db, "users"));
 
+    usersSnapshot.forEach((docSnap) => {
+      const user = docSnap.data();
 
-    usersSnapshot.forEach(
-      (docSnap) => {
+      const role = String(user.role || "").toLowerCase();
 
-        const user =
-          docSnap.data();
-
-
-        const role =
-          String(
-            user.role ||
-            ""
-          ).toLowerCase();
-
-
-        if (
-          role !==
-          "faculty"
-        ) {
-
-          return;
-
-        }
-
-
-        const specialization =
-          user.specialization ||
-          "";
-
-
-        if (specialization) {
-
-          specializationSet.add(
-            String(
-              specialization
-            )
-          );
-
-        }
-
+      if (role !== "faculty") {
+        return;
       }
-    );
 
+      const specialization = user.specialization || "";
 
-    specializations =
-      Array.from(
-        specializationSet
-      ).sort();
+      if (specialization) {
+        specializationSet.add(String(specialization));
+      }
+    });
 
+    specializations = Array.from(specializationSet).sort();
 
     populateSpecializationDropdown();
-
+  } catch (error) {
+    console.error("Unable to load specializations:", error);
   }
-
-  catch (error) {
-
-    console.error(
-      "Unable to load specializations:",
-      error
-    );
-
-  }
-
 }
-
 
 /* =========================================================
    POPULATE FACULTY SPECIALIZATION DROPDOWN
 ========================================================= */
 
 function populateSpecializationDropdown() {
-
-  const select =
-    document.getElementById(
-      "facultySpecializationFilter"
-    );
+  const select = document.getElementById("facultySpecializationFilter");
 
   if (!select) return;
-
 
   select.innerHTML = `
     <option value="">
@@ -873,133 +446,59 @@ function populateSpecializationDropdown() {
     </option>
   `;
 
+  specializations.forEach((specialization) => {
+    const option = document.createElement("option");
 
-  specializations.forEach(
-    (specialization) => {
+    option.value = specialization;
 
-      const option =
-        document.createElement(
-          "option"
-        );
+    option.textContent = specialization;
 
-      option.value =
-        specialization;
-
-      option.textContent =
-        specialization;
-
-
-      select.appendChild(
-        option
-      );
-
-    }
-  );
-
+    select.appendChild(option);
+  });
 }
-
 
 /* =========================================================
    LOAD STUDENT CHOICE SPECIALIZATIONS
 ========================================================= */
 
 async function loadStudentChoiceSpecializations() {
-
   try {
+    const choiceSet = new Set();
 
-    const choiceSet =
-      new Set();
+    const usersSnapshot = await getDocs(collection(db, "users"));
 
+    usersSnapshot.forEach((docSnap) => {
+      const user = docSnap.data();
 
-    const usersSnapshot =
-      await getDocs(
-        collection(
-          db,
-          "users"
-        )
-      );
+      const role = String(user.role || "").toLowerCase();
 
-
-    usersSnapshot.forEach(
-      (docSnap) => {
-
-        const user =
-          docSnap.data();
-
-
-        const role =
-          String(
-            user.role ||
-            ""
-          ).toLowerCase();
-
-
-        if (
-          role !==
-          "student"
-        ) {
-
-          return;
-
-        }
-
-
-        const selectedSpecialization =
-          user.selectedSpecialization ||
-          "";
-
-
-        if (
-          selectedSpecialization
-        ) {
-
-          choiceSet.add(
-            String(
-              selectedSpecialization
-            )
-          );
-
-        }
-
+      if (role !== "student") {
+        return;
       }
-    );
 
+      const selectedSpecialization = user.selectedSpecialization || "";
 
-    studentChoiceSpecializations =
-      Array.from(
-        choiceSet
-      ).sort();
+      if (selectedSpecialization) {
+        choiceSet.add(String(selectedSpecialization));
+      }
+    });
 
+    studentChoiceSpecializations = Array.from(choiceSet).sort();
 
     populateStudentChoiceDropdown();
-
+  } catch (error) {
+    console.error("Unable to load student choices:", error);
   }
-
-  catch (error) {
-
-    console.error(
-      "Unable to load student choices:",
-      error
-    );
-
-  }
-
 }
-
 
 /* =========================================================
    POPULATE STUDENT CHOICE DROPDOWN
 ========================================================= */
 
 function populateStudentChoiceDropdown() {
-
-  const select =
-    document.getElementById(
-      "studentChoiceSpecializationFilter"
-    );
+  const select = document.getElementById("studentChoiceSpecializationFilter");
 
   if (!select) return;
-
 
   select.innerHTML = `
     <option value="">
@@ -1007,308 +506,140 @@ function populateStudentChoiceDropdown() {
     </option>
   `;
 
+  studentChoiceSpecializations.forEach((specialization) => {
+    const option = document.createElement("option");
 
-  studentChoiceSpecializations.forEach(
-    (specialization) => {
+    option.value = specialization;
 
-      const option =
-        document.createElement(
-          "option"
-        );
+    option.textContent = specialization;
 
-      option.value =
-        specialization;
-
-      option.textContent =
-        specialization;
-
-
-      select.appendChild(
-        option
-      );
-
-    }
-  );
-
+    select.appendChild(option);
+  });
 }
-
 
 /* =========================================================
    ESCAPE HTML
 ========================================================= */
 
 function escapeHTML(value) {
-
-  if (
-    value === null ||
-    value === undefined
-  ) {
-
+  if (value === null || value === undefined) {
     return "";
-
   }
 
-
   return String(value)
+    .replaceAll("&", "&amp;")
 
-    .replaceAll(
-      "&",
-      "&amp;"
-    )
+    .replaceAll("<", "&lt;")
 
-    .replaceAll(
-      "<",
-      "&lt;"
-    )
+    .replaceAll(">", "&gt;")
 
-    .replaceAll(
-      ">",
-      "&gt;"
-    )
+    .replaceAll('"', "&quot;")
 
-    .replaceAll(
-      '"',
-      "&quot;"
-    )
-
-    .replaceAll(
-      "'",
-      "&#039;"
-    );
-
+    .replaceAll("'", "&#039;");
 }
-
 
 /* =========================================================
    RENDER REPORT TABLE
 ========================================================= */
 
-function renderReportTable(
-  headers,
-  rows,
-  type
-) {
-
-  const preview =
-    document.getElementById(
-      "reportPreview"
-    );
+function renderReportTable(headers, rows, type) {
+  const preview = document.getElementById("reportPreview");
 
   if (!preview) return;
 
+  reportHeaders = headers;
 
-  reportHeaders =
-    headers;
+  reportRows = rows;
 
-  reportRows =
-    rows;
-
-  reportTypeGenerated =
-    type;
-
+  reportTypeGenerated = type;
 
   preview.innerHTML = "";
 
+  if (!rows || rows.length === 0) {
+    const empty = document.createElement("div");
 
-  if (
-    !rows ||
-    rows.length === 0
-  ) {
+    empty.className = "no-report";
 
-    const empty =
-      document.createElement(
-        "div"
-      );
+    empty.textContent = "No report data found.";
 
-
-    empty.className =
-      "no-report";
-
-
-    empty.textContent =
-      "No report data found.";
-
-
-    preview.appendChild(
-      empty
-    );
-
+    preview.appendChild(empty);
 
     return;
-
   }
 
+  const title = document.createElement("h3");
 
-  const title =
-    document.createElement(
-      "h3"
-    );
+  title.textContent = reportTitle;
 
+  preview.appendChild(title);
 
-  title.textContent =
-    reportTitle;
+  const wrapper = document.createElement("div");
 
+  wrapper.className = "report-table-container";
 
-  preview.appendChild(
-    title
-  );
-
-
-  const wrapper =
-    document.createElement(
-      "div"
-    );
-
-
-  wrapper.className =
-    "report-table-container";
-
-
-  const table =
-    document.createElement(
-      "table"
-    );
-
+  const table = document.createElement("table");
 
   table.className =
     "report-table " +
-    (
-      type === "users"
-        ? "users-report"
-        : type === "activity"
-          ? "activity-report"
-          : "specialization-report"
-    );
-
+    (type === "users"
+      ? "users-report"
+      : type === "activity"
+        ? "activity-report"
+        : "specialization-report");
 
   /* HEADER */
 
-  const thead =
-    document.createElement(
-      "thead"
-    );
+  const thead = document.createElement("thead");
 
+  const headerRow = document.createElement("tr");
 
-  const headerRow =
-    document.createElement(
-      "tr"
-    );
+  headers.forEach((header) => {
+    const th = document.createElement("th");
 
+    th.textContent = header;
 
-  headers.forEach(
-    (header) => {
+    headerRow.appendChild(th);
+  });
 
-      const th =
-        document.createElement(
-          "th"
-        );
+  thead.appendChild(headerRow);
 
-
-      th.textContent =
-        header;
-
-
-      headerRow.appendChild(
-        th
-      );
-
-    }
-  );
-
-
-  thead.appendChild(
-    headerRow
-  );
-
-
-  table.appendChild(
-    thead
-  );
-
+  table.appendChild(thead);
 
   /* BODY */
 
-  const tbody =
-    document.createElement(
-      "tbody"
-    );
+  const tbody = document.createElement("tbody");
 
+  rows.forEach((row) => {
+    const tr = document.createElement("tr");
 
-  rows.forEach(
-    (row) => {
+    row.forEach((value) => {
+      const td = document.createElement("td");
 
-      const tr =
-        document.createElement(
-          "tr"
-        );
+      td.innerHTML = escapeHTML(value);
 
+      tr.appendChild(td);
+    });
 
-      row.forEach(
-        (value) => {
+    tbody.appendChild(tr);
+  });
 
-          const td =
-            document.createElement(
-              "td"
-            );
+  table.appendChild(tbody);
 
+  wrapper.appendChild(table);
 
-          td.innerHTML =
-            escapeHTML(value);
-
-
-          tr.appendChild(
-            td
-          );
-
-        }
-      );
-
-
-      tbody.appendChild(
-        tr
-      );
-
-    }
-  );
-
-
-  table.appendChild(
-    tbody
-  );
-
-
-  wrapper.appendChild(
-    table
-  );
-
-
-  preview.appendChild(
-    wrapper
-  );
-
+  preview.appendChild(wrapper);
 }
-
 
 /* =========================================================
    GENERATE REPORT
 ========================================================= */
 
 async function generateReport() {
+  const reportType = document.getElementById("reportType")?.value;
 
-  const reportType =
-    document.getElementById(
-      "reportType"
-    )?.value;
-
-
-  const preview =
-    document.getElementById(
-      "reportPreview"
-    );
-
+  const preview = document.getElementById("reportPreview");
 
   if (!preview) return;
-
 
   preview.innerHTML = `
     <div class="no-report">
@@ -1316,328 +647,146 @@ async function generateReport() {
     </div>
   `;
 
-
   reportRows = [];
   reportHeaders = [];
   reportTitle = "";
 
-
   try {
-
     const academicYear =
-      document.getElementById(
-        "academicYearFilter"
-      )?.value || "";
+      document.getElementById("academicYearFilter")?.value || "";
 
-
-    if (
-      reportType ===
-      "users"
-    ) {
-
-      await generateUsersReport(
-        academicYear
-      );
-
+    if (reportType === "users") {
+      await generateUsersReport(academicYear);
+    } else if (reportType === "activity") {
+      await generateActivityReport(academicYear);
+    } else if (reportType === "specialization") {
+      await generateSpecializationReport(academicYear);
     }
-
-    else if (
-      reportType ===
-      "activity"
-    ) {
-
-      await generateActivityReport(
-        academicYear
-      );
-
-    }
-
-    else if (
-      reportType ===
-      "specialization"
-    ) {
-
-      await generateSpecializationReport(
-        academicYear
-      );
-
-    }
-
-  }
-
-  catch (error) {
-
-    console.error(
-      "Generate report error:",
-      error
-    );
-
+  } catch (error) {
+    console.error("Generate report error:", error);
 
     preview.innerHTML = `
       <div class="no-report">
         Unable to generate report.
       </div>
     `;
-
   }
-
 }
-
 
 /* =========================================================
    USER ACCOUNTS REPORT
 ========================================================= */
 
-async function generateUsersReport(
-  selectedAcademicYear
-) {
-
-  const roleFilter =
-    document.getElementById(
-      "roleFilter"
-    )?.value || "";
-
+async function generateUsersReport(selectedAcademicYear) {
+  const roleFilter = document.getElementById("roleFilter")?.value || "";
 
   const sectionFilter =
-    document.getElementById(
-      "studentSectionFilter"
-    )?.value || "";
-
+    document.getElementById("studentSectionFilter")?.value || "";
 
   const specializationFilter =
-    document.getElementById(
-      "facultySpecializationFilter"
-    )?.value || "";
+    document.getElementById("facultySpecializationFilter")?.value || "";
 
-
-  let usersQuery =
-    collection(
-      db,
-      "users"
-    );
-
+  let usersQuery = collection(db, "users");
 
   /* =====================================================
      ACADEMIC YEAR
   ===================================================== */
 
-  if (
-    selectedAcademicYear
-  ) {
-
-    usersQuery =
-      query(
-        collection(
-          db,
-          "users"
-        ),
-        where(
-          "activeAcademicYear",
-          "==",
-          selectedAcademicYear
-        )
-      );
-
+  if (selectedAcademicYear) {
+    usersQuery = query(
+      collection(db, "users"),
+      where("activeAcademicYear", "==", selectedAcademicYear),
+    );
   }
 
-
-  const snapshot =
-    await getDocs(
-      usersQuery
-    );
-
+  const snapshot = await getDocs(usersQuery);
 
   const rows = [];
 
+  snapshot.forEach((docSnap) => {
+    const user = docSnap.data();
 
-  snapshot.forEach(
-    (docSnap) => {
+    const role = String(user.role || "").trim();
 
-      const user =
-        docSnap.data();
+    const normalizedRole = role.toLowerCase();
 
+    /* ROLE FILTER */
 
-      const role =
-        String(
-          user.role ||
-          ""
-        ).trim();
-
-
-      const normalizedRole =
-        role.toLowerCase();
-
-
-      /* ROLE FILTER */
-
-      if (
-        roleFilter &&
-        roleFilter !== "All" &&
-        normalizedRole !==
-        roleFilter.toLowerCase()
-      ) {
-
-        return;
-
-      }
-
-
-      /* STUDENT SECTION FILTER */
-
-      if (
-        normalizedRole ===
-        "student"
-      ) {
-
-        if (
-          sectionFilter &&
-          sectionFilter !== "All" &&
-          String(
-            user.section ||
-            ""
-          ) !==
-          String(
-            sectionFilter
-          )
-        ) {
-
-          return;
-
-        }
-
-      }
-
-
-      /* FACULTY SPECIALIZATION FILTER */
-
-      if (
-        normalizedRole ===
-        "faculty"
-      ) {
-
-        if (
-          specializationFilter &&
-          specializationFilter !== "All" &&
-          String(
-            user.specialization ||
-            ""
-          ) !==
-          String(
-            specializationFilter
-          )
-        ) {
-
-          return;
-
-        }
-
-      }
-
-
-      const userId =
-        user.studentNumber ||
-        user.facultyId ||
-        user.idNumber ||
-        user.userId ||
-        docSnap.id ||
-        "N/A";
-
-
-      const name =
-        user.fullname ||
-        user.name ||
-        "N/A";
-
-
-      let assignment =
-        "—";
-
-
-      if (
-        normalizedRole ===
-        "student"
-      ) {
-
-        assignment =
-          user.section ||
-          "Not Assigned";
-
-      }
-
-      else if (
-        normalizedRole ===
-        "faculty"
-      ) {
-
-        assignment =
-          user.specialization ||
-          "Not Assigned";
-
-      }
-
-
-      const year =
-        user.activeAcademicYear ||
-        "N/A";
-
-
-      const status =
-        user.active === false
-          ? "Inactive"
-          : "Active";
-
-
-      rows.push([
-
-        userId,
-
-        name,
-
-        role ||
-        "N/A",
-
-        assignment,
-
-        year,
-
-        status
-
-      ]);
-
+    if (
+      roleFilter &&
+      roleFilter !== "All" &&
+      normalizedRole !== roleFilter.toLowerCase()
+    ) {
+      return;
     }
-  );
 
+    /* STUDENT SECTION FILTER */
 
-  rows.sort(
-    (a, b) =>
-      String(a[2])
-        .localeCompare(
-          String(b[2])
-        )
-  );
+    if (normalizedRole === "student") {
+      if (
+        sectionFilter &&
+        sectionFilter !== "All" &&
+        String(user.section || "") !== String(sectionFilter)
+      ) {
+        return;
+      }
+    }
 
+    /* FACULTY SPECIALIZATION FILTER */
 
-  reportTitle =
-    "USER ACCOUNTS REPORT";
+    if (normalizedRole === "faculty") {
+      if (
+        specializationFilter &&
+        specializationFilter !== "All" &&
+        String(user.specialization || "") !== String(specializationFilter)
+      ) {
+        return;
+      }
+    }
 
+    const userId =
+      user.studentNumber ||
+      user.facultyId ||
+      user.idNumber ||
+      user.userId ||
+      docSnap.id ||
+      "N/A";
+
+    const name = user.fullname || user.name || "N/A";
+
+    let assignment = "—";
+
+    if (normalizedRole === "student") {
+      assignment = user.section || "Not Assigned";
+    } else if (normalizedRole === "faculty") {
+      assignment = user.specialization || "Not Assigned";
+    }
+
+    const year = user.activeAcademicYear || "N/A";
+
+    const status = user.active === false ? "Inactive" : "Active";
+
+    rows.push([userId, name, role || "N/A", assignment, year, status]);
+  });
+
+  rows.sort((a, b) => String(a[2]).localeCompare(String(b[2])));
+
+  reportTitle = "USER ACCOUNTS REPORT";
 
   renderReportTable(
-
     [
       "Student / Faculty ID",
       "Name",
       "Role",
       "Section / Specialization",
       "Academic Year",
-      "Status"
+      "Status",
     ],
 
     rows,
 
-    "users"
-
+    "users",
   );
-
 }
 
 /* =========================================================
@@ -1647,174 +796,91 @@ async function generateUsersReport(
    RESOLVE USER NAME FROM USERS COLLECTION
 ========================================================= */
 
-async function generateActivityReport(
-  selectedAcademicYear
-) {
-
-  const selectedDate =
-    document.getElementById(
-      "dateFilter"
-    )?.value || "";
-
+async function generateActivityReport(selectedAcademicYear) {
+  const selectedDate = document.getElementById("dateFilter")?.value || "";
 
   const selectedTime =
-    document.getElementById(
-      "activityTimeFilter"
-    )?.value || "";
+    document.getElementById("activityTimeFilter")?.value || "";
 
-
-  let activityQuery =
-    collection(
-      db,
-      "activityLogs"
-    );
-
+  let activityQuery = collection(db, "activityLogs");
 
   /* =====================================================
      ACADEMIC YEAR FILTER
   ===================================================== */
 
-  if (
-    selectedAcademicYear
-  ) {
-
-    activityQuery =
-      query(
-        collection(
-          db,
-          "activityLogs"
-        ),
-        where(
-          "academicYear",
-          "==",
-          selectedAcademicYear
-        )
-      );
-
+  if (selectedAcademicYear) {
+    activityQuery = query(
+      collection(db, "activityLogs"),
+      where("academicYear", "==", selectedAcademicYear),
+    );
   }
-
 
   /* =====================================================
      LOAD ACTIVITY LOGS + USERS
   ===================================================== */
 
-  const [
-    activitySnapshot,
-    usersSnapshot
-  ] =
-    await Promise.all([
+  const [activitySnapshot, usersSnapshot] = await Promise.all([
+    getDocs(activityQuery),
 
-      getDocs(
-        activityQuery
-      ),
-
-      getDocs(
-        collection(
-          db,
-          "users"
-        )
-      )
-
-    ]);
-
+    getDocs(collection(db, "users")),
+  ]);
 
   /* =====================================================
      CREATE USER LOOKUP
   ===================================================== */
 
-  const usersByIdentifier =
-    new Map();
+  const usersByIdentifier = new Map();
 
+  usersSnapshot.forEach((docSnap) => {
+    const user = docSnap.data();
 
-  usersSnapshot.forEach(
-    (docSnap) => {
+    const fullname = user.fullname || user.name || "";
 
-      const user =
-        docSnap.data();
-
-
-      const fullname =
-        user.fullname ||
-        user.name ||
-        "";
-
-
-      if (!fullname) {
-
-        return;
-
-      }
-
-
-      /* Firestore document ID */
-
-      usersByIdentifier.set(
-
-        String(
-          docSnap.id
-        )
-          .trim()
-          .toLowerCase(),
-
-        fullname
-
-      );
-
-
-      /* Other possible identifiers */
-
-      const identifiers = [
-
-        user.uid,
-        user.userId,
-        user.email,
-        user.studentNumber,
-        user.facultyId,
-        user.idNumber,
-        user.username
-
-      ];
-
-
-      identifiers.forEach(
-        (identifier) => {
-
-          if (
-            identifier !== undefined &&
-            identifier !== null &&
-            String(
-              identifier
-            ).trim() !== ""
-          ) {
-
-            usersByIdentifier.set(
-
-              String(
-                identifier
-              )
-                .trim()
-                .toLowerCase(),
-
-              fullname
-
-            );
-
-          }
-
-        }
-      );
-
+    if (!fullname) {
+      return;
     }
-  );
 
+    /* Firestore document ID */
 
- /* =========================================================
+    usersByIdentifier.set(
+      String(docSnap.id).trim().toLowerCase(),
+
+      fullname,
+    );
+
+    /* Other possible identifiers */
+
+    const identifiers = [
+      user.uid,
+      user.userId,
+      user.email,
+      user.studentNumber,
+      user.facultyId,
+      user.idNumber,
+      user.username,
+    ];
+
+    identifiers.forEach((identifier) => {
+      if (
+        identifier !== undefined &&
+        identifier !== null &&
+        String(identifier).trim() !== ""
+      ) {
+        usersByIdentifier.set(
+          String(identifier).trim().toLowerCase(),
+
+          fullname,
+        );
+      }
+    });
+  });
+
+  /* =========================================================
    FUNCTION TO FIND USER NAME
 ========================================================= */
 
-function resolveActivityUser(log) {
-
-  /*
+  function resolveActivityUser(log) {
+    /*
     IMPORTANT:
     Login activity logs use the field "user".
 
@@ -1827,342 +893,195 @@ function resolveActivityUser(log) {
     So check "user" FIRST.
   */
 
-  if (
-    log.user &&
-    String(log.user).trim() !== "" &&
-    String(log.user).toLowerCase() !== "n/a"
-  ) {
+    if (
+      log.user &&
+      String(log.user).trim() !== "" &&
+      String(log.user).toLowerCase() !== "n/a"
+    ) {
+      const loggedUser = String(log.user).trim();
 
-    const loggedUser =
-      String(log.user).trim();
-
-
-    /*
+      /*
       If the activity log already contains
       the person's actual full name, use it.
     */
 
-    if (
-      loggedUser.includes(" ") &&
-      !loggedUser.includes("@")
-    ) {
+      if (loggedUser.includes(" ") && !loggedUser.includes("@")) {
+        return loggedUser;
+      }
 
-      return loggedUser;
-
-    }
-
-
-    /*
+      /*
       If it is an email, student number,
       username, UID, etc., try to resolve
       it through the users collection.
     */
 
-    const key =
-      loggedUser.toLowerCase();
+      const key = loggedUser.toLowerCase();
 
+      const foundName = usersByIdentifier.get(key);
 
-    const foundName =
-      usersByIdentifier.get(
-        key
-      );
+      if (foundName) {
+        return foundName;
+      }
 
-
-    if (foundName) {
-
-      return foundName;
-
-    }
-
-
-    /*
+      /*
       If it is not found in users,
       still display the value from
       the activity log instead of N/A.
     */
 
-    return loggedUser;
+      return loggedUser;
+    }
 
-  }
-
-
-  /*
+    /*
     Other possible name fields.
   */
 
-  if (
-    log.userName &&
-    String(log.userName).trim() !== "" &&
-    String(log.userName).toLowerCase() !== "n/a"
-  ) {
+    if (
+      log.userName &&
+      String(log.userName).trim() !== "" &&
+      String(log.userName).toLowerCase() !== "n/a"
+    ) {
+      return String(log.userName).trim();
+    }
 
-    return String(
-      log.userName
-    ).trim();
+    if (
+      log.name &&
+      String(log.name).trim() !== "" &&
+      String(log.name).toLowerCase() !== "n/a"
+    ) {
+      return String(log.name).trim();
+    }
 
-  }
-
-
-  if (
-    log.name &&
-    String(log.name).trim() !== "" &&
-    String(log.name).toLowerCase() !== "n/a"
-  ) {
-
-    return String(
-      log.name
-    ).trim();
-
-  }
-
-
-  /*
+    /*
     Try UID / ID / email fields.
   */
 
-  const possibleIdentifiers = [
+    const possibleIdentifiers = [
+      log.uid,
 
-    log.uid,
+      log.userUid,
 
-    log.userUid,
+      log.userId,
 
-    log.userId,
+      log.email,
 
-    log.email,
+      log.studentNumber,
 
-    log.studentNumber,
+      log.facultyId,
 
-    log.facultyId,
+      log.idNumber,
 
-    log.idNumber,
+      log.username,
+    ];
 
-    log.username
+    for (const identifier of possibleIdentifiers) {
+      if (identifier === undefined || identifier === null) {
+        continue;
+      }
 
-  ];
+      const key = String(identifier).trim().toLowerCase();
 
+      if (!key) {
+        continue;
+      }
 
-  for (
-    const identifier
-    of possibleIdentifiers
-  ) {
+      const foundName = usersByIdentifier.get(key);
 
-    if (
-      identifier === undefined ||
-      identifier === null
-    ) {
-
-      continue;
-
+      if (foundName) {
+        return foundName;
+      }
     }
 
-
-    const key =
-      String(identifier)
-        .trim()
-        .toLowerCase();
-
-
-    if (!key) {
-
-      continue;
-
-    }
-
-
-    const foundName =
-      usersByIdentifier.get(
-        key
-      );
-
-
-    if (foundName) {
-
-      return foundName;
-
-    }
-
-  }
-
-
-  /*
+    /*
     Last fallback.
   */
 
-  if (log.email) {
+    if (log.email) {
+      return String(log.email);
+    }
 
-    return String(
-      log.email
-    );
-
+    return "N/A";
   }
-
-
-  return "N/A";
-
-}
 
   /* =====================================================
      CONVERT TIMESTAMP TO PHILIPPINE TIME
   ===================================================== */
 
-  function getPhilippineDateParts(
-    dateObject
-  ) {
-
+  function getPhilippineDateParts(dateObject) {
     if (!dateObject) {
-
       return null;
-
     }
 
+    const formatter = new Intl.DateTimeFormat("en-PH", {
+      timeZone: "Asia/Manila",
 
-    const formatter =
-      new Intl.DateTimeFormat(
-        "en-PH",
-        {
+      year: "numeric",
 
-          timeZone:
-            "Asia/Manila",
+      month: "2-digit",
 
-          year:
-            "numeric",
+      day: "2-digit",
 
-          month:
-            "2-digit",
+      hour: "2-digit",
 
-          day:
-            "2-digit",
+      minute: "2-digit",
 
-          hour:
-            "2-digit",
+      second: "2-digit",
 
-          minute:
-            "2-digit",
+      hourCycle: "h23",
+    });
 
-          second:
-            "2-digit",
-
-          hourCycle:
-            "h23"
-
-        }
-      );
-
-
-    const parts =
-      formatter.formatToParts(
-        dateObject
-      );
-
+    const parts = formatter.formatToParts(dateObject);
 
     const result = {};
 
-
-    parts.forEach(
-      (part) => {
-
-        if (
-          part.type !== "literal"
-        ) {
-
-          result[
-            part.type
-          ] =
-            part.value;
-
-        }
-
+    parts.forEach((part) => {
+      if (part.type !== "literal") {
+        result[part.type] = part.value;
       }
-    );
-
+    });
 
     return {
+      year: Number(result.year),
 
-      year:
-        Number(
-          result.year
-        ),
+      month: Number(result.month),
 
-      month:
-        Number(
-          result.month
-        ),
+      day: Number(result.day),
 
-      day:
-        Number(
-          result.day
-        ),
+      hour: Number(result.hour),
 
-      hour:
-        Number(
-          result.hour
-        ),
+      minute: Number(result.minute),
 
-      minute:
-        Number(
-          result.minute
-        ),
-
-      second:
-        Number(
-          result.second
-        )
-
+      second: Number(result.second),
     };
-
   }
-
 
   /* =====================================================
      FORMAT PHILIPPINE DATE/TIME
   ===================================================== */
 
-  function formatPhilippineDateTime(
-    dateObject
-  ) {
-
+  function formatPhilippineDateTime(dateObject) {
     if (!dateObject) {
-
       return "N/A";
-
     }
 
+    return new Intl.DateTimeFormat("en-PH", {
+      timeZone: "Asia/Manila",
 
-    return new Intl.DateTimeFormat(
-      "en-PH",
-      {
+      year: "numeric",
 
-        timeZone:
-          "Asia/Manila",
+      month: "numeric",
 
-        year:
-          "numeric",
+      day: "numeric",
 
-        month:
-          "numeric",
+      hour: "numeric",
 
-        day:
-          "numeric",
+      minute: "2-digit",
 
-        hour:
-          "numeric",
+      second: "2-digit",
 
-        minute:
-          "2-digit",
-
-        second:
-          "2-digit",
-
-        hour12:
-          true
-
-      }
-    ).format(
-      dateObject
-    );
-
+      hour12: true,
+    }).format(dateObject);
   }
-
 
   /* =====================================================
      CREATE REPORT ROWS
@@ -2170,104 +1089,51 @@ function resolveActivityUser(log) {
 
   const rows = [];
 
+  activitySnapshot.forEach((docSnap) => {
+    const log = docSnap.data();
 
-  activitySnapshot.forEach(
-    (docSnap) => {
+    let dateObject = null;
 
-      const log =
-        docSnap.data();
-
-
-      let dateObject =
-        null;
-
-
-      /* =================================================
+    /* =================================================
          FIREBASE TIMESTAMP
       ================================================= */
 
-      if (
-        log.timestamp &&
-        typeof
-        log.timestamp.toDate ===
-          "function"
-      ) {
+    if (log.timestamp && typeof log.timestamp.toDate === "function") {
+      dateObject = log.timestamp.toDate();
+    } else if (log.timestamp) {
 
-        dateObject =
-          log.timestamp.toDate();
-
-      }
-
-
-      /* =================================================
+    /* =================================================
          JAVASCRIPT DATE / STRING
       ================================================= */
+      dateObject = new Date(log.timestamp);
+    }
 
-      else if (
-        log.timestamp
-      ) {
-
-        dateObject =
-          new Date(
-            log.timestamp
-          );
-
-      }
-
-
-      /* =================================================
+    /* =================================================
          PHILIPPINE DATE/TIME
       ================================================= */
 
-      const philippinesTime =
-        getPhilippineDateParts(
-          dateObject
-        );
+    const philippinesTime = getPhilippineDateParts(dateObject);
 
-
-      /* =================================================
+    /* =================================================
          DATE FILTER
       ================================================= */
 
-      if (
-        selectedDate
-      ) {
-
-        if (
-          !philippinesTime
-        ) {
-
-          return;
-
-        }
-
-
-        const logDate =
-
-          `${philippinesTime.year}-` +
-
-          `${String(
-            philippinesTime.month
-          ).padStart(2, "0")}-` +
-
-          `${String(
-            philippinesTime.day
-          ).padStart(2, "0")}`;
-
-
-        if (
-          logDate !==
-          selectedDate
-        ) {
-
-          return;
-
-        }
-
+    if (selectedDate) {
+      if (!philippinesTime) {
+        return;
       }
 
+      const logDate =
+        `${philippinesTime.year}-` +
+        `${String(philippinesTime.month).padStart(2, "0")}-` +
+        `${String(philippinesTime.day).padStart(2, "0")}`;
 
-      /* =================================================
+      if (logDate !== selectedDate) {
+        return;
+      }
+    }
+
+    /* =================================================
          TIME FILTER
          
          Example:
@@ -2281,602 +1147,305 @@ function resolveActivityUser(log) {
          9:59 PM
       ================================================= */
 
-      if (
-        selectedTime
-      ) {
-
-        if (
-          !philippinesTime
-        ) {
-
-          return;
-
-        }
-
-
-        const selectedHour =
-          Number(
-            selectedTime.split(":")[0]
-          );
-
-
-        if (
-          philippinesTime.hour !==
-          selectedHour
-        ) {
-
-          return;
-
-        }
-
+    if (selectedTime) {
+      if (!philippinesTime) {
+        return;
       }
 
+      const selectedHour = Number(selectedTime.split(":")[0]);
 
-      /* =================================================
+      if (philippinesTime.hour !== selectedHour) {
+        return;
+      }
+    }
+
+    /* =================================================
          RESOLVE USER
       ================================================= */
 
-      const userName =
-        resolveActivityUser(
-          log
-        );
+    const userName = resolveActivityUser(log);
 
-
-      /* =================================================
+    /* =================================================
          FORMAT TIME IN PHILIPPINE TIME
       ================================================= */
 
-      const formattedTime =
-        formatPhilippineDateTime(
-          dateObject
-        );
+    const formattedTime = formatPhilippineDateTime(dateObject);
 
-
-      /* =================================================
+    /* =================================================
          ADD ROW
       ================================================= */
 
-      rows.push([
+    rows.push([
+      userName,
 
-        userName,
+      log.role || "N/A",
 
-        log.role ||
-        "N/A",
+      log.academicYear || "N/A",
 
-        log.academicYear ||
-        "N/A",
+      log.action || "N/A",
 
-        log.action ||
-        "N/A",
+      log.status || "Success",
 
-        log.status ||
-        "Success",
-
-        formattedTime
-
-      ]);
-
-    }
-  );
-
+      formattedTime,
+    ]);
+  });
 
   /* =====================================================
      SORT NEWEST FIRST
   ===================================================== */
 
-  rows.sort(
-    (a, b) => {
+  rows.sort((a, b) => {
+    const dateA = new Date(a[5]);
 
-      const dateA =
-        new Date(
-          a[5]
-        );
+    const dateB = new Date(b[5]);
 
-      const dateB =
-        new Date(
-          b[5]
-        );
-
-      return (
-        dateB - dateA
-      );
-
-    }
-  );
-
+    return dateB - dateA;
+  });
 
   /* =====================================================
      REPORT TITLE
   ===================================================== */
 
-  reportTitle =
-    "SYSTEM ACTIVITY REPORT";
-
+  reportTitle = "SYSTEM ACTIVITY REPORT";
 
   /* =====================================================
      RENDER
   ===================================================== */
 
   renderReportTable(
-
-    [
-      "User",
-      "Role",
-      "Academic Year",
-      "Action",
-      "Status",
-      "Time"
-    ],
+    ["User", "Role", "Academic Year", "Action", "Status", "Time"],
 
     rows,
 
-    "activity"
-
+    "activity",
   );
-
 }
-
 
 /* =========================================================
    SPECIALIZATION REPORT
    STUDENT CHOICE FILTER
 ========================================================= */
 
-async function generateSpecializationReport(
-  selectedAcademicYear
-) {
-
-  const sectionFilter =
-    document.getElementById(
-      "sectionFilter"
-    )?.value || "";
-
+async function generateSpecializationReport(selectedAcademicYear) {
+  const sectionFilter = document.getElementById("sectionFilter")?.value || "";
 
   const studentChoiceFilter =
-    document.getElementById(
-      "studentChoiceSpecializationFilter"
-    )?.value || "";
+    document.getElementById("studentChoiceSpecializationFilter")?.value || "";
 
+  let resultsQuery = collection(db, "results");
 
-  let resultsQuery =
-    collection(
-      db,
-      "results"
+  if (selectedAcademicYear) {
+    resultsQuery = query(
+      collection(db, "results"),
+      where("academicYear", "==", selectedAcademicYear),
     );
-
-
-  if (
-    selectedAcademicYear
-  ) {
-
-    resultsQuery =
-      query(
-        collection(
-          db,
-          "results"
-        ),
-        where(
-          "academicYear",
-          "==",
-          selectedAcademicYear
-        )
-      );
-
   }
 
+  const [resultsSnapshot, usersSnapshot] = await Promise.all([
+    getDocs(resultsQuery),
 
-  const [
-    resultsSnapshot,
-    usersSnapshot
-  ] =
-    await Promise.all([
+    getDocs(collection(db, "users")),
+  ]);
 
-      getDocs(
-        resultsQuery
-      ),
+  const usersByUid = new Map();
 
-      getDocs(
-        collection(
-          db,
-          "users"
-        )
-      )
-
-    ]);
-
-
-  const usersByUid =
-    new Map();
-
-
-  usersSnapshot.forEach(
-    (docSnap) => {
-
-      usersByUid.set(
-        docSnap.id,
-        docSnap.data()
-      );
-
-    }
-  );
-
+  usersSnapshot.forEach((docSnap) => {
+    usersByUid.set(docSnap.id, docSnap.data());
+  });
 
   const rows = [];
 
+  const processedStudents = new Set();
 
-  const processedStudents =
-    new Set();
+  resultsSnapshot.forEach((docSnap) => {
+    const result = docSnap.data();
 
+    const studentUid = result.studentUid;
 
-  resultsSnapshot.forEach(
-    (docSnap) => {
+    if (!studentUid) return;
 
-      const result =
-        docSnap.data();
+    if (processedStudents.has(studentUid)) {
+      return;
+    }
 
+    const student = usersByUid.get(studentUid);
 
-      const studentUid =
-        result.studentUid;
+    if (!student) return;
 
+    const section = student.section || "Not Assigned";
 
-      if (!studentUid)
-        return;
-
-
-      if (
-        processedStudents.has(
-          studentUid
-        )
-      ) {
-
-        return;
-
-      }
-
-
-      const student =
-        usersByUid.get(
-          studentUid
-        );
-
-
-      if (!student)
-        return;
-
-
-      const section =
-        student.section ||
-        "Not Assigned";
-
-
-      /* =================================================
+    /* =================================================
          SECTION FILTER
       ================================================= */
 
-      if (
-        sectionFilter &&
-        sectionFilter !== "All" &&
-        String(
-          section
-        ) !==
-        String(
-          sectionFilter
-        )
-      ) {
+    if (
+      sectionFilter &&
+      sectionFilter !== "All" &&
+      String(section) !== String(sectionFilter)
+    ) {
+      return;
+    }
 
-        return;
-
-      }
-
-
-      /* =================================================
+    /* =================================================
          ACTUAL STUDENT CHOICE
       ================================================= */
 
-      const selectedSpecialization =
-        student.selectedSpecialization ||
-        "Not Selected";
+    const selectedSpecialization =
+      student.selectedSpecialization || "Not Selected";
 
-
-      /* =================================================
+    /* =================================================
          STUDENT CHOICE FILTER
       ================================================= */
 
-      if (
-        studentChoiceFilter &&
-        studentChoiceFilter !== "All" &&
-        String(
-          selectedSpecialization
-        ) !==
-        String(
-          studentChoiceFilter
-        )
-      ) {
-
-        return;
-
-      }
-
-
-      const studentNumber =
-        student.studentNumber ||
-        student.idNumber ||
-        result.studentNumber ||
-        "N/A";
-
-
-      const studentName =
-        student.fullname ||
-        student.name ||
-        result.studentName ||
-        "N/A";
-
-
-      const academicYear =
-        result.academicYear ||
-        student.activeAcademicYear ||
-        "N/A";
-
-
-      rows.push([
-
-        studentNumber,
-
-        studentName,
-
-        section,
-
-        academicYear,
-
-        selectedSpecialization
-
-      ]);
-
-
-      processedStudents.add(
-        studentUid
-      );
-
+    if (
+      studentChoiceFilter &&
+      studentChoiceFilter !== "All" &&
+      String(selectedSpecialization) !== String(studentChoiceFilter)
+    ) {
+      return;
     }
-  );
 
+    const studentNumber =
+      student.studentNumber ||
+      student.idNumber ||
+      result.studentNumber ||
+      "N/A";
 
-  rows.sort(
-    (a, b) =>
-      String(
-        a[1]
-      )
-        .localeCompare(
-          String(
-            b[1]
-          )
-        )
-  );
+    const studentName =
+      student.fullname || student.name || result.studentName || "N/A";
 
+    const academicYear =
+      result.academicYear || student.activeAcademicYear || "N/A";
 
-  reportTitle =
-    "SPECIALIZATION REPORT";
+    rows.push([
+      studentNumber,
 
+      studentName,
+
+      section,
+
+      academicYear,
+
+      selectedSpecialization,
+    ]);
+
+    processedStudents.add(studentUid);
+  });
+
+  rows.sort((a, b) => String(a[1]).localeCompare(String(b[1])));
+
+  reportTitle = "SPECIALIZATION REPORT";
 
   renderReportTable(
-
     [
       "Student Number",
       "Student",
       "Section",
       "Academic Year",
-      "Selected Specialization"
+      "Selected Specialization",
     ],
 
     rows,
 
-    "specialization"
-
+    "specialization",
   );
-
 }
-
 
 /* =========================================================
    DOWNLOAD PDF
 ========================================================= */
 
 function downloadReport() {
-
-  if (
-    !reportRows ||
-    reportRows.length === 0
-  ) {
-
-    alert(
-      "Generate a report first."
-    );
+  if (!reportRows || reportRows.length === 0) {
+    alert("Generate a report first.");
 
     return;
-
   }
 
-
-  if (
-    !window.jspdf ||
-    !window.jspdf.jsPDF
-  ) {
-
-    alert(
-      "PDF library is not available."
-    );
+  if (!window.jspdf || !window.jspdf.jsPDF) {
+    alert("PDF library is not available.");
 
     return;
-
   }
 
+  const { jsPDF } = window.jspdf;
 
-  const {
-    jsPDF
-  } =
-    window.jspdf;
+  const doc = new jsPDF({
+    orientation: "landscape",
 
+    unit: "mm",
 
-  const doc =
-    new jsPDF({
+    format: "a4",
+  });
 
-      orientation:
-        "landscape",
+  doc.setFontSize(16);
 
-      unit:
-        "mm",
-
-      format:
-        "a4"
-
-    });
-
-
-  doc.setFontSize(
-    16
-  );
-
-
-  doc.setTextColor(
-    52,
-    57,
-    168
-  );
-
+  doc.setTextColor(52, 57, 168);
 
   doc.text(
-
-    reportTitle ||
-    "SYSTEM REPORT",
+    reportTitle || "SYSTEM REPORT",
 
     14,
 
-    18
-
+    18,
   );
 
+  doc.setFontSize(9);
 
-  doc.setFontSize(
-    9
-  );
+  doc.setTextColor(100, 100, 100);
 
-
-  doc.setTextColor(
-    100,
-    100,
-    100
-  );
-
-
-  doc.text(
-    "SpecAdvisor",
-    14,
-    25
-  );
-
+  doc.text("SpecAdvisor", 14, 25);
 
   doc.autoTable({
+    head: [reportHeaders],
 
-    head: [
-      reportHeaders
-    ],
+    body: reportRows,
 
-    body:
-      reportRows,
+    startY: 31,
 
-    startY:
-      31,
-
-    theme:
-      "grid",
+    theme: "grid",
 
     styles: {
+      fontSize: 8,
 
-      fontSize:
-        8,
+      cellPadding: 3,
 
-      cellPadding:
-        3,
+      valign: "middle",
 
-      valign:
-        "middle",
-
-      halign:
-        "center"
-
+      halign: "center",
     },
 
     headStyles: {
+      fillColor: [63, 160, 174],
 
-      fillColor: [
-        63,
-        160,
-        174
-      ],
+      textColor: 255,
 
-      textColor:
-        255,
+      fontStyle: "bold",
 
-      fontStyle:
-        "bold",
-
-      halign:
-        "center"
-
+      halign: "center",
     },
 
     alternateRowStyles: {
-
-      fillColor: [
-        248,
-        250,
-        251
-      ]
-
+      fillColor: [248, 250, 251],
     },
 
     margin: {
+      left: 10,
 
-      left:
-        10,
-
-      right:
-        10
-
-    }
-
+      right: 10,
+    },
   });
 
+  const pageCount = doc.internal.getNumberOfPages();
 
-  const pageCount =
-    doc.internal.getNumberOfPages();
+  for (let page = 1; page <= pageCount; page++) {
+    doc.setPage(page);
 
+    doc.setFontSize(8);
 
-  for (
-    let page = 1;
-    page <= pageCount;
-    page++
-  ) {
-
-    doc.setPage(
-      page
-    );
-
-
-    doc.setFontSize(
-      8
-    );
-
-
-    doc.setTextColor(
-      120,
-      120,
-      120
-    );
-
+    doc.setTextColor(120, 120, 120);
 
     doc.text(
-
       `SpecAdvisor | Page ${page} of ${pageCount}`,
 
       148,
@@ -2884,67 +1453,49 @@ function downloadReport() {
       202,
 
       {
-        align:
-          "center"
-      }
-
+        align: "center",
+      },
     );
-
   }
 
-
-  doc.save(
-    "SpecAdvisor-Report.pdf"
-  );
-
+  doc.save("SpecAdvisor-Report.pdf");
 }
-
 
 /* =========================================================
    INITIALIZE
 ========================================================= */
 
-document.addEventListener(
-  "DOMContentLoaded",
-  async () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  await Promise.all([
+    loadAcademicYears(),
 
-    await Promise.all([
+    loadSections(),
 
-      loadAcademicYears(),
+    loadSpecializations(),
 
-      loadSections(),
+    loadStudentChoiceSpecializations(),
+  ]);
 
-      loadSpecializations(),
-
-      loadStudentChoiceSpecializations()
-
-    ]);
-
-
-    updateFilters();
-
-  }
-);
-
+  updateFilters();
+});
 
 /* =========================================================
    GLOBAL FUNCTIONS
 ========================================================= */
 
-window.toggleSidebar =
-  toggleSidebar;
+window.toggleSidebar = toggleSidebar;
 
-window.goPage =
-  goPage;
+window.goPage = goPage;
 
-window.generateReport =
-  generateReport;
+window.generateReport = generateReport;
 
-window.downloadReport =
-  downloadReport;
+window.downloadReport = downloadReport;
 
-window.updateFilters =
-  updateFilters;
+window.updateFilters = updateFilters;
 
+<<<<<<< HEAD
 window.updateRoleDependentFilters =
   updateRoleDependentFilters;
+=======
+window.updateRoleDependentFilters = updateRoleDependentFilters;
+>>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)

@@ -21,6 +21,13 @@ import {
 }
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+import {
+    appAlert,
+    appConfirm
+} from "./ui-dialog.js";
+
+import { INTEREST_AREAS } from "./interest-config.js";
+
 
 /* AUTHENTICATION */
 
@@ -74,10 +81,7 @@ function goPage(url){
 
 
 /* =========================================================
-   LOGOUT MODAL
-========================================================= */
-/* =========================================================
-   LOGOUT MODAL
+   LOGOUT MODAL (unchanged)
 ========================================================= */
 
 function hideLogoutModal(){
@@ -97,10 +101,6 @@ function hideLogoutModal(){
 
 }
 
-
-/* =========================================================
-   OPEN LOGOUT MODAL
-========================================================= */
 
 function logout(){
 
@@ -126,10 +126,6 @@ function logout(){
 }
 
 
-/* =========================================================
-   CLOSE LOGOUT MODAL
-========================================================= */
-
 function closeLogoutModal(){
 
     const overlay =
@@ -148,10 +144,6 @@ function closeLogoutModal(){
 }
 
 
-/* =========================================================
-   CLOSE LOGOUT MODAL OUTSIDE
-========================================================= */
-
 function closeLogoutOutside(event){
 
     if(
@@ -166,10 +158,6 @@ function closeLogoutOutside(event){
 
 }
 
-
-/* =========================================================
-   CONFIRM LOGOUT
-========================================================= */
 
 async function confirmLogout(){
 
@@ -218,8 +206,9 @@ async function confirmLogout(){
         }
 
 
-        alert(
-            "Unable to log out. Please try again."
+        await appAlert(
+            "Unable to log out. Please try again.",
+            { type: "error" }
         );
 
     }
@@ -230,11 +219,6 @@ async function confirmLogout(){
 /* LOAD EVERYTHING */
 
 async function loadAll(){
-
-    /*
-     * These collections are independent,
-     * so load them at the same time.
-     */
 
     await Promise.all([
 
@@ -249,7 +233,9 @@ async function loadAll(){
 }
 
 
-/* SPECIALIZATIONS */
+/* =========================================================
+   SPECIALIZATIONS
+========================================================= */
 
 async function addSpec(){
 
@@ -261,7 +247,10 @@ async function addSpec(){
 
     if(value === ""){
 
-        alert("Enter specialization");
+        await appAlert(
+            "Please enter a specialization.",
+            { type: "warning" }
+        );
 
         return;
 
@@ -275,7 +264,8 @@ async function addSpec(){
                 "specializations"
             ),
             {
-                name: value
+                name: value,
+                interestAreas: []
             }
         );
 
@@ -291,9 +281,146 @@ async function addSpec(){
             error
         );
 
-        alert(error.message);
+        await appAlert(
+            error.message,
+            { type: "error" }
+        );
 
     }
+
+}
+
+
+/*
+   Interest-area tick boxes for one specialization.
+   Saved straight to Firestore when ticked/unticked.
+*/
+function buildInterestTagRow(specId, selectedAreas){
+
+    const wrap =
+        document.createElement("div");
+
+    wrap.style.cssText =
+        "display:flex;flex-wrap:wrap;gap:8px;align-items:center;";
+
+
+    const label =
+        document.createElement("span");
+
+    label.textContent =
+        "Interest areas:";
+
+    label.style.cssText =
+        "font-size:12px;color:#5f6368;";
+
+    wrap.appendChild(label);
+
+
+    const hint =
+        document.createElement("span");
+
+    hint.style.cssText =
+        "font-size:11px;color:#b06000;";
+
+    function updateHint(count){
+
+        hint.textContent =
+            count === 0
+                ? "Not tagged: student interest answers will not affect this specialization."
+                : "";
+
+    }
+
+    updateHint(selectedAreas.length);
+
+
+    INTEREST_AREAS.forEach((area) => {
+
+        const chip =
+            document.createElement("label");
+
+        chip.style.cssText = `
+            display:inline-flex;align-items:center;gap:5px;
+            padding:4px 10px;border:1px solid #dadce0;
+            border-radius:16px;font-size:12px;cursor:pointer;
+            background:#fff;color:#3c4043;
+        `;
+
+        const box =
+            document.createElement("input");
+
+        box.type = "checkbox";
+
+        box.value = area;
+
+        box.checked =
+            selectedAreas.includes(area);
+
+        chip.appendChild(box);
+
+        chip.appendChild(
+            document.createTextNode(area)
+        );
+
+
+        box.addEventListener("change", async () => {
+
+            const boxes =
+                wrap.querySelectorAll("input");
+
+            const checked =
+                [...wrap.querySelectorAll("input:checked")]
+                    .map((input) => input.value);
+
+            boxes.forEach((input) => {
+                input.disabled = true;
+            });
+
+            try{
+
+                await updateDoc(
+                    doc(
+                        db,
+                        "specializations",
+                        specId
+                    ),
+                    {
+                        interestAreas: checked
+                    }
+                );
+
+                updateHint(checked.length);
+
+                boxes.forEach((input) => {
+                    input.disabled = false;
+                });
+
+            }
+            catch(error){
+
+                console.error(
+                    "Error saving interest areas:",
+                    error
+                );
+
+                await appAlert(
+                    "Unable to save the interest areas.",
+                    { type: "error" }
+                );
+
+                await loadSpecs();
+
+            }
+
+        });
+
+        wrap.appendChild(chip);
+
+    });
+
+    wrap.appendChild(hint);
+
+    return wrap;
 
 }
 
@@ -342,6 +469,11 @@ async function loadSpecs(){
             const name =
                 data.name || "";
 
+            const areas =
+                Array.isArray(data.interestAreas)
+                    ? data.interestAreas
+                    : [];
+
 
             if(list){
 
@@ -351,16 +483,48 @@ async function loadSpecs(){
                 item.className =
                     "manage-item";
 
-                item.innerHTML = `
-                    <span></span>
-                    <button
-                        onclick="deleteSpec('${docSnap.id}')">
-                        Delete
-                    </button>
-                `;
+                // Two rows: name + delete, then interest tags
+                item.style.cssText =
+                    "flex-direction:column;align-items:stretch;gap:10px;";
 
-                item.querySelector("span")
-                    .textContent = name;
+
+                const topRow =
+                    document.createElement("div");
+
+                topRow.style.cssText =
+                    "display:flex;justify-content:space-between;align-items:center;gap:10px;";
+
+
+                const nameEl =
+                    document.createElement("span");
+
+                nameEl.textContent = name;
+
+
+                const deleteButton =
+                    document.createElement("button");
+
+                deleteButton.textContent =
+                    "Delete";
+
+                deleteButton.addEventListener(
+                    "click",
+                    () => deleteSpec(docSnap.id)
+                );
+
+
+                topRow.appendChild(nameEl);
+
+                topRow.appendChild(deleteButton);
+
+                item.appendChild(topRow);
+
+                item.appendChild(
+                    buildInterestTagRow(
+                        docSnap.id,
+                        areas
+                    )
+                );
 
                 list.appendChild(item);
 
@@ -399,11 +563,18 @@ async function loadSpecs(){
 
 async function deleteSpec(id){
 
-    if(
-        !confirm(
-            "Delete specialization?"
-        )
-    ){
+    const confirmed =
+        await appConfirm(
+            "Delete this specialization?",
+            {
+                title: "Delete Specialization",
+                confirmText: "Delete",
+                type: "warning",
+                danger: true
+            }
+        );
+
+    if(!confirmed){
 
         return;
 
@@ -429,14 +600,19 @@ async function deleteSpec(id){
             error
         );
 
-        alert(error.message);
+        await appAlert(
+            error.message,
+            { type: "error" }
+        );
 
     }
 
 }
 
 
-/* SECTIONS */
+/* =========================================================
+   SECTIONS
+========================================================= */
 
 async function addSec(){
 
@@ -448,7 +624,10 @@ async function addSec(){
 
     if(value === ""){
 
-        alert("Enter section");
+        await appAlert(
+            "Please enter a section.",
+            { type: "warning" }
+        );
 
         return;
 
@@ -478,7 +657,10 @@ async function addSec(){
             error
         );
 
-        alert(error.message);
+        await appAlert(
+            error.message,
+            { type: "error" }
+        );
 
     }
 
@@ -523,8 +705,7 @@ async function loadSections(){
 
             item.innerHTML = `
                 <span></span>
-                <button
-                    onclick="deleteSec('${docSnap.id}')">
+                <button>
                     Delete
                 </button>
             `;
@@ -532,6 +713,12 @@ async function loadSections(){
             item.querySelector("span")
                 .textContent =
                     data.name || "";
+
+            item.querySelector("button")
+                .addEventListener(
+                    "click",
+                    () => deleteSec(docSnap.id)
+                );
 
             list.appendChild(item);
 
@@ -554,11 +741,18 @@ async function loadSections(){
 
 async function deleteSec(id){
 
-    if(
-        !confirm(
-            "Delete section?"
-        )
-    ){
+    const confirmed =
+        await appConfirm(
+            "Delete this section?",
+            {
+                title: "Delete Section",
+                confirmText: "Delete",
+                type: "warning",
+                danger: true
+            }
+        );
+
+    if(!confirmed){
 
         return;
 
@@ -584,14 +778,19 @@ async function deleteSec(id){
             error
         );
 
-        alert(error.message);
+        await appAlert(
+            error.message,
+            { type: "error" }
+        );
 
     }
 
 }
 
 
-/* ACADEMIC YEARS */
+/* =========================================================
+   ACADEMIC YEARS
+========================================================= */
 
 async function addAcademicYear(){
 
@@ -603,8 +802,9 @@ async function addAcademicYear(){
 
     if(value === ""){
 
-        alert(
-            "Enter academic year"
+        await appAlert(
+            "Please enter an academic year.",
+            { type: "warning" }
         );
 
         return;
@@ -629,8 +829,9 @@ async function addAcademicYear(){
 
         if(exists){
 
-            alert(
-                "Academic Year already exists."
+            await appAlert(
+                "This academic year already exists.",
+                { type: "warning" }
             );
 
             return;
@@ -661,7 +862,10 @@ async function addAcademicYear(){
             error
         );
 
-        alert(error.message);
+        await appAlert(
+            error.message,
+            { type: "error" }
+        );
 
     }
 
@@ -856,7 +1060,10 @@ async function setActiveYear(id){
             error
         );
 
-        alert(error.message);
+        await appAlert(
+            error.message,
+            { type: "error" }
+        );
 
     }
 
@@ -867,11 +1074,18 @@ async function setActiveYear(id){
 
 async function deleteAcademicYear(id){
 
-    if(
-        !confirm(
-            "Delete Academic Year?"
-        )
-    ){
+    const confirmed =
+        await appConfirm(
+            "Delete this academic year?",
+            {
+                title: "Delete Academic Year",
+                confirmText: "Delete",
+                type: "warning",
+                danger: true
+            }
+        );
+
+    if(!confirmed){
 
         return;
 
@@ -897,7 +1111,10 @@ async function deleteAcademicYear(id){
             error
         );
 
-        alert(error.message);
+        await appAlert(
+            error.message,
+            { type: "error" }
+        );
 
     }
 

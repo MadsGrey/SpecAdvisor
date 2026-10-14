@@ -12,12 +12,18 @@ import {
     getDocs,
     getDoc,
     writeBatch,
-    doc,
     updateDoc,
     deleteDoc,
-    serverTimestamp
+    doc,
+    serverTimestamp,
+    deleteField,
+    orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+import {
+    appAlert,
+    appConfirm
+} from "./ui-dialog.js";
 
 /* =====================================================
    GLOBAL VARIABLES
@@ -25,41 +31,24 @@ import {
 
 let currentAdminUid = "";
 let activeAcademicYear = "";
+let activeAcademicYearId = "";
 
 let allExams = [];
-
-let editingQuestionId = null;
-let openedExamKey = null;
-
-/* Admin PDF upload variables */
-let adminExtractedQuestions = [];
-let adminExtractedAnswers = {};
 let adminExamPDF = null;
 let adminAnswerPDF = null;
 let adminUploadBusy = false;
 
-/* Timer used to auto-hide the upload notification */
-let adminNotificationTimer = null;
-
-
-/* =====================================================
-   FACULTY NAME CACHE
-===================================================== */
+// Questions currently open in edit mode, stored as "examIndex:questionIndex"
+const editingQuestions = new Set();
 
 const facultyNameCache = {};
 
-
 /* =====================================================
-   ESCAPE HTML
+   HELPERS
 ===================================================== */
 
 function escapeHTML(value) {
-
-    if (value === null || value === undefined) {
-        return "";
-    }
-
-    return String(value)
+    return String(value ?? "")
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
@@ -67,503 +56,119 @@ function escapeHTML(value) {
         .replace(/'/g, "&#039;");
 }
 
+function getLocalDateTimeValue(value) {
+    if (!value) return "";
 
-/* =====================================================
-   GET FACULTY NAME
-===================================================== */
+    let date;
 
-async function getFacultyName(facultyId) {
-
-    if (!facultyId) {
-        return "Unknown Faculty";
-    }
-
-    if (facultyNameCache[facultyId]) {
-        return facultyNameCache[facultyId];
-    }
-
-    try {
-
-        const facultyRef = doc(db, "users", facultyId);
-        const facultySnap = await getDoc(facultyRef);
-
-        if (!facultySnap.exists()) {
-            facultyNameCache[facultyId] = "Unknown Faculty";
-            return "Unknown Faculty";
-        }
-
-        const facultyData = facultySnap.data();
-
-        const facultyName =
-            facultyData.fullname ||
-            facultyData.name ||
-            facultyData.email ||
-            "Unknown Faculty";
-
-        facultyNameCache[facultyId] = facultyName;
-
-        return facultyName;
-
-    } catch (error) {
-
-        console.error("Error loading faculty name:", error);
-
-        return "Unknown Faculty";
-    }
-}
-
-
-/* =====================================================
-   AUTH
-===================================================== */
-
-onAuthStateChanged(auth, async (user) => {
-
-    if (!user) {
-        window.location.replace("../login.html");
-        return;
-    }
-
-    currentAdminUid = user.uid;
-
-    await loadAdminSpecializations();
-    await loadActiveAcademicYear();
-
-});
-
-
-/* =====================================================
-   ACTIVE ACADEMIC YEAR
-===================================================== */
-
-async function loadActiveAcademicYear() {
-
-    try {
-
-        const yearQuery = query(
-            collection(db, "academicYears"),
-            where("active", "==", true)
-        );
-
-        const snapshot = await getDocs(yearQuery);
-
-        if (snapshot.empty) {
-
-            activeAcademicYear = "";
-
-            const yearElement =
-                document.getElementById("activeAcademicYear");
-
-            if (yearElement) {
-                yearElement.textContent = "No active academic year";
-            }
-
-            const examList = document.getElementById("examList");
-
-            if (examList) {
-                examList.innerHTML = `
-                    <div class="admin-empty">
-                        <h2>No Active Academic Year</h2>
-                        <p>Please set an active academic year first.</p>
-                    </div>
-                `;
-            }
-
-            return;
-        }
-
-        const yearData = snapshot.docs[0].data();
-
-        activeAcademicYear =
-            yearData.year ||
-            yearData.name ||
-            "";
-
-        const yearElement =
-            document.getElementById("activeAcademicYear");
-
-        if (yearElement) {
-            yearElement.textContent =
-                activeAcademicYear || "Unknown";
-        }
-
-        await loadExams();
-
-    } catch (error) {
-
-        console.error("Error loading academic year:", error);
-
-        const yearElement =
-            document.getElementById("activeAcademicYear");
-
-        if (yearElement) {
-            yearElement.textContent = "Unable to load";
-        }
-
-        const examList = document.getElementById("examList");
-
-        if (examList) {
-            examList.innerHTML = `
-                <div class="admin-empty">
-                    <h2>Unable to Load Data</h2>
-                    <p>Please try again.</p>
-                </div>
-            `;
-        }
-    }
-}
-
-
-/* =====================================================
-   LOAD EXAMS
-===================================================== */
-
-async function loadExams() {
-
-    try {
-
-        const examQuery = query(
-            collection(db, "questionBank"),
-            where("academicYear", "==", activeAcademicYear)
-        );
-
-        const snapshot = await getDocs(examQuery);
-
-        allExams = [];
-
-        const examMap = {};
-
-        snapshot.forEach((questionDoc) => {
-
-            const data = questionDoc.data();
-
-            const title =
-                data.examTitle ||
-                data.title ||
-                "Untitled Exam";
-
-            const specialization =
-                data.specialization ||
-                "No Specialization";
-
-            const key = `${specialization}|||${title}`;
-
-            if (!examMap[key]) {
-
-                examMap[key] = {
-                    key: key,
-                    title: title,
-                    specialization: specialization,
-
-                    academicYear:
-                        data.academicYear ||
-                        activeAcademicYear,
-
-                    type:
-                        data.type ||
-                        "Multiple Choice",
-
-                    status:
-                        data.status ||
-                        "ready",
-
-                    facultyId:
-                        data.facultyId ||
-                        data.facultyID ||
-                        data.facultyUid ||
-                        data.createdBy ||
-                        "",
-
-                    questions: []
-                };
-            }
-
-            /* If the first question had no faculty ID, check every question. */
-            if (!examMap[key].facultyId) {
-
-                examMap[key].facultyId =
-                    data.facultyId ||
-                    data.facultyID ||
-                    data.facultyUid ||
-                    data.createdBy ||
-                    "";
-            }
-
-            /* Support both object choices and PDF-uploaded array choices. */
-            let normalizedChoices;
-
-            if (Array.isArray(data.choices)) {
-
-                normalizedChoices = {
-                    A: data.choices[0] || "",
-                    B: data.choices[1] || "",
-                    C: data.choices[2] || "",
-                    D: data.choices[3] || ""
-                };
-
-            } else {
-
-                normalizedChoices =
-                    data.choices || {
-                        A: data.choiceA || "",
-                        B: data.choiceB || "",
-                        C: data.choiceC || "",
-                        D: data.choiceD || ""
-                    };
-            }
-
-            examMap[key].questions.push({
-
-                id: questionDoc.id,
-
-                question:
-                    data.question || "",
-
-                choices: normalizedChoices,
-
-                correctAnswer:
-                    data.correctAnswer || "",
-
-                status:
-                    data.status || "ready"
-
-            });
-
-        });
-
-        /* Stable order so exam positions never shuffle after a reload. */
-        allExams = Object.values(examMap).sort((a, b) =>
-            a.specialization.localeCompare(b.specialization) ||
-            a.title.localeCompare(b.title)
-        );
-
-        /* Mark an exam administered if any question is administered. */
-        allExams.forEach((exam) => {
-
-            if (
-                exam.questions.some(
-                    question => question.status === "administered"
-                )
-            ) {
-                exam.status = "administered";
-            } else {
-                exam.status = "ready";
-            }
-
-        });
-
-        await renderExamList();
-
-    } catch (error) {
-
-        console.error("Error loading exams:", error);
-
-        const examList = document.getElementById("examList");
-
-        if (examList) {
-            examList.innerHTML = `
-                <div class="admin-empty">
-                    <h2>Unable to Load Exams</h2>
-                    <p>Please try again.</p>
-                </div>
-            `;
-        }
-    }
-}
-
-
-/* =====================================================
-   RENDER EXAM LIST
-===================================================== */
-
-async function renderExamList() {
-
-    const examList = document.getElementById("examList");
-
-    if (!examList) {
-        return;
-    }
-
-    if (!allExams.length) {
-
-        examList.innerHTML = `
-            <div class="admin-empty">
-                <h2>No Exams Available</h2>
-                <p>
-                    No examinations are available for the active academic year yet.
-                </p>
-            </div>
-        `;
-
-        return;
-    }
-
-    examList.innerHTML = "";
-
-    for (const [examIndex, exam] of allExams.entries()) {
-
-        const facultyName = await getFacultyName(exam.facultyId);
-
-        const card = document.createElement("div");
-
-        card.className = "admin-exam-card";
-
-        const status =
-            exam.status === "administered"
-                ? "administered"
-                : "ready";
-
-        card.innerHTML = `
-
-            <div class="exam-card-top">
-
-                <div>
-
-                    <h2 class="exam-title">
-                        ${escapeHTML(exam.title)}
-                    </h2>
-
-                    <div class="exam-specialization">
-                        ${escapeHTML(exam.specialization)}
-                    </div>
-
-                    <div class="exam-faculty">
-                        Created by:
-                        <strong>
-                            ${escapeHTML(facultyName)}
-                        </strong>
-                    </div>
-
-                </div>
-
-                <span class="exam-status ${status}">
-                    ${status === "administered" ? "Administered" : "Ready"}
-                </span>
-
-            </div>
-
-            <div class="exam-meta">
-
-                <div>
-                    <strong>Academic Year</strong>
-                    <span>${escapeHTML(exam.academicYear)}</span>
-                </div>
-
-                <div>
-                    <strong>Type</strong>
-                    <span>${escapeHTML(exam.type)}</span>
-                </div>
-
-                <div>
-                    <strong>Questions</strong>
-                    <span>${exam.questions.length}</span>
-                </div>
-
-            </div>
-
-            <button
-                class="check-questions-btn"
-                onclick="toggleQuestions(${examIndex})"
-            >
-            
-                <span>Check Questions</span>
-            </button>
-
-            <div
-                class="questions-panel"
-                id="questions-${examIndex}"
-                style="display:none;"
-            ></div>
-
-            <div class="admin-exam-actions">
-
-                ${
-                    status === "administered"
-                    ? `
-                        <button
-                            class="stop-administer-btn"
-                            onclick="stopAdministration(${examIndex})"
-                        >
-                            Stop Administration
-                        </button>
-                    `
-                    : `
-                        <button
-                            class="administer-exam-btn"
-                            onclick="administerExam(${examIndex})"
-                        >
-                            Administer Exam
-                        </button>
-                    `
-                }
-
-            </div>
-        `;
-
-        examList.appendChild(card);
-    }
-}
-
-
-/* =====================================================
-   TOGGLE QUESTIONS
-===================================================== */
-
-function toggleQuestions(examIndex) {
-
-    const panel = document.getElementById(
-        `questions-${examIndex}`
-    );
-
-    if (!panel) {
-        return;
-    }
-
-    if (
-        panel.style.display === "none" ||
-        panel.style.display === ""
-    ) {
-
-        openedExamKey = allExams[examIndex]
-            ? allExams[examIndex].key
-            : null;
-
-        renderQuestions(examIndex);
-
-        panel.style.display = "block";
-
+    if (typeof value.toDate === "function") {
+        date = value.toDate();
     } else {
-
-        panel.style.display = "none";
-
-        openedExamKey = null;
+        date = new Date(value);
     }
+
+    if (Number.isNaN(date.getTime())) return "";
+
+    const pad = n => String(n).padStart(2, "0");
+
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
+function showNotification(message, type = "info") {
+    const element = document.getElementById("uiNotification");
 
-/* =====================================================
-   RESOLVE CORRECT LETTER
-   Handles "A"-"D" and older data that stored the
-   full answer text instead of a letter.
-===================================================== */
+    if (!element) {
+        appAlert(message, {
+            type: type === "error"
+                ? "error"
+                : type === "success"
+                    ? "success"
+                    : "info"
+        });
+        return;
+    }
+
+    element.textContent = message;
+    element.className = `admin-upload-notification show ${type}`;
+
+    element.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest"
+    });
+}
+
+function getQuestionChoices(data) {
+    if (Array.isArray(data.choices)) {
+        return {
+            A: data.choices[0] || "",
+            B: data.choices[1] || "",
+            C: data.choices[2] || "",
+            D: data.choices[3] || ""
+        };
+    }
+
+    return {
+        A: data.choices?.A ?? data.choiceA ?? "",
+        B: data.choices?.B ?? data.choiceB ?? "",
+        C: data.choices?.C ?? data.choiceC ?? "",
+        D: data.choices?.D ?? data.choiceD ?? ""
+    };
+}
+
+/*
+   Questions can be stored in three shapes (array, object, or
+   choiceA..choiceD fields). Editing keeps whichever shape the
+   question already uses so other pages keep working.
+*/
+function detectChoiceFormat(data) {
+    if (Array.isArray(data.choices)) return "array";
+
+    if (data.choices && typeof data.choices === "object") return "object";
+
+    if (data.choiceA !== undefined || data.choiceB !== undefined) return "flat";
+
+    return "object";
+}
+
+function buildChoicePayload(format, choices) {
+    if (format === "array") {
+        return { choices: [choices.A, choices.B, choices.C, choices.D] };
+    }
+
+    if (format === "flat") {
+        return {
+            choiceA: choices.A,
+            choiceB: choices.B,
+            choiceC: choices.C,
+            choiceD: choices.D
+        };
+    }
+
+    return {
+        choices: {
+            A: choices.A,
+            B: choices.B,
+            C: choices.C,
+            D: choices.D
+        }
+    };
+}
 
 function resolveCorrectLetter(question) {
+    const answer = String(question.correctAnswer || "")
+        .trim()
+        .toUpperCase();
 
-    const raw = String(question.correctAnswer || "").trim();
-    const upper = raw.toUpperCase();
-
-    if (["A", "B", "C", "D"].includes(upper)) {
-        return upper;
+    if (["A", "B", "C", "D"].includes(answer)) {
+        return answer;
     }
 
     const choices = question.choices || {};
 
     for (const letter of ["A", "B", "C", "D"]) {
-
         if (
-            raw &&
-            choices[letter] &&
-            String(choices[letter]).trim().toLowerCase() === raw.toLowerCase()
+            String(choices[letter] || "").trim().toLowerCase() ===
+            answer.toLowerCase()
         ) {
             return letter;
         }
@@ -572,193 +177,644 @@ function resolveCorrectLetter(question) {
     return "";
 }
 
+function getTimestampMilliseconds(value) {
+    if (!value) return 0;
+
+    if (typeof value.toMillis === "function") {
+        return value.toMillis();
+    }
+
+    if (typeof value.toDate === "function") {
+        return value.toDate().getTime();
+    }
+
+    const time = new Date(value).getTime();
+
+    return Number.isNaN(time) ? 0 : time;
+}
 
 /* =====================================================
-   RENDER QUESTIONS (now shows correct answers)
+   AUTHENTICATION
 ===================================================== */
 
-function renderQuestions(examIndex) {
-
-    const panel = document.getElementById(
-        `questions-${examIndex}`
-    );
-
-    if (!panel) {
+onAuthStateChanged(auth, async user => {
+    if (!user) {
+        window.location.replace("../login.html");
         return;
     }
 
-    const exam = allExams[examIndex];
+    currentAdminUid = user.uid;
 
-    if (
-        !exam ||
-        !exam.questions ||
-        !exam.questions.length
-    ) {
+    try {
+        const userSnapshot = await getDoc(
+            doc(db, "users", currentAdminUid)
+        );
 
-        panel.innerHTML = `
-            <div class="no-questions">
-                No questions available.
+        if (!userSnapshot.exists()) {
+            await appAlert(
+                "Your user profile could not be found.",
+                { type: "error" }
+            );
+            await signOut(auth);
+            window.location.replace("../login.html");
+            return;
+        }
+
+        const userData = userSnapshot.data();
+
+        if (String(userData.role || "").toLowerCase() !== "admin") {
+            await appAlert(
+                "This page is for administrators only.",
+                { title: "Access Denied", type: "error" }
+            );
+            window.location.replace("../login.html");
+            return;
+        }
+
+        await loadAdminSpecializations();
+        await loadActiveAcademicYear();
+
+    } catch (error) {
+        console.error("Admin authentication error:", error);
+
+        showNotification(
+            "Unable to verify your admin account. Check your connection and Firestore permissions.",
+            "error"
+        );
+    }
+});
+
+/* =====================================================
+   ACTIVE ACADEMIC YEAR
+===================================================== */
+
+async function loadActiveAcademicYear() {
+    const yearElement = document.getElementById("activeAcademicYear");
+
+    try {
+        const yearQuery = query(
+            collection(db, "academicYears"),
+            where("active", "==", true)
+        );
+
+        const snapshot = await getDocs(yearQuery);
+
+        if (snapshot.empty) {
+            activeAcademicYear = "";
+            activeAcademicYearId = "";
+            allExams = [];
+
+            if (yearElement) {
+                yearElement.textContent = "No active academic year";
+            }
+
+            const list = document.getElementById("examList");
+
+            if (list) {
+                list.innerHTML = `
+                    <div class="admin-empty">
+                        <h2>No Active Academic Year</h2>
+                        <p>Activate an academic year before managing exams.</p>
+                    </div>
+                `;
+            }
+
+            return;
+        }
+
+        const activeDocument = snapshot.docs[0];
+        const data = activeDocument.data();
+
+        activeAcademicYearId = activeDocument.id;
+        activeAcademicYear = String(data.year || data.name || "");
+
+        if (yearElement) {
+            yearElement.textContent = activeAcademicYear || "Unknown";
+        }
+
+        if (!activeAcademicYear) {
+            allExams = [];
+
+            const list = document.getElementById("examList");
+
+            if (list) {
+                list.innerHTML = `
+                    <div class="admin-empty">
+                        <h2>Academic Year Not Configured</h2>
+                        <p>The active academic year has no year or name value.</p>
+                    </div>
+                `;
+            }
+
+            return;
+        }
+
+        await loadExams();
+
+    } catch (error) {
+        console.error("Error loading academic year:", error);
+
+        if (yearElement) {
+            yearElement.textContent = "Unable to load";
+        }
+
+        showNotification(
+            "Could not load the active academic year.",
+            "error"
+        );
+    }
+}
+
+/* =====================================================
+   FACULTY / CREATOR NAME
+===================================================== */
+
+async function getFacultyName(facultyId) {
+    if (!facultyId) return "Unknown Faculty";
+
+    if (facultyNameCache[facultyId]) {
+        return facultyNameCache[facultyId];
+    }
+
+    try {
+        const snapshot = await getDoc(
+            doc(db, "users", facultyId)
+        );
+
+        if (!snapshot.exists()) {
+            return "Unknown Faculty";
+        }
+
+        const data = snapshot.data();
+
+        const name =
+            data.fullname ||
+            data.name ||
+            data.email ||
+            "Unknown Faculty";
+
+        facultyNameCache[facultyId] = name;
+
+        return name;
+
+    } catch (error) {
+        console.error("Error loading faculty:", error);
+        return "Unknown Faculty";
+    }
+}
+
+/* =====================================================
+   LOAD AND GROUP EXAMS
+   NEWEST EXAMS FIRST
+===================================================== */
+
+async function loadExams() {
+    const examList = document.getElementById("examList");
+
+    if (!activeAcademicYear) return;
+
+    editingQuestions.clear();
+
+    if (examList) {
+        examList.innerHTML = `
+            <div class="admin-empty">
+                <h2>Loading Exams...</h2>
+                <p>Please wait.</p>
             </div>
         `;
+    }
 
+    try {
+        const examQuery = query(
+            collection(db, "questionBank"),
+            where("academicYear", "==", activeAcademicYear),
+            orderBy("createdAt", "desc")
+        );
+
+        let snapshot;
+
+        try {
+            snapshot = await getDocs(examQuery);
+        } catch (indexError) {
+            console.warn(
+                "Ordered exam query failed. Trying without ordering:",
+                indexError
+            );
+
+            const fallbackQuery = query(
+                collection(db, "questionBank"),
+                where("academicYear", "==", activeAcademicYear)
+            );
+
+            snapshot = await getDocs(fallbackQuery);
+        }
+
+        const examMap = new Map();
+
+        snapshot.forEach(questionDoc => {
+            const data = questionDoc.data();
+
+            const title = String(
+                data.examTitle || data.title || "Untitled Exam"
+            ).trim();
+
+            const specialization = String(
+                data.specialization || "No Specialization"
+            ).trim();
+
+            const key = `${specialization}|||${title}`;
+
+            if (!examMap.has(key)) {
+                examMap.set(key, {
+                    key,
+                    title,
+                    specialization,
+                    academicYear:
+                        data.academicYear || activeAcademicYear,
+
+                    facultyId:
+                        data.facultyId ||
+                        data.facultyID ||
+                        data.createdBy ||
+                        "",
+
+                    status: "ready",
+                    scheduledStartAt: data.scheduledStartAt || null,
+                    scheduledEndAt: data.scheduledEndAt || null,
+                    maxAttempts: Number(data.maxAttempts) || 1,
+
+                    allowBackNavigation:
+                        data.allowBackNavigation ?? false,
+
+                    randomizeQuestions:
+                        data.randomizeQuestions ?? true,
+
+                    randomizeChoices:
+                        data.randomizeChoices ?? true,
+
+                    tabSwitchPolicy:
+                        data.tabSwitchPolicy || "warn",
+
+                    autoSubmitOnExpiry:
+                        data.autoSubmitOnExpiry ?? true,
+
+                    type: data.type || "Multiple Choice",
+                    createdAt: data.createdAt || null,
+                    questions: [],
+                    questionIds: []
+                });
+            }
+
+            const exam = examMap.get(key);
+
+            exam.questions.push({
+                id: questionDoc.id,
+                question: data.question || "",
+                choices: getQuestionChoices(data),
+                choiceFormat: detectChoiceFormat(data),
+                correctAnswer: data.correctAnswer || "",
+                status: data.status || "ready"
+            });
+
+            exam.questionIds.push(questionDoc.id);
+
+            if (data.status === "administered") {
+                exam.status = "administered";
+            }
+
+            if (data.scheduledStartAt) {
+                exam.scheduledStartAt = data.scheduledStartAt;
+            }
+
+            if (data.scheduledEndAt) {
+                exam.scheduledEndAt = data.scheduledEndAt;
+            }
+
+            if (
+                data.createdAt &&
+                (
+                    !exam.createdAt ||
+                    getTimestampMilliseconds(data.createdAt) >
+                    getTimestampMilliseconds(exam.createdAt)
+                )
+            ) {
+                exam.createdAt = data.createdAt;
+            }
+        });
+
+        allExams = [...examMap.values()].sort((a, b) => {
+            return (
+                getTimestampMilliseconds(b.createdAt) -
+                getTimestampMilliseconds(a.createdAt)
+            );
+        });
+
+        await renderExamList();
+
+        // Exams whose end date/time already passed are stopped now.
+        await autoStopExpiredExams();
+
+    } catch (error) {
+        console.error("Error loading exams:", error);
+
+        if (examList) {
+            examList.innerHTML = `
+                <div class="admin-empty">
+                    <h2>Unable to Load Exams</h2>
+                    <p>Check your Firestore rules and connection.</p>
+                </div>
+            `;
+        }
+
+        showNotification(
+            "Unable to load exams for the active academic year.",
+            "error"
+        );
+    }
+}
+
+/* =====================================================
+   RENDER EXAMS BY SPECIALIZATION
+===================================================== */
+
+async function renderExamList() {
+    const examList = document.getElementById("examList");
+
+    if (!examList) return;
+
+    if (!allExams.length) {
+        examList.innerHTML = `
+            <div class="admin-empty">
+                <h2>No Exams Available</h2>
+                <p>No exams have been created for this academic year.</p>
+            </div>
+        `;
         return;
     }
 
-    panel.innerHTML = exam.questions
-        .map((question, questionIndex) => {
+    const columnsMap = new Map();
 
-            const choices = question.choices || {};
-            const correctLetter = resolveCorrectLetter(question);
-            const correctText = correctLetter
-                ? (choices[correctLetter] || "")
-                : "";
+    for (const exam of allExams) {
+        const specialization = exam.specialization || "General";
 
-            return `
+        if (!columnsMap.has(specialization)) {
+            columnsMap.set(specialization, []);
+        }
+
+        columnsMap.get(specialization).push(exam);
+    }
+
+    examList.innerHTML = "";
+
+    const container = document.createElement("div");
+    container.className = "admin-columns-container";
+
+    for (const [specialization, exams] of columnsMap.entries()) {
+        const columnDiv = document.createElement("div");
+        columnDiv.className = "admin-category-column";
+
+        const headerDiv = document.createElement("div");
+        headerDiv.className = "admin-category-header";
+
+        // Full name on hover, in case a long name is shortened.
+        headerDiv.title = specialization;
+
+        headerDiv.innerHTML = `
+            <span>* ${escapeHTML(specialization)}</span>
+            <span class="admin-category-count">${exams.length}</span>
+        `;
+
+        columnDiv.appendChild(headerDiv);
+
+        const listDiv = document.createElement("div");
+        listDiv.className = "admin-category-exams-list";
+
+        for (const exam of exams) {
+            const globalIndex = allExams.indexOf(exam);
+            const facultyName = await getFacultyName(exam.facultyId);
+            const administered = exam.status === "administered";
+
+            const card = document.createElement("div");
+            card.className = "admin-exam-card";
+
+            card.innerHTML = `
+                <div class="exam-card-top">
+                    <div>
+                        <h2 class="exam-title">
+                            ${escapeHTML(exam.title)}
+                        </h2>
+
+                        <div class="exam-faculty">
+                            Created by:
+                            <strong>${escapeHTML(facultyName)}</strong>
+                        </div>
+                    </div>
+
+                    <span class="exam-status ${administered ? "administered" : "ready"}">
+                        ${administered ? "Administered" : "Ready"}
+                    </span>
+                </div>
+
+                <div class="exam-meta">
+                    <div>
+                        <strong>Academic Year</strong>
+                        <span>${escapeHTML(exam.academicYear)}</span>
+                    </div>
+
+                    <div>
+                        <strong>Type</strong>
+                        <span>${escapeHTML(exam.type)}</span>
+                    </div>
+
+                    <div>
+                        <strong>Questions</strong>
+                        <span id="question-count-${globalIndex}">${exam.questions.length}</span>
+                    </div>
+                </div>
+
+                <section class="admin-rule-settings">
+                    <h4>📅 Availability</h4>
+
+                    <div class="admin-rule-grid">
+                        <div>
+                            <label for="adminStartAt-${globalIndex}">
+                                Start
+                            </label>
+
+                            <input
+                                type="datetime-local"
+                                id="adminStartAt-${globalIndex}"
+                                value="${escapeHTML(getLocalDateTimeValue(exam.scheduledStartAt))}"
+                            >
+                        </div>
+
+                        <div>
+                            <label for="adminEndAt-${globalIndex}">
+                                End
+                            </label>
+
+                            <input
+                                type="datetime-local"
+                                id="adminEndAt-${globalIndex}"
+                                value="${escapeHTML(getLocalDateTimeValue(exam.scheduledEndAt))}"
+                            >
+                        </div>
+
+                    </div>
+
+                    <p style="margin:10px 0 0;font-size:11px;
+                        color:#5f6368;line-height:1.4;">
+                        Students can only start the exam between these
+                        dates. Each question is timed at 30 seconds in the
+                        exam itself.
+                    </p>
+                </section>
+
+                <button
+                    type="button"
+                    class="check-questions-btn"
+                    onclick="toggleQuestions(${globalIndex})">
+                    Check Questions
+                </button>
 
                 <div
-                    class="question-panel"
-                    id="question-panel-${question.id}"
-                >
+                    class="questions-panel"
+                    id="questions-${globalIndex}"
+                    style="display:none;">
+                </div>
 
-                    <div class="question-panel-header">
-
-                        <div class="question-number">
-                            Question ${questionIndex + 1}
-                        </div>
-
-                        <div class="question-actions">
-
-                            <button
-                                class="edit-question-btn"
-                                onclick="editQuestion('${question.id}', ${examIndex})"
-                            >
-                                Edit
-                            </button>
-
-                            <button
-                                class="delete-question-btn"
-                                onclick="deleteQuestion('${question.id}', ${examIndex})"
-                            >
-                                Delete
-                            </button>
-
-                        </div>
-
-                    </div>
-
-                    <div
-                        class="student-question-box"
-                        id="question-content-${question.id}"
-                    >
-
-                        <div class="question-text">
-                            ${escapeHTML(question.question)}
-                        </div>
-
-                        <div class="choices-list">
-
-                            ${renderChoice("A", choices.A, correctLetter === "A")}
-                            ${renderChoice("B", choices.B, correctLetter === "B")}
-                            ${renderChoice("C", choices.C, correctLetter === "C")}
-                            ${renderChoice("D", choices.D, correctLetter === "D")}
-
-                        </div>
-
-                        <div class="correct-answer-line ${correctLetter ? "" : "missing"}">
-                            ${
-                                correctLetter
-                                ? `✔ Correct Answer: <strong>${correctLetter}</strong>${
-                                      correctText
-                                      ? ` — ${escapeHTML(correctText)}`
-                                      : ""
-                                  }`
-                                : "⚠ No correct answer set"
-                            }
-                        </div>
-
-                    </div>
-
+                <div class="admin-exam-actions">
+                    ${
+                        administered
+                            ? `
+                                <button
+                                    type="button"
+                                    class="stop-administer-btn"
+                                    onclick="stopAdministration(${globalIndex})">
+                                    Stop Administration
+                                </button>
+                            `
+                            : `
+                                <button
+                                    type="button"
+                                    class="administer-exam-btn"
+                                    onclick="administerExam(${globalIndex})">
+                                    Administer Exam
+                                </button>
+                            `
+                    }
                 </div>
             `;
 
-        })
-        .join("");
+            listDiv.appendChild(card);
+        }
+
+        columnDiv.appendChild(listDiv);
+        container.appendChild(columnDiv);
+    }
+
+    examList.appendChild(container);
 }
-
-
-/* =====================================================
-   RENDER CHOICE
-===================================================== */
-
-function renderChoice(letter, text, isCorrect = false) {
-
-    return `
-        <div class="student-choice ${isCorrect ? "correct-choice" : ""}">
-
-            <div class="choice-circle">
-                ${letter}
-            </div>
-
-            <div class="choice-text">
-                ${escapeHTML(text || "")}
-            </div>
-
-            ${isCorrect ? `<span class="correct-badge">✔ Correct</span>` : ""}
-
-        </div>
-    `;
-}
-
 
 /* =====================================================
    ADMINISTER EXAM
 ===================================================== */
 
 async function administerExam(examIndex) {
-
     const exam = allExams[examIndex];
 
-    if (!exam) {
+    if (!exam) return;
+
+    if (!exam.questions.length) {
+        await appAlert(
+            "This exam has no questions.",
+            { type: "warning" }
+        );
         return;
     }
 
-    try {
+    const startInput = document.getElementById(
+        `adminStartAt-${examIndex}`
+    );
 
-        /*
-         * Several exams can be administered at the same time,
-         * across any specialization. Other administered exams
-         * are left untouched. Only this exam's questions are
-         * switched to "administered".
-         */
+    const endInput = document.getElementById(
+        `adminEndAt-${examIndex}`
+    );
 
-        const questionsToUpdate = exam.questions.filter(
-            question => question.status !== "administered"
+    const startValue = startInput?.value;
+    const endValue = endInput?.value;
+
+    if (!startValue || !endValue) {
+        await appAlert(
+            "Please select both the start and end date/time.",
+            { type: "warning" }
         );
+        return;
+    }
 
-        if (questionsToUpdate.length === 0) {
-            alert("This exam is already administered.");
-            return;
+    const startDate = new Date(startValue);
+    const endDate = new Date(endValue);
+
+    if (
+        Number.isNaN(startDate.getTime()) ||
+        Number.isNaN(endDate.getTime())
+    ) {
+        await appAlert(
+            "Please enter valid scheduling dates.",
+            { type: "warning" }
+        );
+        return;
+    }
+
+    if (endDate <= startDate) {
+        await appAlert(
+            "The end date/time must be later than the start date/time.",
+            { type: "warning" }
+        );
+        return;
+    }
+
+    const confirmed = await appConfirm(
+        `Administer "${exam.title}" for ${exam.specialization}?\n\n` +
+        `Opens: ${startDate.toLocaleString()}\n` +
+        `Closes: ${endDate.toLocaleString()}`,
+        {
+            title: "Administer Exam",
+            confirmText: "Administer",
+            type: "question"
         }
+    );
 
-        /* Multiple batches to stay under Firestore's 500-write limit. */
+    if (!confirmed) return;
+
+    try {
         let batch = writeBatch(db);
         let operationCount = 0;
 
-        for (const question of questionsToUpdate) {
-
+        for (const questionId of exam.questionIds) {
             batch.update(
-                doc(db, "questionBank", question.id),
+                doc(db, "questionBank", questionId),
                 {
                     status: "administered",
+                    scheduledStartAt: startDate,
+                    scheduledEndAt: endDate,
+                    maxAttempts: 1,
+                    allowBackNavigation: false,
+                    randomizeQuestions: true,
+                    randomizeChoices: true,
+                    tabSwitchPolicy: "warn",
+                    autoSubmitOnExpiry: true,
                     administeredBy: currentAdminUid,
-                    administeredAt: new Date()
+                    administeredAt: serverTimestamp(),
+                    autoStoppedAt: deleteField()
                 }
             );
 
             operationCount++;
 
-            if (operationCount >= 450) {
+            if (operationCount === 450) {
                 await batch.commit();
+
                 batch = writeBatch(db);
                 operationCount = 0;
             }
@@ -768,51 +824,73 @@ async function administerExam(examIndex) {
             await batch.commit();
         }
 
-        alert(`"${exam.title}" has been administered successfully.`);
+        showNotification(
+            `"${exam.title}" was administered successfully.`,
+            "success"
+        );
 
         await loadExams();
 
     } catch (error) {
-
         console.error("Error administering exam:", error);
 
-        alert("Failed to administer exam.");
+        showNotification(
+            "Failed to administer the exam. Check Firestore permissions.",
+            "error"
+        );
     }
 }
-
 
 /* =====================================================
    STOP ADMINISTRATION
 ===================================================== */
 
 async function stopAdministration(examIndex) {
-
     const exam = allExams[examIndex];
 
-    if (!exam) {
-        return;
-    }
+    if (!exam) return;
+
+    const confirmed = await appConfirm(
+        `Stop administration of "${exam.title}"?\n\n` +
+        "Students will no longer be allowed to start this exam.",
+        {
+            title: "Stop Administration",
+            confirmText: "Stop",
+            type: "warning",
+            danger: true
+        }
+    );
+
+    if (!confirmed) return;
 
     try {
-
         let batch = writeBatch(db);
         let operationCount = 0;
 
-        for (const question of exam.questions) {
-
+        for (const questionId of exam.questionIds) {
             batch.update(
-                doc(db, "questionBank", question.id),
+                doc(db, "questionBank", questionId),
                 {
                     status: "ready",
-                    administeredBy: null,
-                    administeredAt: null
+                    scheduledStartAt: deleteField(),
+                    scheduledEndAt: deleteField(),
+                    administeredBy: deleteField(),
+                    administeredAt: deleteField(),
+                    durationMinutes: deleteField(),
+                    secondsPerQuestion: deleteField(),
+                    allowBackNavigation: false,
+                    randomizeQuestions: true,
+                    randomizeChoices: true,
+                    tabSwitchPolicy: "warn",
+                    autoSubmitOnExpiry: true
                 }
             );
 
             operationCount++;
 
-            if (operationCount >= 450) {
+            if (operationCount === 450) {
                 await batch.commit();
+
                 batch = writeBatch(db);
                 operationCount = 0;
             }
@@ -822,1090 +900,1094 @@ async function stopAdministration(examIndex) {
             await batch.commit();
         }
 
-        alert("Exam administration has been stopped.");
+        showNotification(
+            "Exam administration has been stopped.",
+            "success"
+        );
 
         await loadExams();
 
     } catch (error) {
+        console.error("Error stopping exam:", error);
 
-        console.error("Error stopping administration:", error);
-
-        alert("Failed to stop exam administration.");
-    }
-}
-
-
-/* =====================================================
-   EDIT QUESTION
-===================================================== */
-
-function editQuestion(questionId, examIndex) {
-
-    const exam = allExams[examIndex];
-
-    if (!exam) {
-        return;
-    }
-
-    const question = exam.questions.find(
-        item => item.id === questionId
-    );
-
-    if (!question) {
-        return;
-    }
-
-    const content = document.getElementById(
-        `question-content-${questionId}`
-    );
-
-    if (!content) {
-        return;
-    }
-
-    const choices = question.choices || {};
-    const correctLetter = resolveCorrectLetter(question);
-
-    content.innerHTML = `
-
-        <div class="inline-edit-form">
-
-            <div class="inline-edit-field">
-                <label>Question</label>
-
-                <textarea id="edit-question-${questionId}">${escapeHTML(
-                    question.question
-                )}</textarea>
-            </div>
-
-            <div class="inline-edit-field">
-                <label>Choice A</label>
-
-                <input
-                    type="text"
-                    id="edit-a-${questionId}"
-                    value="${escapeHTML(choices.A || "")}"
-                >
-            </div>
-
-            <div class="inline-edit-field">
-                <label>Choice B</label>
-
-                <input
-                    type="text"
-                    id="edit-b-${questionId}"
-                    value="${escapeHTML(choices.B || "")}"
-                >
-            </div>
-
-            <div class="inline-edit-field">
-                <label>Choice C</label>
-
-                <input
-                    type="text"
-                    id="edit-c-${questionId}"
-                    value="${escapeHTML(choices.C || "")}"
-                >
-            </div>
-
-            <div class="inline-edit-field">
-                <label>Choice D</label>
-
-                <input
-                    type="text"
-                    id="edit-d-${questionId}"
-                    value="${escapeHTML(choices.D || "")}"
-                >
-            </div>
-
-            <div class="inline-edit-field">
-
-                <label>Correct Answer</label>
-
-                <select id="edit-answer-${questionId}">
-
-                    <option value="A" ${correctLetter === "A" ? "selected" : ""}>A</option>
-                    <option value="B" ${correctLetter === "B" ? "selected" : ""}>B</option>
-                    <option value="C" ${correctLetter === "C" ? "selected" : ""}>C</option>
-                    <option value="D" ${correctLetter === "D" ? "selected" : ""}>D</option>
-
-                </select>
-
-            </div>
-
-            <div class="inline-edit-actions">
-
-                <button
-                    class="cancel-inline-edit-btn"
-                    onclick="cancelEditQuestion('${questionId}', ${examIndex})"
-                >
-                    Cancel
-                </button>
-
-                <button
-                    class="save-inline-edit-btn"
-                    onclick="saveQuestion('${questionId}', ${examIndex})"
-                >
-                    Save Changes
-                </button>
-
-            </div>
-
-        </div>
-    `;
-}
-
-
-/* =====================================================
-   CANCEL EDIT
-===================================================== */
-
-function cancelEditQuestion(questionId, examIndex) {
-
-    renderQuestions(examIndex);
-}
-
-
-/* =====================================================
-   SAVE QUESTION
-===================================================== */
-
-async function saveQuestion(questionId, examIndex) {
-
-    try {
-
-        const questionInput = document.getElementById(
-            `edit-question-${questionId}`
-        );
-
-        const aInput = document.getElementById(
-            `edit-a-${questionId}`
-        );
-
-        const bInput = document.getElementById(
-            `edit-b-${questionId}`
-        );
-
-        const cInput = document.getElementById(
-            `edit-c-${questionId}`
-        );
-
-        const dInput = document.getElementById(
-            `edit-d-${questionId}`
-        );
-
-        const answerInput = document.getElementById(
-            `edit-answer-${questionId}`
-        );
-
-        if (
-            !questionInput ||
-            !aInput ||
-            !bInput ||
-            !cInput ||
-            !dInput ||
-            !answerInput
-        ) {
-            alert("Unable to find the question edit fields.");
-            return;
-        }
-
-        const question = questionInput.value.trim();
-
-        if (!question) {
-            alert("Question cannot be empty.");
-            return;
-        }
-
-        const examKey = allExams[examIndex]
-            ? allExams[examIndex].key
-            : null;
-
-        await updateDoc(
-            doc(db, "questionBank", questionId),
-            {
-                question: question,
-
-                choices: {
-                    A: aInput.value.trim(),
-                    B: bInput.value.trim(),
-                    C: cInput.value.trim(),
-                    D: dInput.value.trim()
-                },
-
-                correctAnswer: answerInput.value
-            }
-        );
-
-        alert("Question updated successfully.");
-
-        await loadExams();
-
-        reopenExamPanel(examKey);
-
-    } catch (error) {
-
-        console.error("Error updating question:", error);
-
-        alert("Failed to update question.");
-    }
-}
-
-
-/* =====================================================
-   DELETE QUESTION
-===================================================== */
-
-/*
- * Reopen an exam's question panel after a reload, finding the
- * exam by its stable key instead of its (shifting) list position.
- */
-function reopenExamPanel(examKey) {
-
-    if (!examKey) {
-        return;
-    }
-
-    const newIndex = allExams.findIndex(exam => exam.key === examKey);
-
-    if (newIndex === -1) {
-        return;   /* exam no longer exists (e.g. last question deleted) */
-    }
-
-    const panel = document.getElementById(`questions-${newIndex}`);
-
-    if (!panel) {
-        return;
-    }
-
-    renderQuestions(newIndex);
-
-    panel.style.display = "block";
-
-    openedExamKey = examKey;
-}
-
-
-async function deleteQuestion(questionId, examIndex) {
-
-    const exam = allExams[examIndex];
-
-    if (!exam) {
-        return;
-    }
-
-    const questionIndex = exam.questions.findIndex(
-        item => item.id === questionId
-    );
-
-    if (questionIndex === -1) {
-        return;
-    }
-
-    const question = exam.questions[questionIndex];
-    const examKey = exam.key;
-
-    const preview = question.question.length > 80
-        ? question.question.slice(0, 80) + "..."
-        : question.question;
-
-    const confirmed = confirm(
-        `Delete Question ${questionIndex + 1} from "${exam.title}"?\n\n"${preview}"`
-    );
-
-    if (!confirmed) {
-        return;
-    }
-
-    try {
-
-        await deleteDoc(
-            doc(db, "questionBank", questionId)
-        );
-
-        alert("Question deleted successfully.");
-
-        await loadExams();
-
-        reopenExamPanel(examKey);
-
-    } catch (error) {
-
-        console.error("Error deleting question:", error);
-
-        alert("Failed to delete question.");
-    }
-}
-
-
-/* =====================================================
-   ADMIN PDF UPLOAD: NOTIFICATIONS (auto-hide)
-===================================================== */
-
-function showAdminUploadMessage(message, type = "info") {
-
-    const notification = document.getElementById("uiNotification");
-
-    if (notification) {
-
-        const colors = {
-            success: "#218838",
-            error: "#dc3545",
-            warning: "#b7791f",
-            info: "#2457a7"
-        };
-
-        /* How long each type stays on screen (ms). */
-        const durations = {
-            success: 4000,
-            info: 4000,
-            warning: 7000,
-            error: 7000
-        };
-
-        /* Cancel any pending hide so a new message isn't cut short. */
-        if (adminNotificationTimer) {
-            clearTimeout(adminNotificationTimer);
-            adminNotificationTimer = null;
-        }
-
-        notification.textContent = message;
-        notification.style.color = colors[type] || colors.info;
-        notification.style.display = "block";
-
-        adminNotificationTimer = setTimeout(() => {
-
-            notification.style.display = "none";
-            notification.textContent = "";
-
-            adminNotificationTimer = null;
-
-        }, durations[type] || 4000);
-    }
-
-    console.log(`[Admin PDF Upload - ${type}] ${message}`);
-}
-
-
-/* =====================================================
-   ADMIN PDF UPLOAD: SPECIALIZATIONS
-===================================================== */
-
-async function loadAdminSpecializations() {
-
-    const select = document.getElementById(
-        "adminSpecializationSelect"
-    );
-
-    if (!select) {
-        return;
-    }
-
-    const previousValue = select.value;
-
-    try {
-
-        const specializationSnapshot = await getDocs(
-            collection(db, "specializations")
-        );
-
-        const names = new Set();
-
-        specializationSnapshot.forEach((specializationDoc) => {
-
-            const data = specializationDoc.data();
-
-            const name =
-                data.name ||
-                data.specialization ||
-                data.title;
-
-            if (name && String(name).trim()) {
-                names.add(String(name).trim());
-            }
-        });
-
-        /* If empty, fall back to questionBank specializations. */
-        if (names.size === 0) {
-
-            const questionSnapshot = await getDocs(
-                collection(db, "questionBank")
-            );
-
-            questionSnapshot.forEach((questionDoc) => {
-
-                const data = questionDoc.data();
-
-                if (
-                    data.specialization &&
-                    String(data.specialization).trim()
-                ) {
-                    names.add(String(data.specialization).trim());
-                }
-            });
-        }
-
-        const sortedNames = [...names].sort(
-            (a, b) => a.localeCompare(b)
-        );
-
-        select.innerHTML = `
-            <option value="">Select Specialization</option>
-            ${
-                sortedNames.map(name => `
-                    <option value="${escapeHTML(name)}">
-                        ${escapeHTML(name)}
-                    </option>
-                `).join("")
-            }
-        `;
-
-        if (sortedNames.includes(previousValue)) {
-            select.value = previousValue;
-        }
-
-        updateAdminUploadFieldsVisibility();
-
-        if (sortedNames.length === 0) {
-            showAdminUploadMessage(
-                "No specializations found. Add a specialization first.",
-                "warning"
-            );
-        }
-
-    } catch (error) {
-
-        console.error("Error loading specializations:", error);
-
-        showAdminUploadMessage(
-            "Unable to load specializations. Check your Firestore configuration.",
+        showNotification(
+            "Failed to stop exam administration.",
             "error"
         );
     }
 }
 
-
 /* =====================================================
-   ADMIN PDF UPLOAD: PDF TEXT EXTRACTION
+   AUTOMATIC STOP WHEN THE END DATE/TIME IS REACHED
+   An administered exam whose end date/time has passed is
+   switched back to "ready" (same as pressing Stop
+   Administration). The schedule dates are kept so you can
+   still see when it ran.
 ===================================================== */
 
-async function extractAdminPDFText(file) {
+let autoStopRunning = false;
 
-    if (!file) {
-        throw new Error("Please select a PDF file.");
+async function autoStopExpiredExams() {
+    if (autoStopRunning || !allExams.length) return;
+
+    const now = Date.now();
+
+    const expired = allExams.filter(exam => {
+        if (exam.status !== "administered") return false;
+
+        const endMs = getTimestampMilliseconds(exam.scheduledEndAt);
+
+        return endMs > 0 && endMs <= now;
+    });
+
+    if (!expired.length) return;
+
+    autoStopRunning = true;
+
+    try {
+        let batch = writeBatch(db);
+        let operationCount = 0;
+
+        for (const exam of expired) {
+            for (const questionId of exam.questionIds) {
+                batch.update(
+                    doc(db, "questionBank", questionId),
+                    {
+                        status: "ready",
+                        autoStoppedAt: serverTimestamp()
+                    }
+                );
+
+                operationCount++;
+
+                if (operationCount === 450) {
+                    await batch.commit();
+
+                    batch = writeBatch(db);
+                    operationCount = 0;
+                }
+            }
+        }
+
+        if (operationCount > 0) {
+            await batch.commit();
+        }
+
+        const names = expired
+            .map(exam => `"${exam.title}"`)
+            .join(", ");
+
+        showNotification(
+            `${names} reached its end date/time and was stopped automatically.`,
+            "info"
+        );
+
+        await loadExams();
+
+    } catch (error) {
+        console.error("Error stopping expired exams:", error);
+
+    } finally {
+        autoStopRunning = false;
     }
+}
+
+/* =====================================================
+   QUESTION PREVIEW + EDITING + DELETING
+===================================================== */
+
+function editKey(examIndex, questionIndex) {
+    return `${examIndex}:${questionIndex}`;
+}
+
+function toggleQuestions(examIndex) {
+    const panel = document.getElementById(
+        `questions-${examIndex}`
+    );
+
+    if (!panel) return;
 
     if (
-        !file.name.toLowerCase().endsWith(".pdf") &&
-        file.type !== "application/pdf"
+        panel.style.display === "none" ||
+        !panel.style.display
     ) {
-        throw new Error("Only PDF files are supported.");
+        renderQuestions(examIndex);
+        panel.style.display = "block";
+    } else {
+        panel.style.display = "none";
+    }
+}
+
+function renderQuestions(examIndex) {
+    const panel = document.getElementById(
+        `questions-${examIndex}`
+    );
+
+    const exam = allExams[examIndex];
+
+    if (!panel || !exam) return;
+
+    if (!exam.questions.length) {
+        panel.innerHTML = `
+            <div class="no-questions">
+                No questions available.
+            </div>
+        `;
+        return;
     }
 
-    if (typeof pdfjsLib === "undefined") {
+    const letters = ["A", "B", "C", "D"];
+
+    panel.innerHTML = exam.questions.map((question, index) => {
+        const choices = question.choices || {};
+        const correctLetter = resolveCorrectLetter(question);
+        const isEditing = editingQuestions.has(editKey(examIndex, index));
+
+        /* ---------- EDIT MODE ---------- */
+
+        if (isEditing) {
+            return `
+                <div class="question-panel" style="border-color:#8ec6d1;">
+                    <div class="question-panel-header">
+                        <div class="question-number">
+                            Question ${index + 1} (editing)
+                        </div>
+                    </div>
+
+                    <label style="display:block;font-size:12px;
+                        color:#5f6368;margin-bottom:4px;">
+                        Question
+                    </label>
+
+                    <textarea
+                        id="editQuestionText-${examIndex}-${index}"
+                        rows="3"
+                        style="width:100%;box-sizing:border-box;padding:10px;
+                            border:1px solid #dadce0;border-radius:8px;
+                            font-family:inherit;font-size:14px;"
+                    >${escapeHTML(question.question)}</textarea>
+
+                    <label style="display:block;font-size:12px;
+                        color:#5f6368;margin:12px 0 6px;">
+                        Choices (select the correct answer)
+                    </label>
+
+                    <div style="display:grid;gap:8px;">
+                        ${letters.map(letter => `
+                            <div style="display:flex;align-items:center;gap:8px;">
+                                <input
+                                    type="radio"
+                                    name="editCorrect-${examIndex}-${index}"
+                                    value="${letter}"
+                                    ${correctLetter === letter ? "checked" : ""}
+                                    title="Mark ${letter} as the correct answer"
+                                    style="accent-color:#137333;width:17px;height:17px;"
+                                >
+
+                                <strong style="width:18px;">${letter}</strong>
+
+                                <input
+                                    type="text"
+                                    id="editChoice-${letter}-${examIndex}-${index}"
+                                    value="${escapeHTML(choices[letter])}"
+                                    style="flex:1;padding:8px 10px;
+                                        border:1px solid #dadce0;
+                                        border-radius:8px;font-size:13px;
+                                        box-sizing:border-box;"
+                                >
+                            </div>
+                        `).join("")}
+                    </div>
+
+                    <div style="display:flex;gap:8px;margin-top:14px;">
+                        <button
+                            type="button"
+                            onclick="cancelQuestionEdit(${examIndex}, ${index})"
+                            style="flex:1;padding:9px;border:1px solid #dadce0;
+                                border-radius:8px;background:#fff;
+                                font-weight:600;cursor:pointer;">
+                            Cancel
+                        </button>
+
+                        <button
+                            type="button"
+                            id="saveEditBtn-${examIndex}-${index}"
+                            onclick="saveQuestionEdit(${examIndex}, ${index})"
+                            style="flex:1;padding:9px;border:0;
+                                border-radius:8px;background:#137333;
+                                color:#fff;font-weight:700;cursor:pointer;">
+                            Save Changes
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        /* ---------- VIEW MODE ---------- */
+
+        return `
+            <div class="question-panel">
+                <div class="question-panel-header">
+                    <div class="question-number">
+                        Question ${index + 1}
+                    </div>
+
+                    <div style="display:flex;gap:6px;">
+                        <button
+                            type="button"
+                            onclick="startQuestionEdit(${examIndex}, ${index})"
+                            style="border:1px solid #dadce0;border-radius:8px;
+                                background:#fff;padding:5px 12px;font-size:12px;
+                                font-weight:600;cursor:pointer;">
+                             Edit
+                        </button>
+
+                        <button
+                            type="button"
+                            onclick="deleteQuestion(${examIndex}, ${index})"
+                            style="border:1px solid #f1c4c0;border-radius:8px;
+                                background:#fff5f4;color:#b31412;
+                                padding:5px 12px;font-size:12px;
+                                font-weight:600;cursor:pointer;">
+                             Delete
+                        </button>
+                    </div>
+                </div>
+
+                <div class="student-question-box">
+                    <div class="question-text">
+                        ${escapeHTML(question.question)}
+                    </div>
+
+                    <div class="choices-list">
+                        ${letters.map(letter => `
+                            <div
+                                class="student-choice ${
+                                    correctLetter === letter
+                                        ? "correct-choice"
+                                        : ""
+                                }">
+
+                                <div class="choice-circle">
+                                    ${letter}
+                                </div>
+
+                                <div class="choice-text">
+                                    ${escapeHTML(choices[letter])}
+                                </div>
+                            </div>
+                        `).join("")}
+                    </div>
+
+                    <p class="admin-answer-key">
+                        Correct answer:
+                        <strong>
+                            ${escapeHTML(correctLetter || "Not identified")}
+                        </strong>
+                    </p>
+                </div>
+            </div>
+        `;
+    }).join("");
+}
+
+function startQuestionEdit(examIndex, questionIndex) {
+    editingQuestions.add(editKey(examIndex, questionIndex));
+    renderQuestions(examIndex);
+}
+
+function cancelQuestionEdit(examIndex, questionIndex) {
+    editingQuestions.delete(editKey(examIndex, questionIndex));
+    renderQuestions(examIndex);
+}
+
+async function saveQuestionEdit(examIndex, questionIndex) {
+    const exam = allExams[examIndex];
+    const question = exam?.questions[questionIndex];
+
+    if (!exam || !question) return;
+
+    const letters = ["A", "B", "C", "D"];
+
+    const text = document.getElementById(
+        `editQuestionText-${examIndex}-${questionIndex}`
+    )?.value.trim() || "";
+
+    const choices = {};
+
+    for (const letter of letters) {
+        choices[letter] = document.getElementById(
+            `editChoice-${letter}-${examIndex}-${questionIndex}`
+        )?.value.trim() || "";
+    }
+
+    const selected = document.querySelector(
+        `input[name="editCorrect-${examIndex}-${questionIndex}"]:checked`
+    )?.value || "";
+
+    /* ---------- validation ---------- */
+
+    if (!text) {
+        await appAlert(
+            "The question text cannot be empty.",
+            { type: "warning" }
+        );
+        return;
+    }
+
+    if (letters.some(letter => !choices[letter])) {
+        await appAlert(
+            "All four choices (A to D) must be filled in.",
+            { type: "warning" }
+        );
+        return;
+    }
+
+    const lowered = letters.map(letter => choices[letter].toLowerCase());
+
+    if (new Set(lowered).size !== lowered.length) {
+        await appAlert(
+            "Two or more choices are identical. Each choice must be different.",
+            { type: "warning" }
+        );
+        return;
+    }
+
+    if (!selected) {
+        await appAlert(
+            "Select which choice is the correct answer.",
+            { type: "warning" }
+        );
+        return;
+    }
+
+    /* ---------- extra care for a live exam ---------- */
+
+    if (exam.status === "administered") {
+        const proceed = await appConfirm(
+            "This exam is currently administered.\n\n" +
+            "Your changes apply to students who take the exam from now on. " +
+            "Results that were already submitted are not regraded.\n\n" +
+            "Save the changes?",
+            {
+                title: "Edit Administered Question",
+                confirmText: "Save Changes",
+                type: "warning"
+            }
+        );
+
+        if (!proceed) return;
+    }
+
+    const saveButton = document.getElementById(
+        `saveEditBtn-${examIndex}-${questionIndex}`
+    );
+
+    if (saveButton) {
+        saveButton.disabled = true;
+        saveButton.textContent = "Saving...";
+    }
+
+    // Keep the stored answer style: letter ("B") or the answer text.
+    const answerWasLetter =
+        !question.correctAnswer ||
+        /^[A-D]$/i.test(String(question.correctAnswer).trim());
+
+    const correctAnswer = answerWasLetter
+        ? selected
+        : choices[selected];
+
+    try {
+        await updateDoc(
+            doc(db, "questionBank", question.id),
+            {
+                question: text,
+                ...buildChoicePayload(question.choiceFormat, choices),
+                correctAnswer,
+                lastEditedBy: currentAdminUid,
+                lastEditedAt: serverTimestamp()
+            }
+        );
+
+        question.question = text;
+        question.choices = choices;
+        question.correctAnswer = correctAnswer;
+
+        editingQuestions.delete(editKey(examIndex, questionIndex));
+        renderQuestions(examIndex);
+
+        showNotification(
+            `Question ${questionIndex + 1} was updated.`,
+            "success"
+        );
+
+    } catch (error) {
+        console.error("Error saving question:", error);
+
+        if (saveButton) {
+            saveButton.disabled = false;
+            saveButton.textContent = "Save Changes";
+        }
+
+        await appAlert(
+            "Unable to save the question. Check your connection and Firestore permissions.",
+            { type: "error" }
+        );
+    }
+}
+
+/* =====================================================
+   DELETE A QUESTION
+===================================================== */
+
+async function deleteQuestion(examIndex, questionIndex) {
+    const exam = allExams[examIndex];
+    const question = exam?.questions[questionIndex];
+
+    if (!exam || !question) return;
+
+    const fullText = String(question.question || "").trim();
+
+    const preview = fullText.length > 120
+        ? fullText.slice(0, 120) + "…"
+        : fullText;
+
+    const isLastQuestion = exam.questions.length === 1;
+
+    let message =
+        `Delete question ${questionIndex + 1}?\n\n` +
+        `"${preview}"\n\n` +
+        "This cannot be undone.";
+
+    if (exam.status === "administered") {
+        message +=
+            "\n\nThis exam is currently administered. Students who " +
+            "take the exam from now on will no longer get this " +
+            "question. Results that were already submitted are not " +
+            "changed.";
+    }
+
+    if (isLastQuestion) {
+        message +=
+            "\n\nThis is the last question, so the whole exam will " +
+            "be removed from the list.";
+    }
+
+    const confirmed = await appConfirm(message, {
+        title: "Delete Question",
+        confirmText: "Delete",
+        type: "warning",
+        danger: true
+    });
+
+    if (!confirmed) return;
+
+    try {
+        await deleteDoc(
+            doc(db, "questionBank", question.id)
+        );
+
+        exam.questions.splice(questionIndex, 1);
+
+        exam.questionIds = exam.questionIds.filter(
+            id => id !== question.id
+        );
+
+        // Edit mode is tracked by position, and the positions have
+        // just moved, so close any open editors of this exam.
+        for (const key of [...editingQuestions]) {
+            if (key.startsWith(`${examIndex}:`)) {
+                editingQuestions.delete(key);
+            }
+        }
+
+        showNotification(
+            "The question was deleted.",
+            "success"
+        );
+
+        // No questions left: the exam no longer exists.
+        if (exam.questions.length === 0) {
+            await loadExams();
+            return;
+        }
+
+        renderQuestions(examIndex);
+
+        const countElement = document.getElementById(
+            `question-count-${examIndex}`
+        );
+
+        if (countElement) {
+            countElement.textContent = String(exam.questions.length);
+        }
+
+    } catch (error) {
+        console.error("Error deleting question:", error);
+
+        await appAlert(
+            "Unable to delete the question. Check your connection and Firestore permissions.",
+            { type: "error" }
+        );
+    }
+}
+
+/* =====================================================
+   SPECIALIZATIONS
+===================================================== */
+
+async function loadAdminSpecializations() {
+    const select = document.getElementById(
+        "adminSpecializationSelect"
+    );
+
+    if (!select) return;
+
+    try {
+        const snapshot = await getDocs(
+            collection(db, "specializations")
+        );
+
+        const names = new Set();
+
+        snapshot.forEach(specializationDoc => {
+            const data = specializationDoc.data();
+
+            if (data.name) {
+                names.add(String(data.name).trim());
+            }
+        });
+
+        select.innerHTML = `
+            <option value="">Select Specialization</option>
+            ${
+                [...names]
+                    .sort((a, b) => a.localeCompare(b))
+                    .map(name => `
+                        <option value="${escapeHTML(name)}">
+                            ${escapeHTML(name)}
+                        </option>
+                    `)
+                    .join("")
+            }
+        `;
+
+    } catch (error) {
+        console.error("Error loading specializations:", error);
+
+        select.innerHTML = `
+            <option value="">Unable to load specializations</option>
+        `;
+
+        showNotification(
+            "Unable to load specializations from Firestore.",
+            "error"
+        );
+    }
+}
+
+/* =====================================================
+   PDF TEXT EXTRACTION
+===================================================== */
+
+async function extractPDFText(file) {
+    if (!window.pdfjsLib) {
         throw new Error(
-            "PDF.js is not loaded. Add the PDF.js script to your HTML."
+            "PDF.js is unavailable. Check the PDF.js script in your HTML."
         );
     }
 
-    const buffer = await file.arrayBuffer();
+    const arrayBuffer = await file.arrayBuffer();
 
-    const pdf = await pdfjsLib.getDocument({
-        data: new Uint8Array(buffer)
+    const pdf = await window.pdfjsLib.getDocument({
+        data: new Uint8Array(arrayBuffer)
     }).promise;
 
-    const allLines = [];
+    const pages = [];
 
-    for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
-
+    for (
+        let pageNumber = 1;
+        pageNumber <= pdf.numPages;
+        pageNumber++
+    ) {
         const page = await pdf.getPage(pageNumber);
+        const content = await page.getTextContent();
 
-        const textContent = await page.getTextContent();
+        let lastY = null;
+        let lineText = "";
+        const lineTexts = [];
 
-        const lineMap = new Map();
+        for (const item of content.items) {
+            const currentY = item.transform[5];
 
-        textContent.items.forEach((item) => {
+            if (
+                lastY !== null &&
+                Math.abs(currentY - lastY) > 5
+            ) {
+                if (lineText.trim()) {
+                    lineTexts.push(lineText.trim());
+                }
 
-            if (!item.str || !item.str.trim()) {
-                return;
+                lineText = "";
             }
 
-            const y = Math.round(item.transform[5]);
+            lineText += (lineText ? " " : "") + item.str;
+            lastY = currentY;
+        }
 
-            if (!lineMap.has(y)) {
-                lineMap.set(y, []);
-            }
+        if (lineText.trim()) {
+            lineTexts.push(lineText.trim());
+        }
 
-            lineMap.get(y).push({
-                x: item.transform[4],
-                text: item.str.trim()
-            });
-        });
-
-        /* Sort lines top to bottom and text left to right. */
-        const sortedY = [...lineMap.keys()].sort((a, b) => b - a);
-
-        sortedY.forEach((y) => {
-
-            const items = lineMap.get(y).sort(
-                (a, b) => a.x - b.x
-            );
-
-            const line = items
-                .map(item => item.text)
-                .join(" ")
-                .replace(/\s+/g, " ")
-                .trim();
-
-            if (line) {
-                allLines.push(line);
-            }
-        });
-
-        allLines.push("");
+        pages.push(lineTexts.join("\n"));
     }
 
-    return allLines.join("\n").trim();
+    return pages.join("\n");
 }
 
-
 /* =====================================================
-   ADMIN PDF UPLOAD: EXTRACT QUESTIONS
-   Expected format:
+   EXAM QUESTION PARSER
+   EXPECTED FORMAT:
    1. Question text
-   A. First choice
-   B. Second choice
-   C. Third choice
-   D. Fourth choice
+   A. Choice A
+   B. Choice B
+   C. Choice C
+   D. Choice D
 ===================================================== */
 
-function extractAdminQuestions(text) {
-
-    const normalizedText = text
+function parseExamQuestions(text) {
+    const lines = String(text || "")
         .replace(/\r/g, "\n")
-        .replace(/\u00a0/g, " ");
-
-    /* Question numbers at the start of a line, e.g. "1. " or "2) ". */
-    const questionStartRegex = /^\s*(\d{1,3})[.)]\s+/gm;
-
-    const starts = [];
-
-    let match;
-
-    while ((match = questionStartRegex.exec(normalizedText)) !== null) {
-
-        starts.push({
-            number: Number(match[1]),
-            start: match.index,
-            contentStart: questionStartRegex.lastIndex
-        });
-    }
+        .split("\n")
+        .map(line => line.trim())
+        .filter(Boolean);
 
     const questions = [];
 
-    for (let i = 0; i < starts.length; i++) {
+    let currentQ = null;
+    let currentChoices = {
+        A: "",
+        B: "",
+        C: "",
+        D: ""
+    };
 
-        const current = starts[i];
+    let activeChoice = null;
 
-        const end = i + 1 < starts.length
-            ? starts[i + 1].start
-            : normalizedText.length;
+    function saveCurrentQuestion() {
+        if (!currentQ || !currentQ.text.trim()) return;
 
-        const chunk = normalizedText
-            .slice(current.contentStart, end)
-            .replace(/\s+/g, " ")
-            .trim();
+        const hasChoices = ["A", "B", "C", "D"].some(
+            letter => currentChoices[letter].trim()
+        );
 
-        /* Choice markers: A. / A) / B. / B) ... */
-        const optionRegex = /(?:^|\s)([A-D])[.)]\s+/gi;
+        if (!hasChoices) return;
 
-        const optionMatches = [];
+        questions.push({
+            questionNumber: currentQ.num,
+            question: currentQ.text.trim(),
+            choices: {
+                A: currentChoices.A.trim(),
+                B: currentChoices.B.trim(),
+                C: currentChoices.C.trim(),
+                D: currentChoices.D.trim()
+            }
+        });
+    }
 
-        let optionMatch;
+    for (const line of lines) {
+        const questionMatch = line.match(
+            /^(\d{1,3})[.)]\s*(.*)$/
+        );
 
-        while ((optionMatch = optionRegex.exec(chunk)) !== null) {
+        if (questionMatch) {
+            saveCurrentQuestion();
 
-            optionMatches.push({
-                letter: optionMatch[1].toUpperCase(),
-                markerStart: optionMatch.index,
-                contentStart: optionRegex.lastIndex
-            });
-        }
+            currentQ = {
+                num: Number(questionMatch[1]),
+                text: questionMatch[2]
+            };
 
-        if (optionMatches.length < 4) {
+            currentChoices = {
+                A: "",
+                B: "",
+                C: "",
+                D: ""
+            };
+
+            activeChoice = null;
             continue;
         }
 
-        const firstOptionStart = optionMatches[0].markerStart;
+        const choiceMatch = line.match(
+            /^([A-D])[.)]\s*(.*)$/i
+        );
 
-        const questionText = chunk
-            .slice(0, firstOptionStart)
-            .trim()
-            .replace(/^[\s:.-]+/, "");
+        if (choiceMatch && currentQ) {
+            const letter = choiceMatch[1].toUpperCase();
 
-        const options = {};
+            activeChoice = letter;
+            currentChoices[letter] = choiceMatch[2];
 
-        for (let j = 0; j < optionMatches.length; j++) {
+            continue;
+        }
 
-            const option = optionMatches[j];
-
-            const optionEnd = j + 1 < optionMatches.length
-                ? optionMatches[j + 1].markerStart
-                : chunk.length;
-
-            const optionText = chunk
-                .slice(option.contentStart, optionEnd)
-                .trim()
-                .replace(/^[\s:.-]+/, "")
-                .replace(/[\s]+/g, " ");
-
-            /* If a letter repeats, keep its first occurrence. */
-            if (!options[option.letter]) {
-                options[option.letter] = optionText;
+        if (currentQ) {
+            if (activeChoice) {
+                currentChoices[activeChoice] +=
+                    (currentChoices[activeChoice] ? " " : "") + line;
+            } else {
+                currentQ.text +=
+                    (currentQ.text ? " " : "") + line;
             }
         }
-
-        if (
-            questionText &&
-            options.A &&
-            options.B &&
-            options.C &&
-            options.D
-        ) {
-
-            questions.push({
-                number: current.number,
-                question: questionText,
-                A: options.A,
-                B: options.B,
-                C: options.C,
-                D: options.D
-            });
-        }
     }
+
+    saveCurrentQuestion();
 
     return questions;
 }
 
-
 /* =====================================================
-   ADMIN PDF UPLOAD: EXTRACT ANSWER KEY
-   Supported examples:
+   ANSWER KEY PARSER
+   EXPECTED FORMAT:
    1. A
    2. C
-   3) B
-   4 - D
-   5: A
+   3. B
 ===================================================== */
 
-function extractAdminAnswers(text) {
-
+function parseAnswerKey(text) {
     const answers = {};
 
-    const normalizedText = text
+    const lines = String(text || "")
         .replace(/\r/g, "\n")
-        .replace(/\u00a0/g, " ");
+        .split("\n");
 
-    const answerRegex =
-        /(?:^|[\s,;])(\d{1,3})\s*[.)\-:]?\s*([A-D])(?=$|[\s,;:.])/gim;
+    for (const line of lines) {
+        const match = line.match(
+            /^\s*(\d{1,3})\s*[.):\-]\s*([A-D])\b/i
+        );
 
-    let match;
+        if (match) {
+            answers[Number(match[1])] = match[2].toUpperCase();
+        }
+    }
 
-    while ((match = answerRegex.exec(normalizedText)) !== null) {
+    if (!Object.keys(answers).length) {
+        const regex =
+            /(?:^|\s)(\d{1,3})\s*[.):\-]\s*([A-D])\b/gi;
 
-        const questionNumber = Number(match[1]);
-        const answerLetter = match[2].toUpperCase();
+        let match;
 
-        if (questionNumber > 0) {
-            answers[questionNumber] = answerLetter;
+        while (
+            (match = regex.exec(String(text || ""))) !== null
+        ) {
+            answers[Number(match[1])] = match[2].toUpperCase();
         }
     }
 
     return answers;
 }
 
-
 /* =====================================================
-   ADMIN PDF UPLOAD: HANDLE SELECTED PDF
+   PDF UPLOAD UI HANDLERS
 ===================================================== */
 
-async function readAdminPDF(file, kind) {
-
-    const statusId = kind === "exam"
-        ? "adminUploadStatus"
-        : "adminAnswerStatus";
-
-    const statusElement = document.getElementById(statusId);
-
-    if (kind === "exam") {
-        adminExamPDF = file || null;
-        adminExtractedQuestions = [];
-    } else {
-        adminAnswerPDF = file || null;
-        adminExtractedAnswers = {};
-    }
-
-    if (!file) {
-        if (statusElement) {
-            statusElement.textContent = "No file selected.";
-        }
-        return;
-    }
-
-    if (statusElement) {
-        statusElement.textContent = `Reading ${file.name}...`;
-    }
-
-    try {
-
-        const text = await extractAdminPDFText(file);
-
-        if (!text.trim()) {
-            throw new Error(
-                "No selectable text was found. This PDF may be scanned or image-only."
-            );
-        }
-
-        if (kind === "exam") {
-
-            adminExtractedQuestions = extractAdminQuestions(text);
-
-            if (adminExtractedQuestions.length === 0) {
-
-                throw new Error(
-                    "No multiple-choice questions were detected. Use numbered questions followed by A, B, C, and D choices."
-                );
-            }
-
-            if (statusElement) {
-                statusElement.textContent =
-                    `${file.name} — ${adminExtractedQuestions.length} questions detected.`;
-            }
-
-        } else {
-
-            adminExtractedAnswers = extractAdminAnswers(text);
-
-            const answerCount = Object.keys(
-                adminExtractedAnswers
-            ).length;
-
-            if (answerCount === 0) {
-
-                throw new Error(
-                    "No answer-key entries were detected. Use entries such as 1. A, 2. B, 3. C."
-                );
-            }
-
-            if (statusElement) {
-                statusElement.textContent =
-                    `${file.name} — ${answerCount} answers detected.`;
-            }
-        }
-
-        showAdminUploadMessage(
-            kind === "exam"
-                ? "Exam PDF processed successfully."
-                : "Answer-key PDF processed successfully.",
-            "success"
-        );
-
-    } catch (error) {
-
-        console.error("PDF processing error:", error);
-
-        if (statusElement) {
-            statusElement.textContent = error.message;
-        }
-
-        showAdminUploadMessage(error.message, "error");
-    }
-}
-
-
-/* =====================================================
-   ADMIN PDF UPLOAD: DROP AREA SETUP
-===================================================== */
-
-function setupAdminPDFDropArea(areaId, inputId, kind) {
-
-    const area = document.getElementById(areaId);
+function setupFilePicker({
+    dropAreaId,
+    inputId,
+    statusId,
+    onFile
+}) {
+    const dropArea = document.getElementById(dropAreaId);
     const input = document.getElementById(inputId);
+    const status = document.getElementById(statusId);
 
-    if (!area || !input) {
-        return;
-    }
+    if (!dropArea || !input) return;
 
-    area.addEventListener("click", (event) => {
-
-        if (event.target === input) {
+    dropArea.addEventListener("click", event => {
+        if (event.target.closest("input, button, label")) {
             return;
         }
 
         input.click();
     });
 
-    input.addEventListener("change", async () => {
+    input.addEventListener("change", () => {
+        const file = input.files?.[0];
 
-        const file = input.files && input.files[0];
+        if (!file) return;
 
-        if (file) {
-            await readAdminPDF(file, kind);
-        }
-    });
+        const isPDF =
+            file.type === "application/pdf" ||
+            file.name.toLowerCase().endsWith(".pdf");
 
-    area.addEventListener("dragover", (event) => {
+        if (!isPDF) {
+            if (status) {
+                status.textContent = "Please select a PDF file.";
+                status.className = "admin-file-status error";
+            }
 
-        event.preventDefault();
-
-        area.classList.add("drag-over");
-    });
-
-    area.addEventListener("dragleave", () => {
-
-        area.classList.remove("drag-over");
-    });
-
-    area.addEventListener("drop", async (event) => {
-
-        event.preventDefault();
-
-        area.classList.remove("drag-over");
-
-        const file = event.dataTransfer &&
-            event.dataTransfer.files &&
-            event.dataTransfer.files[0];
-
-        if (!file) {
+            input.value = "";
+            onFile(null);
             return;
         }
 
-        try {
+        onFile(file);
 
-            const transfer = new DataTransfer();
+        if (status) {
+            status.textContent = `Selected: ${file.name}`;
+            status.className = "admin-file-status success";
+        }
+    });
 
-            transfer.items.add(file);
+    dropArea.addEventListener("dragover", event => {
+        event.preventDefault();
+        dropArea.classList.add("drag-over");
+    });
 
-            input.files = transfer.files;
+    dropArea.addEventListener("dragleave", event => {
+        if (!dropArea.contains(event.relatedTarget)) {
+            dropArea.classList.remove("drag-over");
+        }
+    });
 
-        } catch (error) {
+    dropArea.addEventListener("drop", event => {
+        event.preventDefault();
+        dropArea.classList.remove("drag-over");
 
-            console.warn(
-                "Unable to populate PDF input with dropped file:",
-                error
-            );
+        const file = event.dataTransfer?.files?.[0];
+
+        if (!file) return;
+
+        const isPDF =
+            file.type === "application/pdf" ||
+            file.name.toLowerCase().endsWith(".pdf");
+
+        if (!isPDF) {
+            if (status) {
+                status.textContent = "Please drop a PDF file.";
+                status.className = "admin-file-status error";
+            }
+
+            onFile(null);
+            input.value = "";
+            return;
         }
 
-        await readAdminPDF(file, kind);
+        onFile(file);
+
+        // Allow the submit handler to use the selected File object
+        // even when the file was supplied by drag and drop.
+        try {
+            const transfer = new DataTransfer();
+            transfer.items.add(file);
+            input.files = transfer.files;
+        } catch (error) {
+            console.warn("Could not update file input from drop:", error);
+        }
+
+        if (status) {
+            status.textContent = `Selected: ${file.name}`;
+            status.className = "admin-file-status success";
+        }
     });
 }
 
-
-/* =====================================================
-   ADMIN PDF UPLOAD: SUBMIT EXAM
-===================================================== */
-
-async function submitAdminPDFExam() {
-
-    if (adminUploadBusy) {
-        return;
-    }
-
-    const titleInput = document.getElementById(
-        "adminExamTitle"
-    );
-
+function setupAdminPDFUpload() {
     const specializationSelect = document.getElementById(
         "adminSpecializationSelect"
     );
 
-    const submitButton = document.getElementById(
-        "adminSubmitExamBtn"
+    const uploadFields = document.getElementById(
+        "adminUploadFields"
     );
 
-    if (!titleInput || !specializationSelect) {
+    specializationSelect?.addEventListener("change", () => {
+        if (uploadFields) {
+            uploadFields.hidden = !specializationSelect.value;
+        }
+    });
 
-        showAdminUploadMessage(
-            "The exam upload form is missing required HTML elements.",
-            "error"
-        );
+    setupFilePicker({
+        dropAreaId: "adminDropArea",
+        inputId: "adminFileInput",
+        statusId: "adminUploadStatus",
 
-        return;
-    }
+        onFile: file => {
+            adminExamPDF = file;
+        }
+    });
 
-    const title = titleInput.value.trim();
-    const specialization = specializationSelect.value.trim();
+    setupFilePicker({
+        dropAreaId: "adminAnswerDropArea",
+        inputId: "adminAnswerFileInput",
+        statusId: "adminAnswerStatus",
 
-    if (!activeAcademicYear) {
+        onFile: file => {
+            adminAnswerPDF = file;
+        }
+    });
 
-        showAdminUploadMessage(
-            "Set an active academic year before uploading an exam.",
-            "error"
-        );
+    document.getElementById("adminSubmitExamBtn")
+        ?.addEventListener("click", submitAdminExam);
+}
 
-        return;
-    }
+/* =====================================================
+   SUBMIT ADMIN-CREATED EXAM
+===================================================== */
+
+async function submitAdminExam() {
+    if (adminUploadBusy) return;
+
+    const titleInput =
+        document.getElementById("adminExamTitle") ||
+        document.getElementById("examTitleInput");
+
+    const title = titleInput?.value.trim();
+
+    const specialization = document.getElementById(
+        "adminSpecializationSelect"
+    )?.value;
 
     if (!title) {
-
-        showAdminUploadMessage(
-            "Enter an exam title.",
-            "error"
-        );
-
-        titleInput.focus();
-
+        showNotification("Enter an exam title.", "error");
         return;
     }
 
     if (!specialization) {
-
-        showAdminUploadMessage(
-            "Select a specialization.",
-            "error"
-        );
-
-        specializationSelect.focus();
-
+        showNotification("Select a specialization.", "error");
         return;
     }
 
-    if (!adminExamPDF || adminExtractedQuestions.length === 0) {
-
-        showAdminUploadMessage(
-            "Upload a valid exam PDF first.",
+    if (!activeAcademicYear) {
+        showNotification(
+            "There is no active academic year.",
             "error"
         );
-
         return;
     }
 
-    if (!adminAnswerPDF || Object.keys(adminExtractedAnswers).length === 0) {
-
-        showAdminUploadMessage(
-            "Upload a valid answer-key PDF first.",
+    if (!adminExamPDF || !adminAnswerPDF) {
+        showNotification(
+            "Upload both the examination PDF and answer key PDF.",
             "error"
         );
-
         return;
     }
 
-    /* Every question number must have an answer. */
-    const missingAnswers = adminExtractedQuestions
-        .filter(question => {
-            const answer = adminExtractedAnswers[question.number];
-
-            return !answer || !["A", "B", "C", "D"].includes(answer);
-        })
-        .map(question => question.number);
-
-    if (missingAnswers.length > 0) {
-
-        showAdminUploadMessage(
-            `Missing answer-key entries for question number(s): ${missingAnswers.join(", ")}.`,
-            "error"
-        );
-
-        return;
-    }
-
-    /* Duplicate question numbers would break the answer mapping. */
-    const questionNumbers = adminExtractedQuestions.map(
-        question => question.number
-    );
-
-    if (new Set(questionNumbers).size !== questionNumbers.length) {
-
-        showAdminUploadMessage(
-            "Duplicate question numbers were detected. Please check the exam PDF.",
-            "error"
-        );
-
-        return;
-    }
-
-    const unmatchedAnswerNumbers = Object.keys(adminExtractedAnswers)
-        .map(Number)
-        .filter(number => !questionNumbers.includes(number));
-
-    if (unmatchedAnswerNumbers.length > 0) {
-
-        showAdminUploadMessage(
-            `The answer key contains question number(s) not found in the exam: ${unmatchedAnswerNumbers.join(", ")}.`,
-            "error"
-        );
-
-        return;
-    }
+    const button = document.getElementById("adminSubmitExamBtn");
 
     adminUploadBusy = true;
 
-    if (submitButton) {
-        submitButton.disabled = true;
-        submitButton.textContent = "Saving Exam...";
+    if (button) {
+        button.disabled = true;
+        button.textContent = "Reading PDFs...";
     }
 
     try {
+        const [examText, answerText] = await Promise.all([
+            extractPDFText(adminExamPDF),
+            extractPDFText(adminAnswerPDF)
+        ]);
+
+        const parsedQuestions = parseExamQuestions(examText);
+        const answerKey = parseAnswerKey(answerText);
+
+        if (!parsedQuestions.length) {
+            throw new Error(
+                "No numbered A–D multiple-choice questions were detected. Check your PDF format."
+            );
+        }
+
+        const missingAnswers = parsedQuestions.filter(
+            question => !answerKey[question.questionNumber]
+        );
+
+        if (missingAnswers.length) {
+            throw new Error(
+                `Missing answer key for question(s): ${
+                    missingAnswers
+                        .map(question => question.questionNumber)
+                        .join(", ")
+                }.`
+            );
+        }
+
+        const incompleteQuestions = parsedQuestions.filter(
+            question =>
+                !question.choices.A ||
+                !question.choices.B ||
+                !question.choices.C ||
+                !question.choices.D
+        );
+
+        if (incompleteQuestions.length) {
+            throw new Error(
+                `Question(s) ${incompleteQuestions
+                    .map(question => question.questionNumber)
+                    .join(", ")} are missing one or more choices.`
+            );
+        }
+
+        const confirmed = await appConfirm(
+            `Save "${title}"?\n\n` +
+            `Specialization: ${specialization}\n` +
+            `Questions detected: ${parsedQuestions.length}\n\n` +
+            "The exam will remain unavailable to students until you administer it.",
+            {
+                title: "Save Exam",
+                confirmText: "Save Exam",
+                type: "question"
+            }
+        );
+
+        if (!confirmed) return;
 
         let batch = writeBatch(db);
         let operationCount = 0;
+        let savedCount = 0;
 
-        for (const question of adminExtractedQuestions) {
-
-            const answer =
-                adminExtractedAnswers[question.number];
-
+        for (const question of parsedQuestions) {
             const questionRef = doc(
                 collection(db, "questionBank")
             );
 
             batch.set(questionRef, {
-
-                title: title,
-
                 examTitle: title,
-
-                specialization: specialization,
+                title,
+                specialization,
 
                 academicYear: activeAcademicYear,
+                academicYearId: activeAcademicYearId,
 
                 question: question.question,
+                choices: question.choices,
+                correctAnswer: answerKey[question.questionNumber],
 
-                choices: [
-                    question.A,
-                    question.B,
-                    question.C,
-                    question.D
-                ],
-
-                correctAnswer: answer,
-
-                createdBy: currentAdminUid,
-
-                facultyId: currentAdminUid,
-
-                createdByRole: "ADMIN",
-
-                type: "pdf",
-
+                type: "Multiple Choice",
                 status: "ready",
 
-                administeredBy: null,
+                facultyId: currentAdminUid,
+                createdBy: currentAdminUid,
+                createdByRole: "admin",
+                createdAt: serverTimestamp(),
 
-                administeredAt: null,
-
-                createdAt: serverTimestamp()
-
+                allowBackNavigation: false,
+                randomizeQuestions: true,
+                randomizeChoices: true,
+                maxAttempts: 1,
+                tabSwitchPolicy: "warn",
+                autoSubmitOnExpiry: true
             });
 
             operationCount++;
+            savedCount++;
 
-            if (operationCount >= 450) {
-
+            if (operationCount === 450) {
                 await batch.commit();
 
                 batch = writeBatch(db);
-
                 operationCount = 0;
             }
         }
@@ -1914,41 +1996,22 @@ async function submitAdminPDFExam() {
             await batch.commit();
         }
 
-        /* This message now disappears automatically after 4 seconds. */
-        showAdminUploadMessage(
-            `Exam "${title}" saved successfully with ${adminExtractedQuestions.length} questions. It is ready for administration.`,
-            "success"
-        );
-
-        titleInput.value = "";
-
-        specializationSelect.value = "";
-
-        updateAdminUploadFieldsVisibility();
-
         adminExamPDF = null;
         adminAnswerPDF = null;
 
-        adminExtractedQuestions = [];
-        adminExtractedAnswers = {};
+        if (titleInput) {
+            titleInput.value = "";
+        }
 
-        const examInput = document.getElementById(
-            "adminFileInput"
-        );
-
-        const answerInput = document.getElementById(
+        const fileInput = document.getElementById("adminFileInput");
+        const answerFileInput = document.getElementById(
             "adminAnswerFileInput"
         );
 
-        if (examInput) {
-            examInput.value = "";
-        }
+        if (fileInput) fileInput.value = "";
+        if (answerFileInput) answerFileInput.value = "";
 
-        if (answerInput) {
-            answerInput.value = "";
-        }
-
-        const examStatus = document.getElementById(
+        const uploadStatus = document.getElementById(
             "adminUploadStatus"
         );
 
@@ -1956,155 +2019,87 @@ async function submitAdminPDFExam() {
             "adminAnswerStatus"
         );
 
-        if (examStatus) {
-            examStatus.textContent = "No exam PDF selected.";
+        if (uploadStatus) {
+            uploadStatus.textContent = "";
+            uploadStatus.className = "admin-file-status";
         }
 
         if (answerStatus) {
-            answerStatus.textContent = "No answer-key PDF selected.";
+            answerStatus.textContent = "";
+            answerStatus.className = "admin-file-status";
         }
+
+        showNotification(
+            `Exam saved successfully. ${savedCount} questions were added. Administer the exam to make it available.`,
+            "success"
+        );
 
         await loadExams();
 
     } catch (error) {
+        console.error("Error submitting admin exam:", error);
 
-        console.error("Error saving Admin-created exam:", error);
-
-        showAdminUploadMessage(
-            "Failed to save the exam. Check your internet connection and Firestore permissions.",
+        showNotification(
+            error.message || "Unable to save the exam.",
             "error"
         );
 
     } finally {
-
         adminUploadBusy = false;
 
-        if (submitButton) {
-            submitButton.disabled = false;
-            submitButton.textContent = "Upload and Create Exam";
+        if (button) {
+            button.disabled = false;
+            button.textContent = "Submit Exam";
         }
     }
 }
-
-
-/* =====================================================
-   ADMIN PDF UPLOAD: SHOW UPLOADER AFTER SPECIALIZATION
-===================================================== */
-
-function updateAdminUploadFieldsVisibility() {
-
-    const select = document.getElementById(
-        "adminSpecializationSelect"
-    );
-
-    const fields = document.getElementById(
-        "adminUploadFields"
-    );
-
-    if (!select || !fields) {
-        return;
-    }
-
-    fields.hidden = !select.value;
-}
-
-
-/* =====================================================
-   ADMIN PDF UPLOAD: INITIALIZE
-===================================================== */
-
-function setupAdminPDFUpload() {
-
-    const specializationSelect = document.getElementById(
-        "adminSpecializationSelect"
-    );
-
-    if (specializationSelect) {
-
-        specializationSelect.addEventListener(
-            "change",
-            updateAdminUploadFieldsVisibility
-        );
-    }
-
-    updateAdminUploadFieldsVisibility();
-
-    setupAdminPDFDropArea(
-        "adminDropArea",
-        "adminFileInput",
-        "exam"
-    );
-
-    setupAdminPDFDropArea(
-        "adminAnswerDropArea",
-        "adminAnswerFileInput",
-        "answers"
-    );
-
-    const submitButton = document.getElementById(
-        "adminSubmitExamBtn"
-    );
-
-    if (submitButton) {
-
-        submitButton.addEventListener(
-            "click",
-            submitAdminPDFExam
-        );
-    }
-
-    if (typeof pdfjsLib !== "undefined") {
-
-        pdfjsLib.GlobalWorkerOptions.workerSrc =
-            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
-    }
-}
-
 
 /* =====================================================
    LOGOUT
 ===================================================== */
 
 async function logout() {
-
     try {
-
         await signOut(auth);
-
-        localStorage.clear();
-
         window.location.replace("../login.html");
 
     } catch (error) {
-
         console.error("Logout error:", error);
+
+        await appAlert(
+            "Unable to log out. Please try again.",
+            { type: "error" }
+        );
     }
 }
 
-
 /* =====================================================
-   GLOBAL FUNCTIONS
+   GLOBAL FUNCTIONS FOR HTML BUTTONS
 ===================================================== */
 
 window.toggleQuestions = toggleQuestions;
-
-window.administerExam = administerExam;
-
-window.stopAdministration = stopAdministration;
-
-window.editQuestion = editQuestion;
-
-window.cancelEditQuestion = cancelEditQuestion;
-
-window.saveQuestion = saveQuestion;
-
+window.startQuestionEdit = startQuestionEdit;
+window.cancelQuestionEdit = cancelQuestionEdit;
+window.saveQuestionEdit = saveQuestionEdit;
 window.deleteQuestion = deleteQuestion;
-
+window.administerExam = administerExam;
+window.stopAdministration = stopAdministration;
 window.logout = logout;
 
-
 /* =====================================================
-   INITIALIZE ADMIN PDF UPLOAD
+   INITIALIZE PDF UPLOAD HANDLERS
 ===================================================== */
 
 setupAdminPDFUpload();
+
+/* =====================================================
+   KEEP CHECKING WHILE THE PAGE IS OPEN
+===================================================== */
+
+setInterval(autoStopExpiredExams, 30000);
+
+document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) {
+        autoStopExpiredExams();
+    }
+});

@@ -34,16 +34,13 @@ onAuthStateChanged(auth, async (user) => {
 /* ================================================= */
 
 function escapeHTML(value) {
-
-    return String(value ?? "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
-
 
 /* ================================================= */
 /* LOAD STUDENT NAME */
@@ -118,183 +115,85 @@ async function loadStudentName() {
 /* ================================================= */
 
 async function loadProgress() {
+  const box = document.getElementById("progress-box");
 
-    const box =
-        document.getElementById(
-            "progress-box"
-        );
+  if (!box) {
+    return;
+  }
 
+  const user = currentUser || auth.currentUser;
 
-    if (!box) {
+  if (!user) {
+    return;
+  }
 
-        return;
+  try {
+    /* Active academic year */
 
+    const yearSnapshot = await getDocs(
+      query(collection(db, "academicYears"), where("active", "==", true)),
+    );
+
+    let academicYear = "";
+
+    if (!yearSnapshot.empty) {
+      const yearData = yearSnapshot.docs[0].data();
+
+      academicYear = String(yearData.year || yearData.name || "");
     }
 
+    /* Chosen specialization (if any) */
 
-    const user =
-        currentUser ||
-        auth.currentUser;
+    const userSnapshot = await getDoc(doc(db, "users", user.uid));
 
+    const selected = userSnapshot.exists()
+      ? String(userSnapshot.data().selectedSpecialization || "").trim()
+      : "";
 
-    if (!user) {
+    /* Completed exam result for the active year */
 
-        return;
+    let result = null;
 
+    if (academicYear) {
+      const resultSnapshot = await getDocs(
+        query(
+          collection(db, "results"),
+          where("studentUid", "==", user.uid),
+          where("academicYear", "==", academicYear),
+        ),
+      );
+
+      result =
+        resultSnapshot.docs
+          .map((item) => item.data())
+          .find((item) => item.status === "Completed") || null;
     }
 
+    renderProgress(box, {
+      academicYear,
+      result,
+      selected,
+    });
+  } catch (error) {
+    console.error("Unable to load progress:", error);
 
-    try {
+    /* The dashboard still works without this card. */
 
-        /* Active academic year */
-
-        const yearSnapshot =
-            await getDocs(
-                query(
-                    collection(
-                        db,
-                        "academicYears"
-                    ),
-                    where(
-                        "active",
-                        "==",
-                        true
-                    )
-                )
-            );
-
-
-        let academicYear = "";
-
-        if (!yearSnapshot.empty) {
-
-            const yearData =
-                yearSnapshot.docs[0].data();
-
-            academicYear = String(
-                yearData.year ||
-                yearData.name ||
-                ""
-            );
-
-        }
-
-
-        /* Chosen specialization (if any) */
-
-        const userSnapshot =
-            await getDoc(
-                doc(
-                    db,
-                    "users",
-                    user.uid
-                )
-            );
-
-
-        const selected =
-            userSnapshot.exists()
-                ? String(
-                    userSnapshot.data()
-                        .selectedSpecialization ||
-                    ""
-                ).trim()
-                : "";
-
-
-        /* Completed exam result for the active year */
-
-        let result = null;
-
-        if (academicYear) {
-
-            const resultSnapshot =
-                await getDocs(
-                    query(
-                        collection(
-                            db,
-                            "results"
-                        ),
-                        where(
-                            "studentUid",
-                            "==",
-                            user.uid
-                        ),
-                        where(
-                            "academicYear",
-                            "==",
-                            academicYear
-                        )
-                    )
-                );
-
-
-            result =
-                resultSnapshot.docs
-                    .map(item => item.data())
-                    .find(
-                        item =>
-                            item.status === "Completed"
-                    ) || null;
-
-        }
-
-
-        renderProgress(
-            box,
-            {
-                academicYear,
-                result,
-                selected
-            }
-        );
-
-    }
-    catch (error) {
-
-        console.error(
-            "Unable to load progress:",
-            error
-        );
-
-
-        /* The dashboard still works without this card. */
-
-        box.innerHTML = "";
-
-    }
-
+    box.innerHTML = "";
+  }
 }
 
+function renderProgress(box, { academicYear, result, selected }) {
+  const hasCompleted = !!result;
 
-function renderProgress(
-    box,
-    {
-        academicYear,
-        result,
-        selected
-    }
-) {
+  /* ---------- one step of the strip ---------- */
 
-    const hasCompleted =
-        !!result;
+  const step = (number, label, state) => {
+    const done = state === "done";
 
+    const current = state === "current";
 
-    /* ---------- one step of the strip ---------- */
-
-    const step = (
-        number,
-        label,
-        state
-    ) => {
-
-        const done =
-            state === "done";
-
-        const current =
-            state === "current";
-
-        return `
+    return `
 
             <div style="display:flex;align-items:center;gap:10px;
                 flex:1 1 180px;">
@@ -304,128 +203,74 @@ function renderProgress(
                     justify-content:center;font-size:14px;
                     font-weight:700;flex-shrink:0;
                     background:${
-                        done
-                        ? "#2e8b57"
-                        : current
-                        ? "#244b5a"
-                        : "#e8eff1"
+                      done ? "#2e8b57" : current ? "#244b5a" : "#e8eff1"
                     };
-                    color:${
-                        done || current
-                        ? "#fff"
-                        : "#829197"
-                    };">
+                    color:${done || current ? "#fff" : "#829197"};">
                     ${done ? "✓" : number}
                 </span>
 
                 <span style="font-size:13px;line-height:1.3;
                     font-weight:${current ? "700" : "500"};
-                    color:${
-                        done || current
-                        ? "#244b5a"
-                        : "#829197"
-                    };">
+                    color:${done || current ? "#244b5a" : "#829197"};">
                     ${escapeHTML(label)}
                 </span>
 
             </div>
 
         `;
+  };
 
-    };
+  const step1 = hasCompleted ? "done" : "current";
 
+  const step2 = selected ? "done" : hasCompleted ? "current" : "todo";
 
-    const step1 =
-        hasCompleted
-            ? "done"
-            : "current";
+  const step3 = selected ? "done" : "todo";
 
-    const step2 =
-        selected
-            ? "done"
-            : hasCompleted
-            ? "current"
-            : "todo";
+  /* ---------- status text + next action ---------- */
 
-    const step3 =
-        selected
-            ? "done"
-            : "todo";
+  let title = "";
+  let message = "";
+  let buttonLabel = "";
+  let buttonPage = "";
 
+  if (!academicYear) {
+    title = "No active academic year yet";
 
-    /* ---------- status text + next action ---------- */
+    message =
+      "The Administrator has not set an active academic year. " +
+      "Please check back later.";
+  } else if (selected) {
+    title = "You're all set!";
 
-    let title = "";
-    let message = "";
-    let buttonLabel = "";
-    let buttonPage = "";
+    message =
+      `You selected ${selected}. Please proceed to the ` +
+      `HEIMS Enrollment System to complete your enrollment.`;
+  } else if (hasCompleted) {
+    title = "Your exam is complete";
 
+    message =
+      "See which specialization fits you best, then confirm " + "your choice.";
+  } else {
+    title = "Next step: take the exam";
 
-    if (!academicYear) {
+    message =
+      "Answer the short interest check and the Comprehensive " +
+      "IT Examination to get your recommendation. " +
+      "The exam can only be taken once.";
+  }
 
-        title =
-            "No active academic year yet";
+  /* ---------- exam score line (was the Final Result page) ---------- */
 
-        message =
-            "The Administrator has not set an active academic year. " +
-            "Please check back later.";
+  let scoreLine = "";
 
-    }
-    else if (selected) {
+  if (result && Number(result.totalItems) > 0) {
+    const score = Number(result.score) || 0;
 
-        title =
-            "You're all set!";
+    const total = Number(result.totalItems);
 
-        message =
-            `You selected ${selected}. Please proceed to the ` +
-            `HEIMS Enrollment System to complete your enrollment.`;
+    const percent = ((score / total) * 100).toFixed(1);
 
-    }
-    else if (hasCompleted) {
-
-        title =
-            "Your exam is complete";
-
-        message =
-            "See which specialization fits you best, then confirm " +
-            "your choice.";
-
-
-
-    }
-    else {
-
-        title =
-            "Next step: take the exam";
-
-        message =
-            "Answer the short interest check and the Comprehensive " +
-            "IT Examination to get your recommendation. " +
-            "The exam can only be taken once.";
-
-
-    }
-
-
-    /* ---------- exam score line (was the Final Result page) ---------- */
-
-    let scoreLine = "";
-
-    if (
-        result &&
-        Number(result.totalItems) > 0
-    ) {
-
-        const score =
-            Number(result.score) || 0;
-
-        const total =
-            Number(result.totalItems);
-
-        const percent =
-            ((score / total) * 100).toFixed(1);
-
-        scoreLine = `
+    scoreLine = `
 
             <p style="margin:0 0 16px;color:#334c55;font-size:14px;">
 
@@ -437,7 +282,7 @@ function renderProgress(
                 </strong>
 
                 ${
-                    result.date
+                  result.date
                     ? `<span style="color:#829197;">
                         &nbsp;•&nbsp; Submitted
                         ${escapeHTML(result.date)}
@@ -448,11 +293,9 @@ function renderProgress(
             </p>
 
         `;
+  }
 
-    }
-
-
-    box.innerHTML = `
+  box.innerHTML = `
 
         <div style="background:#fff;border:1px solid #e1eaed;
             border-top:4px solid #8ec6d1;border-radius:14px;
@@ -489,7 +332,7 @@ function renderProgress(
             </div>
 
             ${
-                buttonLabel
+              buttonLabel
                 ? `<button type="button"
                     onclick="goPage('${buttonPage}')"
                     style="border:0;border-radius:10px;
@@ -504,9 +347,7 @@ function renderProgress(
         </div>
 
     `;
-
 }
-
 
 /* ================================================= */
 /* CALENDAR */

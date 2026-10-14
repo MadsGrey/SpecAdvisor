@@ -1,238 +1,148 @@
-import {
-    auth,
-    db
-} from "./firebase-config.js";
+import { auth, db } from "./firebase-config.js";
 
 import {
-    onAuthStateChanged,
-    signOut
+  onAuthStateChanged,
+  signOut,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 import {
-    collection,
-    query,
-    where,
-    getDocs
+  collection,
+  query,
+  where,
+  getDocs,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
 
 /* =========================================================
    PAGE SHOW
 ========================================================= */
 
 window.addEventListener("pageshow", (event) => {
-
-    if (event.persisted) {
-
-        window.location.reload();
-
-    }
-
+  if (event.persisted) {
+    window.location.reload();
+  }
 });
-
 
 /* =========================================================
    SIDEBAR
 ========================================================= */
 
 window.toggleSidebar = function () {
+  const sidebar = document.getElementById("sidebar");
 
-    const sidebar =
-        document.getElementById("sidebar");
-
-    if (sidebar) {
-
-        sidebar.classList.toggle("active");
-
-    }
-
+  if (sidebar) {
+    sidebar.classList.toggle("active");
+  }
 };
-
 
 /* =========================================================
    NAVIGATION
 ========================================================= */
 
 window.goPage = function (url) {
+  document.body.style.opacity = "0";
 
-    document.body.style.opacity = "0";
-
-    setTimeout(() => {
-
-        window.location.href = url;
-
-    }, 300);
-
+  setTimeout(() => {
+    window.location.href = url;
+  }, 300);
 };
-
 
 /* =========================================================
    LOGOUT MODAL
 ========================================================= */
 
 window.logout = function () {
+  const overlay = document.getElementById("logout-overlay");
 
-    const overlay =
-        document.getElementById("logout-overlay");
+  if (!overlay) {
+    console.error("Logout overlay not found.");
 
-    if (!overlay) {
+    return;
+  }
 
-        console.error(
-            "Logout overlay not found."
-        );
-
-        return;
-
-    }
-
-    overlay.classList.add("active");
-
+  overlay.classList.add("active");
 };
-
 
 window.closeLogoutModal = function () {
+  const overlay = document.getElementById("logout-overlay");
 
-    const overlay =
-        document.getElementById("logout-overlay");
-
-    if (overlay) {
-
-        overlay.classList.remove("active");
-
-    }
-
+  if (overlay) {
+    overlay.classList.remove("active");
+  }
 };
-
 
 window.closeLogoutOutside = function (event) {
-
-    if (
-        event.target &&
-        event.target.id === "logout-overlay"
-    ) {
-
-        window.closeLogoutModal();
-
-    }
-
+  if (event.target && event.target.id === "logout-overlay") {
+    window.closeLogoutModal();
+  }
 };
-
 
 window.performLogout = async function () {
+  try {
+    await signOut(auth);
 
-    try {
+    localStorage.clear();
 
-        await signOut(auth);
+    window.location.replace("../login.html");
+  } catch (error) {
+    console.error("Logout error:", error);
 
-        localStorage.clear();
-
-        window.location.replace(
-            "../login.html"
-        );
-
-    }
-    catch (error) {
-
-        console.error(
-            "Logout error:",
-            error
-        );
-
-        alert(
-            "Unable to log out."
-        );
-
-    }
-
+    alert("Unable to log out.");
+  }
 };
-
 
 /* =========================================================
    ESCAPE HTML
 ========================================================= */
 
 function escapeHTML(value) {
-
-    return String(value ?? "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
-
 
 /* =========================================================
    NORMALIZE TEXT (for matching exams to results)
 ========================================================= */
 
 function normalize(value) {
-
-    return String(value ?? "")
-        .trim()
-        .toLowerCase();
-
+  return String(value ?? "")
+    .trim()
+    .toLowerCase();
 }
-
 
 /* =========================================================
    GET ACTIVE ACADEMIC YEAR
 ========================================================= */
 
 async function getActiveAcademicYear() {
+  const activeYearQuery = query(
+    collection(db, "academicYears"),
+    where("active", "==", true),
+  );
 
-    const activeYearQuery =
-        query(
-            collection(
-                db,
-                "academicYears"
-            ),
-            where(
-                "active",
-                "==",
-                true
-            )
-        );
+  const snapshot = await getDocs(activeYearQuery);
 
-    const snapshot =
-        await getDocs(
-            activeYearQuery
-        );
+  if (snapshot.empty) {
+    return "";
+  }
 
-    if (snapshot.empty) {
-
-        return "";
-
-    }
-
-    return (
-        snapshot.docs[0].data().year ||
-        ""
-    );
-
+  return snapshot.docs[0].data().year || "";
 }
-
 
 /* =========================================================
    RENDER RESULTS
 ========================================================= */
 
-function renderResults(
-    table,
-    resultDocs
-) {
+function renderResults(table, resultDocs) {
+  if (!table) {
+    return;
+  }
 
-    if (!table) {
-
-        return;
-
-    }
-
-
-    if (resultDocs.length === 0) {
-
-        table.innerHTML = `
+  if (resultDocs.length === 0) {
+    table.innerHTML = `
 
             <tr class="no-result">
 
@@ -246,76 +156,40 @@ function renderResults(
 
         `;
 
-        return;
+    return;
+  }
 
+  const rows = [];
+
+  resultDocs.forEach((docSnap) => {
+    const data = docSnap.data();
+
+    const total = Number(data.totalItems) || 0;
+
+    const score = Number(data.score) || 0;
+
+    let percentage = 0;
+
+    if (total > 0) {
+      percentage = (score / total) * 100;
     }
 
+    let remarks = "Failed";
 
-    const rows = [];
+    if (percentage >= 90) {
+      remarks = "Excellent";
+    } else if (percentage >= 75) {
+      remarks = "Passed";
+    } else if (percentage >= 50) {
+      remarks = "Needs Improvement";
+    }
 
-
-    resultDocs.forEach(docSnap => {
-
-        const data =
-            docSnap.data();
-
-
-        const total =
-            Number(
-                data.totalItems
-            ) || 0;
-
-
-        const score =
-            Number(
-                data.score
-            ) || 0;
-
-
-        let percentage = 0;
-
-
-        if (total > 0) {
-
-            percentage =
-                (score / total) * 100;
-
-        }
-
-
-        let remarks =
-            "Failed";
-
-
-        if (percentage >= 90) {
-
-            remarks =
-                "Excellent";
-
-        }
-        else if (percentage >= 75) {
-
-            remarks =
-                "Passed";
-
-        }
-        else if (percentage >= 50) {
-
-            remarks =
-                "Needs Improvement";
-
-        }
-
-
-        rows.push(`
+    rows.push(`
 
             <tr>
 
                 <td>
-                    ${escapeHTML(
-                        data.specialization ||
-                        "N/A"
-                    )}
+                    ${escapeHTML(data.specialization || "N/A")}
                 </td>
 
                 <td>
@@ -337,15 +211,10 @@ function renderResults(
             </tr>
 
         `);
+  });
 
-    });
-
-
-    table.innerHTML =
-        rows.join("");
-
+  table.innerHTML = rows.join("");
 }
-
 
 /* =========================================================
    RENDER EXAM REMINDER
@@ -361,26 +230,21 @@ function renderResults(
  */
 
 function renderReminder(
-    reminderBox,
-    activeAcademicYear,
-    questionDocs,
-    resultDocs
+  reminderBox,
+  activeAcademicYear,
+  questionDocs,
+  resultDocs,
 ) {
+  if (!reminderBox) {
+    return;
+  }
 
-    if (!reminderBox) {
-
-        return;
-
-    }
-
-
-    /* =====================================================
+  /* =====================================================
        NO ACTIVE ACADEMIC YEAR
     ===================================================== */
 
-    if (!activeAcademicYear) {
-
-        reminderBox.innerHTML = `
+  if (!activeAcademicYear) {
+    reminderBox.innerHTML = `
 
             <div class="exam-reminder warning">
 
@@ -397,135 +261,76 @@ function renderReminder(
 
         `;
 
-        return;
+    return;
+  }
 
-    }
-
-
-    /* =====================================================
+  /* =====================================================
        GROUP ADMINISTERED EXAMS BY SPECIALIZATION
 
        questionDocs already contains ONLY questions with
        status = "administered".
     ===================================================== */
 
-    const groups = {};
+  const groups = {};
 
+  questionDocs.forEach((docSnap) => {
+    const data = docSnap.data();
 
-    questionDocs.forEach(docSnap => {
+    const specialization = String(data.specialization || "").trim();
 
-        const data =
-            docSnap.data();
+    const examTitle = String(data.examTitle || data.title || "").trim();
 
+    const questionText = String(data.question || "").trim();
 
-        const specialization =
-            String(
-                data.specialization || ""
-            ).trim();
+    if (!specialization || !questionText || data.status !== "administered") {
+      return;
+    }
 
+    const key = normalize(specialization);
 
-        const examTitle =
-            String(
-                data.examTitle ||
-                data.title ||
-                ""
-            ).trim();
+    if (!groups[key]) {
+      groups[key] = {
+        specialization: specialization,
 
+        titles: new Set(),
+      };
+    }
 
-        const questionText =
-            String(
-                data.question || ""
-            ).trim();
+    if (examTitle) {
+      groups[key].titles.add(examTitle);
+    }
+  });
 
+  /* Same title that take-exam.js builds and saves. */
 
-        if (
-            !specialization ||
-            !questionText ||
-            data.status !== "administered"
-        ) {
+  const specializationList = Object.values(groups)
+    .map((group) => {
+      const titles = Array.from(group.titles).sort((a, b) =>
+        a.localeCompare(b),
+      );
 
-            return;
+      return {
+        specialization: group.specialization,
 
-        }
+        titles: titles,
 
+        combinedTitle:
+          titles.length > 0
+            ? titles.join(" + ")
+            : `${group.specialization} Examination`,
+      };
+    })
+    .sort((a, b) => a.specialization.localeCompare(b.specialization));
 
-        const key =
-            normalize(specialization);
-
-
-        if (!groups[key]) {
-
-            groups[key] = {
-
-                specialization:
-                    specialization,
-
-                titles:
-                    new Set()
-
-            };
-
-        }
-
-
-        if (examTitle) {
-
-            groups[key].titles.add(
-                examTitle
-            );
-
-        }
-
-    });
-
-
-    /* Same title that take-exam.js builds and saves. */
-
-    const specializationList =
-        Object.values(groups)
-            .map(group => {
-
-                const titles =
-                    Array.from(group.titles)
-                        .sort(
-                            (a, b) =>
-                                a.localeCompare(b)
-                        );
-
-                return {
-
-                    specialization:
-                        group.specialization,
-
-                    titles:
-                        titles,
-
-                    combinedTitle:
-                        titles.length > 0
-                            ? titles.join(" + ")
-                            : `${group.specialization} Examination`
-
-                };
-
-            })
-            .sort(
-                (a, b) =>
-                    a.specialization.localeCompare(
-                        b.specialization
-                    )
-            );
-
-
-    /* =====================================================
+  /* =====================================================
        NO EXAMS ADMINISTERED YET
 
        Prevents the "go to recommendation" message from
        showing before the Admin has administered any exam.
     ===================================================== */
 
-    if (specializationList.length === 0) {
-
-        reminderBox.innerHTML = `
+  if (specializationList.length === 0) {
+    reminderBox.innerHTML = `
 
             <div class="exam-reminder warning">
 
@@ -551,145 +356,100 @@ function renderReminder(
 
         `;
 
-        return;
+    return;
+  }
 
-    }
-
-
-    /* =====================================================
+  /* =====================================================
        COMPLETED RESULTS (active academic year only)
     ===================================================== */
 
-    const completedResults =
-        resultDocs
-            .map(docSnap => docSnap.data())
-            .filter(result => {
+  const completedResults = resultDocs
+    .map((docSnap) => docSnap.data())
+    .filter((result) => {
+      const sameYear =
+        !result.academicYear || result.academicYear === activeAcademicYear;
 
-                const sameYear =
-                    !result.academicYear ||
-                    result.academicYear === activeAcademicYear;
+      const completed = !result.status || result.status === "Completed";
 
-                const completed =
-                    !result.status ||
-                    result.status === "Completed";
+      return sameYear && completed;
+    });
 
-                return sameYear && completed;
+  function hasCompleted(item) {
+    const expectedTitle = normalize(item.combinedTitle);
 
-            });
+    const expectedParts = item.titles.map(normalize);
 
+    return completedResults.some((result) => {
+      if (normalize(result.specialization) !== normalize(item.specialization)) {
+        return false;
+      }
 
-    function hasCompleted(item) {
+      /* Exact match with the combined title. */
 
-        const expectedTitle =
-            normalize(item.combinedTitle);
+      if (normalize(result.examTitle) === expectedTitle) {
+        return true;
+      }
 
-        const expectedParts =
-            item.titles.map(normalize);
+      /* Saved titles cover every currently administered exam. */
 
-        return completedResults.some(result => {
+      if (expectedParts.length === 0) {
+        return false;
+      }
 
-            if (
-                normalize(result.specialization) !==
-                normalize(item.specialization)
-            ) {
+      const savedParts =
+        Array.isArray(result.examTitles) && result.examTitles.length > 0
+          ? result.examTitles.map(normalize)
+          : String(result.examTitle || "")
+              .split(" + ")
+              .map(normalize);
 
-                return false;
+      return expectedParts.every((part) => savedParts.includes(part));
+    });
+  }
 
-            }
+  const remaining = specializationList.filter((item) => !hasCompleted(item));
 
+  /* Debug: shows what the page expects vs what was saved (F12). */
 
-            /* Exact match with the combined title. */
+  console.log(
+    "Expected exams:",
+    specializationList.map(
+      (item) => `${item.specialization} | ${item.combinedTitle}`,
+    ),
+  );
 
-            if (
-                normalize(result.examTitle) ===
-                expectedTitle
-            ) {
+  console.log(
+    "Saved results:",
+    completedResults.map(
+      (result) => `${result.specialization} | ${result.examTitle}`,
+    ),
+  );
 
-                return true;
-
-            }
-
-
-            /* Saved titles cover every currently administered exam. */
-
-            if (expectedParts.length === 0) {
-
-                return false;
-
-            }
-
-            const savedParts =
-                Array.isArray(result.examTitles) &&
-                result.examTitles.length > 0
-                    ? result.examTitles.map(normalize)
-                    : String(result.examTitle || "")
-                        .split(" + ")
-                        .map(normalize);
-
-            return expectedParts.every(
-                part => savedParts.includes(part)
-            );
-
-        });
-
-    }
-
-
-    const remaining =
-        specializationList.filter(
-            item => !hasCompleted(item)
-        );
-
-
-    /* Debug: shows what the page expects vs what was saved (F12). */
-
-    console.log(
-        "Expected exams:",
-        specializationList.map(
-            item =>
-                `${item.specialization} | ${item.combinedTitle}`
-        )
-    );
-
-    console.log(
-        "Saved results:",
-        completedResults.map(
-            result =>
-                `${result.specialization} | ${result.examTitle}`
-        )
-    );
-
-
-    /* =====================================================
+  /* =====================================================
        STILL HAS EXAMS
     ===================================================== */
 
-    if (remaining.length > 0) {
-
-        const remainingList =
-            remaining
-                .map(item => `
+  if (remaining.length > 0) {
+    const remainingList = remaining
+      .map(
+        (item) => `
 
                     <li>
 
                         <strong>
-                            ${escapeHTML(
-                                item.specialization
-                            )}
+                            ${escapeHTML(item.specialization)}
                         </strong>
 
                         -
-                        ${escapeHTML(
-                            item.combinedTitle
-                        )}
+                        ${escapeHTML(item.combinedTitle)}
 
                     </li>
 
-                `)
-                .join("");
+                `,
+      )
+      .join("");
 
-
-        reminderBox.innerHTML = `
+    reminderBox.innerHTML = `
 
             <div class="exam-reminder warning">
 
@@ -735,16 +495,14 @@ function renderReminder(
 
         `;
 
-        return;
+    return;
+  }
 
-    }
-
-
-    /* =====================================================
+  /* =====================================================
        ALL EXAMS COMPLETED
     ===================================================== */
 
-    reminderBox.innerHTML = `
+  reminderBox.innerHTML = `
 
         <div class="exam-reminder success">
 
@@ -782,63 +540,36 @@ function renderReminder(
         </div>
 
     `;
-
 }
-
 
 /* =========================================================
    LOAD RESULT PAGE
 ========================================================= */
 
 async function loadPage(userUid) {
+  const table = document.getElementById("resultBody");
 
-    const table =
-        document.getElementById(
-            "resultBody"
-        );
+  const reminderBox = document.getElementById("examReminder");
 
-
-    const reminderBox =
-        document.getElementById(
-            "examReminder"
-        );
-
-
-    try {
-
-        /* =================================================
+  try {
+    /* =================================================
            GET ACTIVE ACADEMIC YEAR
         ================================================= */
 
-        const activeAcademicYear =
-            await getActiveAcademicYear();
+    const activeAcademicYear = await getActiveAcademicYear();
 
-
-        /* =================================================
+    /* =================================================
            GET STUDENT RESULTS ONCE
         ================================================= */
 
-        const studentResultsQuery =
-            query(
-                collection(
-                    db,
-                    "results"
-                ),
-                where(
-                    "studentUid",
-                    "==",
-                    userUid
-                )
-            );
+    const studentResultsQuery = query(
+      collection(db, "results"),
+      where("studentUid", "==", userUid),
+    );
 
+    const studentResultsPromise = getDocs(studentResultsQuery);
 
-        const studentResultsPromise =
-            getDocs(
-                studentResultsQuery
-            );
-
-
-        /* =================================================
+    /* =================================================
            LOAD ONLY ADMIN-APPROVED EXAMS
 
            status == "administered"
@@ -847,126 +578,67 @@ async function loadPage(userUid) {
            will NOT be included.
         ================================================= */
 
-        let questionDocs = [];
+    let questionDocs = [];
 
+    if (activeAcademicYear) {
+      const questionQuery = query(
+        collection(db, "questionBank"),
 
-        if (activeAcademicYear) {
+        where("academicYear", "==", activeAcademicYear),
 
-            const questionQuery =
-                query(
-                    collection(
-                        db,
-                        "questionBank"
-                    ),
+        where("status", "==", "administered"),
+      );
 
-                    where(
-                        "academicYear",
-                        "==",
-                        activeAcademicYear
-                    ),
+      const [resultSnapshot, questionSnapshot] = await Promise.all([
+        studentResultsPromise,
 
-                    where(
-                        "status",
-                        "==",
-                        "administered"
-                    )
-                );
+        getDocs(questionQuery),
+      ]);
 
+      const resultDocs = resultSnapshot.docs;
 
-            const [
-                resultSnapshot,
-                questionSnapshot
-            ] = await Promise.all([
+      questionDocs = questionSnapshot.docs;
 
-                studentResultsPromise,
-
-                getDocs(
-                    questionQuery
-                )
-
-            ]);
-
-
-            const resultDocs =
-                resultSnapshot.docs;
-
-
-            questionDocs =
-                questionSnapshot.docs;
-
-
-            /* =============================================
+      /* =============================================
                RENDER STUDENT RESULTS
             ============================================= */
 
-            renderResults(
-                table,
-                resultDocs
-            );
+      renderResults(table, resultDocs);
 
-
-            /* =============================================
+      /* =============================================
                RENDER REMINDER
 
                The academic year check happens inside
                renderReminder.
             ============================================= */
 
-            renderReminder(
-                reminderBox,
-                activeAcademicYear,
-                questionDocs,
-                resultDocs
-            );
+      renderReminder(reminderBox, activeAcademicYear, questionDocs, resultDocs);
 
-            return;
+      return;
+    }
 
-        }
-
-
-        /* =================================================
+    /* =================================================
            NO ACTIVE ACADEMIC YEAR
 
            Still load student's existing results.
         ================================================= */
 
-        const resultSnapshot =
-            await studentResultsPromise;
+    const resultSnapshot = await studentResultsPromise;
 
+    const resultDocs = resultSnapshot.docs;
 
-        const resultDocs =
-            resultSnapshot.docs;
+    renderResults(table, resultDocs);
 
+    renderReminder(reminderBox, "", [], []);
+  } catch (error) {
+    console.error("Error loading result page:", error);
 
-        renderResults(
-            table,
-            resultDocs
-        );
-
-
-        renderReminder(
-            reminderBox,
-            "",
-            [],
-            []
-        );
-
-    }
-    catch (error) {
-
-        console.error(
-            "Error loading result page:",
-            error
-        );
-
-
-        /* =================================================
+    /* =================================================
            RESULT ERROR
         ================================================= */
 
-        if (table) {
-
-            table.innerHTML = `
+    if (table) {
+      table.innerHTML = `
 
                 <tr class="no-result">
 
@@ -979,17 +651,14 @@ async function loadPage(userUid) {
                 </tr>
 
             `;
+    }
 
-        }
-
-
-        /* =================================================
+    /* =================================================
            REMINDER ERROR
         ================================================= */
 
-        if (reminderBox) {
-
-            reminderBox.innerHTML = `
+    if (reminderBox) {
+      reminderBox.innerHTML = `
 
                 <div class="exam-reminder warning">
 
@@ -1004,36 +673,20 @@ async function loadPage(userUid) {
                 </div>
 
             `;
-
-        }
-
     }
-
+  }
 }
-
 
 /* =========================================================
    AUTHENTICATION
 ========================================================= */
 
-onAuthStateChanged(
-    auth,
-    (user) => {
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    window.location.replace("../Login.html");
 
-        if (!user) {
+    return;
+  }
 
-            window.location.replace(
-                "../login.html"
-            );
-
-            return;
-
-        }
-
-
-        loadPage(
-            user.uid
-        );
-
-    }
-);
+  loadPage(user.uid);
+});

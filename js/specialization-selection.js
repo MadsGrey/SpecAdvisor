@@ -15,24 +15,6 @@ import {
   updateDoc,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-<<<<<<< HEAD
-import { appAlert, appConfirm } from "./ui-dialog.js";
-
-/*
- * Same rule engine as the Specialization Recommendation page
- * (it lives in recommendation.js), so the "Recommended" star
- * here always matches that page.
- */
-import {
-    buildSpecializationStats,
-    loadSpecializationTags,
-    getInterestProfile,
-    evaluateRecommendation
-} from "./recommendation.js";
-
-
-=======
->>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 /* =========================================================
    AUTHENTICATION
 ========================================================= */
@@ -117,34 +99,9 @@ async function performLogout() {
 
     localStorage.clear();
 
-<<<<<<< HEAD
-        await signOut(auth);
-
-        localStorage.clear();
-
-        window.location.replace(
-            "../login.html"
-        );
-
-    }
-    catch (error) {
-
-        console.error(
-            "Logout error:",
-            error
-        );
-
-        await appAlert(
-            "Unable to log out.",
-            { type: "error" }
-        );
-
-    }
-=======
     window.location.replace("../login.html");
   } catch (error) {
     console.error("Logout error:", error);
->>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
     alert("Unable to log out.");
   }
@@ -176,48 +133,18 @@ async function getActiveAcademicYear() {
     return "";
   }
 
-<<<<<<< HEAD
-    const snapshot =
-        await getDocs(q);
-
-
-    if (snapshot.empty) {
-
-        return "";
-
-    }
-
-
-    const data =
-        snapshot.docs[0].data();
-
-
-    return String(
-        data.year ||
-        data.name ||
-        ""
-    );
-
-=======
   return snapshot.docs[0].data().year || "";
->>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 }
 
 /* =========================================================
    CHECK IF ADMIN HAS ADMINISTERED AN EXAM
 ========================================================= */
 
-<<<<<<< HEAD
-async function hasAdministeredExam(
-    academicYear
-) {
-=======
 async function getAdminApprovedSpecializations(academicYear) {
   const q = query(
     collection(db, "questionBank"),
     where("academicYear", "==", academicYear),
   );
->>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
   const snapshot = await getDocs(q);
 
@@ -230,18 +157,10 @@ async function getAdminApprovedSpecializations(academicYear) {
      * ONLY ADMIN-ADMINISTERED EXAMS
      */
 
-<<<<<<< HEAD
-    return snapshot.docs.some(
-        docSnapshot =>
-            docSnapshot.data().status ===
-            "administered"
-    );
-=======
     if (data.status === "administered" && data.specialization) {
       approved.add(String(data.specialization).trim());
     }
   });
->>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
   return Array.from(approved).sort();
 }
@@ -273,8 +192,6 @@ async function getStudentResults(user, academicYear) {
 }
 
 /* =========================================================
-<<<<<<< HEAD
-=======
    CALCULATE RECOMMENDATION
 ========================================================= */
 
@@ -342,7 +259,6 @@ function calculateRecommendation(approvedSpecializations, studentResults) {
 }
 
 /* =========================================================
->>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
    LOAD PAGE
 ========================================================= */
 
@@ -488,12 +404,6 @@ async function loadPage(user) {
       return;
     }
 
-<<<<<<< HEAD
-        }
-
-
-        /* =================================================
-=======
     /* =================================================
            GET ADMIN-APPROVED EXAMS
         ================================================= */
@@ -526,88 +436,21 @@ async function loadPage(user) {
     }
 
     /* =================================================
->>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
            GET STUDENT RESULTS
         ================================================= */
 
     const studentResults = await getStudentResults(user, activeAcademicYear);
 
-<<<<<<< HEAD
-
-        /* =================================================
-           HAS THE STUDENT FINISHED THE COMPREHENSIVE EXAM?
-
-           take-exam.js saves ONE Completed result for the
-           whole exam (not one per specialization).
-        ================================================= */
-
-        const hasCompleted =
-            studentResults.some(
-                result =>
-                    result.status === "Completed"
-            );
-=======
     /* =================================================
            CHECK COMPLETED EXAMS
         ================================================= */
 
     const completedSpecializations = new Set();
->>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
     studentResults.forEach((result) => {
       if (result.status === "Completed" && result.specialization) {
         const specialization = String(result.specialization).trim();
 
-<<<<<<< HEAD
-        if (!hasCompleted) {
-
-            /*
-             * Only a student who has NOT finished the exam needs the
-             * Admin's exam to still be administered. A student who
-             * already finished can always choose, even after the
-             * exam period ends and the exam stops automatically.
-             */
-
-            const examAvailable =
-                await hasAdministeredExam(
-                    activeAcademicYear
-                );
-
-
-            if (!examAvailable) {
-
-                selectionContainer.innerHTML = `
-
-                    <div class="selection">
-
-                        <h2>
-                            Specialization Selection Unavailable
-                        </h2>
-
-                        <p>
-                            The Admin has not administered the
-                            examination yet. Please check back later.
-                        </p>
-
-                    </div>
-
-                `;
-
-
-                if (recommendationBox) {
-
-                    recommendationBox.innerHTML = "";
-
-                }
-
-
-                return;
-
-            }
-
-
-            selectionContainer.innerHTML = `
-=======
         if (approvedSpecializations.includes(specialization)) {
           completedSpecializations.add(specialization);
         }
@@ -640,7 +483,6 @@ async function loadPage(user) {
       });
 
       selectionContainer.innerHTML = `
->>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
                 <div class="selection">
 
@@ -687,27 +529,6 @@ async function loadPage(user) {
       return;
     }
 
-<<<<<<< HEAD
-
-            return;
-
-        }
-
-
-        /* =================================================
-           CALCULATE RECOMMENDATION (shared rule engine)
-        ================================================= */
-
-        const stats =
-            buildSpecializationStats(
-                studentResults
-            );
-
-
-        const tagMap =
-            await loadSpecializationTags();
-
-=======
     /* =================================================
            CALCULATE RECOMMENDATION
         ================================================= */
@@ -719,7 +540,6 @@ async function loadPage(user) {
 
     if (!recommended) {
       selectionContainer.innerHTML = `
->>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
         const interest =
             getInterestProfile(
@@ -735,21 +555,6 @@ async function loadPage(user) {
             );
 
 
-<<<<<<< HEAD
-        const recommended =
-            evaluation.status === "recommended"
-                ? evaluation.primary.specialization
-                : "";
-
-
-        /* =================================================
-           DISPLAY RECOMMENDATION
-        ================================================= */
-
-        if (recommendationBox) {
-
-            if (recommended) {
-=======
       return;
     }
 
@@ -758,30 +563,23 @@ async function loadPage(user) {
         ================================================= */
 
     if (recommendationBox) {
-      recommendationBox.innerHTML = `
->>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
+      recommendationBox.innerHTML = `;
 
-                recommendationBox.innerHTML = `
+      recommendationBox.innerHTML = `
 
                     <div class="selection">
 
                         <h2>
                             ${
-                                evaluation.confidence === "Low"
+                              evaluation.confidence === "Low"
                                 ? "Best Relative Fit"
                                 : "Recommended Specialization"
                             }
                         </h2>
 
-<<<<<<< HEAD
-                        <h1 style="color:#2f2fa2;">
-=======
                         ${escapeHTML(recommended)}
->>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
-                            ${escapeHTML(
-                                recommended
-                            )}
+                            ${escapeHTML(recommended)}
 
                         </h1>
 
@@ -789,69 +587,20 @@ async function loadPage(user) {
 
                             Confidence:
                             <strong>
-                                ${escapeHTML(
-                                    evaluation.confidence
-                                )}
+                                ${escapeHTML(evaluation.confidence)}
                             </strong>
                             .
                             This recommendation is based on
                             your completed exam
-                            ${
-                                interest
-                                ? "and your interest assessment"
-                                : ""
-                            }.
+                            ${interest ? "and your interest assessment" : ""}.
                             See the
                             <strong>Specialization Recommendation</strong>
                             page for the full explanation.
 
                         </p>
 
-<<<<<<< HEAD
-                        ${
-                            evaluation.confidence === "Low"
-                            ? `<p>
-                                Your scores were low across all
-                                specializations. Please talk with
-                                your adviser before deciding.
-                               </p>`
-                            : ""
-                        }
-
-                    </div>
-
-                `;
-
-            }
-            else {
-
-                recommendationBox.innerHTML = `
-
-                    <div class="selection">
-
-                        <h2>
-                            No Clear Recommendation
-                        </h2>
-
-                        <p>
-
-                            ${escapeHTML(
-                                evaluation.reasons[0]
-                            )}
-                            Please talk with your adviser
-                            before choosing.
-
-                        </p>
-
-                    </div>
-
-                `;
-
-            }
-=======
             `;
     }
->>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
     /* =================================================
            LOAD SPECIALIZATIONS
@@ -865,18 +614,6 @@ async function loadPage(user) {
                 Choose Your Preferred Specialization
             </h2>
 
-<<<<<<< HEAD
-            ${
-                recommended
-                ? `<p>
-                    Your recommended specialization is:
-                    <strong style="color:#2f2fa2;">
-                        ${escapeHTML(recommended)}
-                    </strong>
-                   </p>`
-                : ""
-            }
-=======
             <p>
 
                 Your recommended specialization is:
@@ -887,7 +624,6 @@ async function loadPage(user) {
                 </strong>
 
             </p>
->>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
             <br>
 
@@ -904,28 +640,7 @@ async function loadPage(user) {
 
       const isRecommended = String(spec).trim() === String(recommended).trim();
 
-<<<<<<< HEAD
-            const spec =
-                data.name;
-
-
-            if (!spec) {
-
-                return;
-
-            }
-
-
-            const isRecommended =
-                recommended &&
-                String(spec).trim() ===
-                String(recommended).trim();
-
-
-            html += `
-=======
       html += `
->>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
                 <button
 
@@ -979,19 +694,6 @@ window.selectSpec = async function (spec) {
   const confirmChoice = confirm(
     `Are you sure you want to choose ${spec}?
 
-<<<<<<< HEAD
-        const confirmChoice =
-            await appConfirm(
-
-                `Are you sure you want to choose ${spec}?\n\n` +
-                `You cannot change it after confirming.`,
-
-                {
-                    title: "Confirm Specialization",
-                    confirmText: "Yes, Choose",
-                    type: "warning"
-                }
-=======
 You cannot change it after confirming.`,
   );
 
@@ -1002,7 +704,6 @@ You cannot change it after confirming.`,
   try {
     await updateDoc(
       doc(db, "users", auth.currentUser.uid),
->>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
       {
         selectedSpecialization: spec,
@@ -1011,66 +712,9 @@ You cannot change it after confirming.`,
 
     alert("Specialization successfully selected.");
 
-<<<<<<< HEAD
-        if (!confirmChoice) {
-
-            return;
-
-        }
-
-
-        try {
-
-            await updateDoc(
-
-                doc(
-                    db,
-                    "users",
-                    auth.currentUser.uid
-                ),
-
-                {
-                    selectedSpecialization:
-                        spec
-                }
-
-            );
-
-
-            await appAlert(
-                "Specialization successfully selected.",
-                {
-                    title: "Specialization Selected",
-                    type: "success"
-                }
-            );
-
-
-            location.reload();
-
-
-        }
-        catch (error) {
-
-            console.error(
-                "Selection error:",
-                error
-            );
-
-
-            await appAlert(
-                "Unable to save your specialization.",
-                { type: "error" }
-            );
-
-        }
-
-    };
-=======
     location.reload();
   } catch (error) {
     console.error("Selection error:", error);
->>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)
 
     alert("Unable to save your specialization.");
   }
@@ -1090,18 +734,4 @@ window.closeLogoutModal = closeLogoutModal;
 
 window.closeLogoutOutside = closeLogoutOutside;
 
-<<<<<<< HEAD
-
-window.closeLogoutModal =
-    closeLogoutModal;
-
-
-window.closeLogoutOutside =
-    closeLogoutOutside;
-
-
-window.performLogout =
-    performLogout;
-=======
 window.performLogout = performLogout;
->>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)

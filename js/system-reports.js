@@ -28,7 +28,7 @@ let studentChoiceSpecializations = [];
 
 onAuthStateChanged(auth, (user) => {
   if (!user) {
-    window.location.replace("../login.html");
+    window.location.replace("../Login.html");
   }
 });
 
@@ -1493,9 +1493,4 @@ window.downloadReport = downloadReport;
 
 window.updateFilters = updateFilters;
 
-<<<<<<< HEAD
-window.updateRoleDependentFilters =
-  updateRoleDependentFilters;
-=======
 window.updateRoleDependentFilters = updateRoleDependentFilters;
->>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)

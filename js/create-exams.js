@@ -159,7 +159,7 @@ function setButtonLoading(
 
 onAuthStateChanged(auth, async (user) => {
     if (!user) {
-        window.location.replace("../login.html");
+        window.location.replace("../Login.html");
         return;
     }
 

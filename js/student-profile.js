@@ -33,7 +33,7 @@ onAuthStateChanged(auth, (user) => {
   currentUser = user;
 
   if (!user) {
-    window.location.replace("../login.html");
+    window.location.replace("../Login.html");
 
     return;
   }
@@ -1122,7 +1122,7 @@ async function performLogout() {
 
     localStorage.clear();
 
-    window.location.replace("../login.html");
+    window.location.replace("../Login.html");
   } catch (error) {
     console.error("Logout error:", error);
 
@@ -1133,7 +1133,7 @@ async function performLogout() {
 /* ================================================= */
 /* EXPORT FUNCTIONS */
 /* ================================================= */
-
+s
 window.toggleProfileMenu = toggleProfileMenu;
 
 window.openProfile = openProfile;
@@ -1172,14 +1172,4 @@ window.closeLogoutModal = closeLogoutModal;
 
 window.closeLogoutOutside = closeLogoutOutside;
 
-<<<<<<< HEAD
-
-window.closeLogoutOutside =
-    closeLogoutOutside;
-
-
-window.performLogout =
-    performLogout;
-=======
 window.performLogout = performLogout;
->>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)

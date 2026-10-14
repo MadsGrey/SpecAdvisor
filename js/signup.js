@@ -330,33 +330,9 @@ window.togglePassword = togglePassword;
 document.addEventListener("DOMContentLoaded", () => {
   const signupBtn = document.getElementById("signupBtn");
 
-<<<<<<< HEAD
-        const signupBtn =
-            document.getElementById(
-                "signupBtn"
-            );
-
-
-        if(signupBtn){
-
-            signupBtn.addEventListener(
-                "click",
-                async () => {
-
-                    await signup();
-
-                }
-            );
-
-        }
-
-    }
-);
-=======
   if (signupBtn) {
     signupBtn.addEventListener("click", async () => {
       await signup();
     });
   }
 });
->>>>>>> 764192a (Updated UI, Updated Login and Signup Page, Fixed Bugs and etc)

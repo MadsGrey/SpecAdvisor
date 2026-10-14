@@ -20,7 +20,7 @@ import {
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
-    window.location.replace("../login.html");
+    window.location.replace("../Login.html");
 
     return;
   }
@@ -348,7 +348,7 @@ async function confirmDashboardLogout() {
 
     localStorage.clear();
 
-    window.location.replace("../login.html");
+    window.location.replace("../Login.html");
   } catch (error) {
     console.error("Logout failed:", error);
 
